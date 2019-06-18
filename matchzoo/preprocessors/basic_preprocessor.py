@@ -16,10 +16,10 @@ class BasicPreprocessor(BasePreprocessor):
     """
     Baisc preprocessor helper.
 
-    :param truncated_length_left: Integer, maximize length of :attr:`left` in the
-        data_pack.
-    :param truncated_length_right: Integer, maximize length of :attr:`right` in the
-        data_pack.
+    :param truncated_length_left: Integer, maximize length of :attr:`left`
+        in the data_pack.
+    :param truncated_length_right: Integer, maximize length of :attr:`right`
+        in the data_pack.
     :param filter_mode: String, mode used by :class:`FrequenceFilterUnit`, Can
         be 'df', 'cf', and 'idf'.
     :param filter_low_freq: Float, lower bound value used by
@@ -54,7 +54,7 @@ class BasicPreprocessor(BasePreprocessor):
 
     """
 
-    def __init__(self, 
+    def __init__(self,
                  truncated_length_left: int = 30,
                  truncated_length_right: int = 30,
                  filter_mode: str = 'df',
@@ -124,7 +124,7 @@ class BasicPreprocessor(BasePreprocessor):
                                 mode='right', inplace=True, verbose=verbose)
         data_pack.apply_on_text(self._context['vocab_unit'].transform,
                                 mode='both', inplace=True, verbose=verbose)
-        
+
         data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
                                 mode='left', inplace=True, verbose=verbose)
         data_pack.apply_on_text(self._right_truncatedlength_unit.transform,

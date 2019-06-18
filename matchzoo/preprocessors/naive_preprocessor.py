@@ -56,7 +56,8 @@ class NaivePreprocessor(BasePreprocessor):
         """
         units_ = self._default_units()
         units_.append(self._context['vocab_unit'])
-        units_.append(units.TruncatedLength(text_length=30, truncate_mode='post'))
+        units_.append(
+            units.TruncatedLength(text_length=30, truncate_mode='post'))
         func = chain_transform(units_)
         data_pack.apply_on_text(func, inplace=True, verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)

@@ -21,10 +21,10 @@ class DIINPreprocessor(BasePreprocessor):
         """
         DIIN Model preprocessor.
 
-        :param truncated_length_left: Integer, maximize length of :attr:'left' in
-            the data_pack.
-        :param truncated_length_right: Integer, maximize length of :attr:'right' in
-            the data_pack.
+        :param truncated_length_left: Integer, maximize length of :attr:
+            'left' in the data_pack.
+        :param truncated_length_right: Integer, maximize length of :attr:
+            'right' in the data_pack.
 
         Example:
             >>> import matchzoo as mz
@@ -126,7 +126,7 @@ class DIINPreprocessor(BasePreprocessor):
 
         # Process exact match representation
         data_pack.relation["match_left"] = ""
-        data_pack.relation["match_right"] = ""        
+        data_pack.relation["match_right"] = ""
         frame = data_pack.relation.join(
             data_pack.left, on='id_left', how='left'
         ).join(data_pack.right, on='id_right', how='left')
@@ -134,8 +134,8 @@ class DIINPreprocessor(BasePreprocessor):
             match='text_left', to_match='text_right')
         right_exactmatch_unit = units.WordExactMatch(
             match='text_right', to_match='text_left')
-        data_pack.relation['match_left'] = frame.apply(    
-            left_exactmatch_unit.transform, axis=1) 
+        data_pack.relation['match_left'] = frame.apply(
+            left_exactmatch_unit.transform, axis=1)
         data_pack.relation['match_right'] = frame.apply(
             right_exactmatch_unit.transform, axis=1)
 

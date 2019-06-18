@@ -50,13 +50,9 @@ class CDSSMPreprocessor(BasePreprocessor):
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
         self._left_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_left,
-            truncate_mode='post'
-        )
+            self._truncated_length_left, truncate_mode='post')
         self._right_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_right,
-            truncate_mode='post'
-        )
+            self._truncated_length_right, truncate_mode='post')
         self._with_word_hashing = with_word_hashing
 
     def fit(self, data_pack: DataPack, verbose: int = 1):
@@ -90,7 +86,7 @@ class CDSSMPreprocessor(BasePreprocessor):
         data_pack = data_pack.copy()
         func = chain_transform(self._default_units())
         data_pack.apply_on_text(func, inplace=True, verbose=verbose)
-      
+
         data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
                                 mode='left', inplace=True, verbose=verbose)
         data_pack.apply_on_text(self._right_truncatedlength_unit.transform,

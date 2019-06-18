@@ -4,9 +4,9 @@ import typing
 from pathlib import Path
 
 import os
-import pandas as pd
 import wget
 import zipfile
+import pandas as pd
 
 import matchzoo
 
@@ -66,20 +66,22 @@ def load_data(
         raise ValueError(f"{task} is not a valid task."
                          f"Must be one of `Ranking` and `Classification`.")
 
+
 def _download_data(stage):
-    target_dir = matchzoo.USER_DATA_DIR.joinpath('snli') 
+    target_dir = matchzoo.USER_DATA_DIR.joinpath('snli')
     zip_path = target_dir.joinpath('snli_1.0.zip')
-    target = target_dir.joinpath('snli_1.0').joinpath(f'snli_1.0_{stage}.txt') 
+    target = target_dir.joinpath('snli_1.0').joinpath(f'snli_1.0_{stage}.txt')
 
     if os.path.exists(target):
         return target
     elif os.path.exists(zip_path):
         return unzip(zip_path, stage)
     else:
-        return unzip(download(_url,target_dir), stage)
+        return unzip(download(_url, target_dir), stage)
+
 
 def unzip(zip_path, stage):
-    dirpath = zip_path.parent   
+    dirpath = zip_path.parent
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
             if "Icon" in name:
@@ -87,12 +89,14 @@ def unzip(zip_path, stage):
             zf.extract(name, dirpath)
     return dirpath.joinpath('snli_1.0').joinpath(f'snli_1.0_{stage}.txt')
 
+
 def download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'snli_1.0.zip')
     wget.download(url, zip_path)
     return Path(zip_path)
+
 
 def _read_data(path):
     table = pd.read_csv(path, sep='\t')
