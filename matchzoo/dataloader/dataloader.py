@@ -51,7 +51,7 @@ class DataLoader(data.DataLoader):
         sort: bool = True,
         callbacks: typing.List[Callback] = None
     ):
-        """"Init."""
+        """Init."""
         if stage not in ('train', 'dev', 'test'):
             raise ValueError(f"{stage} is not a valid stage type."
                              f"Must be one of `train`, `dev`, `test`.")
