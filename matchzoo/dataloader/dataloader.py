@@ -3,7 +3,6 @@ import typing
 
 import math
 import random
-import warnings
 import numpy as np
 import torch
 from torch.utils import data
@@ -57,70 +56,58 @@ class DataLoader(data.DataLoader):
             raise ValueError(f"{stage} is not a valid stage type."
                              f"Must be one of `train`, `dev`, `test`.")
 
-        if device and not isinstance(device, torch.device):
-            warnings.warn('The `device` argument should be a `torch.device` '
-                          'instance. Currently it will be set according to '
-                          'this device.')
+        if device is None or not isinstance(device, torch.device):
             device = torch.device(
                 "cuda:0" if torch.cuda.is_available() else "cpu")
-        elif device is None:
-            warnings.warn('The `device` argument has been set according to '
-                          'this device.')
-            device = torch.device(
-                "cuda:0" if torch.cuda.is_available() else "cpu")
-
-        if shuffle and sort:
-            warnings.warn('The `sort` argument has been set to True, so '
-                          'shuffle=True will be invalid.')
 
         if callbacks is None:
             callbacks = []
 
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.device = device
-        self.stage = stage
-        self.shuffle = shuffle
-        self.resample = resample
-        self.sort = sort
-        self.callbacks = callbacks
+        self._dataset = dataset
+        self._batch_size = batch_size
+        self._device = device
+        self._stage = stage
+        self._shuffle = shuffle
+        self._resample = resample
+        self._sort = sort
+        self._callbacks = callbacks
 
-        self.batch_indices = 0
+        self._batch_indices = 0
 
     def __len__(self) -> int:
         """Get the total number of batches."""
-        return math.ceil(len(self.dataset) / self.batch_size)
+        return math.ceil(len(self._dataset) / self._batch_size)
 
     @property
     def id_left(self) -> np.ndarray:
-        x, _ = self.dataset[:]
+        x, _ = self._dataset[:]
         return x['id_left']
 
     @property
     def label(self) -> np.ndarray:
-        _, y = self.dataset[:]
+        _, y = self._dataset[:]
         return y.squeeze() if y is not None else None
 
     def init_epoch(self):
         """Resample, shuffle or sort the dataset for a new epoch."""
-        if self.resample:
-            self.dataset.sample()
+        if self._resample:
+            self._dataset.sample()
 
-        if self.sort:
-            self.dataset.sort()
-        elif self.shuffle:
-            self.dataset.shuffle()
+        if self._sort:
+            self._dataset.sort()
+        elif self._shuffle:
+            self._dataset.shuffle()
 
-        self.batch_indices = 0
+        self._batch_indices = 0
 
     def __iter__(self) -> typing.Tuple[dict, torch.tensor]:
         self.init_epoch()
-        while self.batch_indices < len(self):
-            low = self.batch_indices * self.batch_size
+        while self._batch_indices < len(self):
+            low = self._batch_indices * self._batch_size
             high = min(
-                (self.batch_indices + 1) * self.batch_size, len(self.dataset))
-            batch = self.dataset[low:high]
-            self.batch_indices += 1
+                (self._batch_indices + 1) * self._batch_size, len(self._dataset))
+            batch = self._dataset[low:high]
+            self._batch_indices += 1
 
             x, y = batch
             batch_x = {}
@@ -128,17 +115,17 @@ class DataLoader(data.DataLoader):
             for key, value in x.items():
                 if key == 'id_left' or key == 'id_right':
                     continue
-                batch_x[key] = torch.Tensor(value.tolist()).to(self.device)
+                batch_x[key] = torch.Tensor(value.tolist()).to(self._device)
 
-            if self.stage == 'test':
+            if self._stage == 'test':
                 yield batch_x, None
             else:
                 if y.dtype == 'int':
-                    batch_y = torch.LongTensor(y.squeeze()).to(self.device)
+                    batch_y = torch.LongTensor(y.squeeze()).to(self._device)
                 else:
-                    batch_y = torch.FloatTensor(y.squeeze()).to(self.device)
+                    batch_y = torch.FloatTensor(y.squeeze()).to(self._device)
                 yield batch_x, batch_y
 
     def _handle_callbacks_on_batch_unpacked(self, x, y):
-        for callback in self.callbacks:
+        for callback in self._callbacks:
             callback.on_batch_unpacked(x, y)

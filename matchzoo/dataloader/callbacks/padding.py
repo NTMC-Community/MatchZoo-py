@@ -42,10 +42,12 @@ class BasicPadding(Callback):
                                        self._pad_value, dtype=value.dtype)
             if self._pad_mode == 'post':
                 for i in range(len(value)):
-                    padded_value[i][:len(value[i])] = value[i]
+                    if len(value[i]) > 0:
+                        padded_value[i][:len(value[i])] = value[i]
             elif self._pad_mode == 'pre':
                 for i in range(len(value)):
-                    padded_value[i][-len(value[i]):] = value[i]
+                    if len(value[i]) > 0:
+                        padded_value[i][-len(value[i]):] = value[i]
             else:
                 raise ValueError('{} is not a vaild '
                                  'pad mode.'.format(self._pad_mode))
@@ -95,10 +97,12 @@ class DRMMPadding(Callback):
 
             if self._pad_mode == 'post':
                 for i in range(len(value)):
-                    padded_value[i][:len(value[i])] = value[i]
+                    if len(value[i]) > 0:
+                        padded_value[i][:len(value[i])] = value[i]
             elif self._pad_mode == 'pre':
                 for i in range(len(value)):
-                    padded_value[i][-len(value[i]):] = value[i]
+                    if len(value[i]) > 0:
+                        padded_value[i][-len(value[i]):] = value[i]
             else:
                 raise ValueError('{} is not a vaild '
                                  'pad mode.'.format(self._pad_mode))
@@ -138,14 +142,16 @@ class CDSSMPadding(Callback):
                 if self._pad_mode == 'post':
                     for i in range(batch_size):
                         left_len = np.array(value[i]).shape[0]
-                        padded_value[i][:left_len][:] = value[i]
+                        if left_len > 0:
+                            padded_value[i][:left_len][:] = value[i]
                         if left_len < max_left_len:
                             padded_value[i, left_len:, self._pad_value] = \
                                 [1] * (max_left_len - left_len)
                 elif self._pad_mode == 'pre':
                     for i in range(batch_size):
                         left_len = np.array(value[i]).shape[0]
-                        padded_value[i][-left_len:][:] = value[i]
+                        if left_len > 0:
+                            padded_value[i][-left_len:][:] = value[i]
                         if left_len < max_left_len:
                             padded_value[i, :-left_len, self._pad_value] = \
                                 [1] * (max_left_len - left_len)
@@ -158,14 +164,16 @@ class CDSSMPadding(Callback):
                 if self._pad_mode == 'post':
                     for i in range(batch_size):
                         right_len = np.array(value[i]).shape[0]
-                        padded_value[i][:right_len][:] = value[i]
+                        if right_len > 0:
+                            padded_value[i][:right_len][:] = value[i]
                         if right_len < max_right_len:
                             padded_value[i, right_len:, self._pad_value] = \
                                 [1] * (max_right_len - right_len)
                 elif self._pad_mode == 'pre':
                     for i in range(batch_size):
                         right_len = np.array(value[i]).shape[0]
-                        padded_value[i][-right_len:][:] = value[i]
+                        if right_len > 0:
+                            padded_value[i][-right_len:][:] = value[i]
                         if right_len < max_right_len:
                             padded_value[i, :-right_len, self._pad_value] = \
                                 [1] * (max_right_len - right_len)
@@ -222,10 +230,12 @@ class DIINPadding(Callback):
                                            self._pad_value, dtype=value.dtype)
                 if self._pad_mode == 'post':
                     for i in range(len(value)):
-                        padded_value[i][:len(value[i])] = value[i]
+                        if len(value[i]) > 0:
+                            padded_value[i][:len(value[i])] = value[i]
                 elif self._pad_mode == 'pre':
                     for i in range(len(value)):
-                        padded_value[i][-len(value[i]):] = value[i]
+                        if len(value) > 0:
+                            padded_value[i][-len(value[i]):] = value[i]
                 else:
                     raise ValueError('{} is not a vaild '
                                      'pad mode.'.format(self._pad_mode))
@@ -243,14 +253,16 @@ class DIINPadding(Callback):
                         text_len = len(value[i])
                         for j in range(text_len):
                             word_len = len(value[i][j])
-                            padded_value[i][j][:word_len] = value[i][j]
+                            if word_len > 0:
+                                padded_value[i][j][:word_len] = value[i][j]
                 elif self._pad_mode == 'pre':
                     for i in range(batch_size):
                         text_len = len(value[i])
                         for j in range(text_len):
                             word_len = len(value[i][j])
-                            padded_value[i][-text_len + j][-word_len:] = \
-                                value[i][j]
+                            if word_len > 0:
+                                padded_value[i][-text_len + j][-word_len:] = \
+                                    value[i][j]
                 else:
                     raise ValueError('{} is not a vaild '
                                      'pad mode.'.format(self._pad_mode))
