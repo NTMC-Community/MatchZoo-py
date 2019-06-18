@@ -405,19 +405,6 @@ class DataPack(object):
         self._apply_on_text_left(func, rename=left_name, verbose=verbose)
         self._apply_on_text_right(func, rename=right_name, verbose=verbose)
 
-    @_optional_inplace
-    def one_hot_encode_label(self, num_classes=2):
-        """
-        One-hot encode `label` column of `relation`.
-
-        :param num_classes: Number of classes.
-        :param inplace: `True` to modify inplace, `False` to return a modified
-            copy. (default: `False`)
-        :return:
-        """
-        self._relation['label'] = self._relation['label'].apply(
-            lambda idx: matchzoo.one_hot(idx, num_classes))
-
     class FrameView(object):
         """FrameView."""
 

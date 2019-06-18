@@ -2,9 +2,10 @@
 
 import typing
 from pathlib import Path
+
+import os
 import wget
 import zipfile
-import os
 import pandas as pd
 
 import matchzoo
@@ -53,31 +54,35 @@ def load_data(
     else:
         raise ValueError(f"{task} is not a valid task.")
 
+
 def _download_data(stage):
-    target_dir = matchzoo.USER_DATA_DIR.joinpath('quora_qp') 
+    target_dir = matchzoo.USER_DATA_DIR.joinpath('quora_qp')
     zip_path = target_dir.joinpath('QQP.zip')
-    target = target_dir.joinpath('QQP').joinpath(f'{stage}.tsv') 
+    target = target_dir.joinpath('QQP').joinpath(f'{stage}.tsv')
 
     if os.path.exists(target):
         return target
     elif os.path.exists(zip_path):
         return unzip(zip_path, stage)
     else:
-        return unzip(download(_url,target_dir), stage)
+        return unzip(download(_url, target_dir), stage)
+
 
 def unzip(zip_path, stage):
-    dirpath = zip_path.parent   
+    dirpath = zip_path.parent
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
             zf.extract(name, dirpath)
     return dirpath.joinpath('QQP').joinpath(f'{stage}.tsv')
 
-def download(url, target_dir): 
+
+def download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'QQP.zip')
     wget.download(url, zip_path)
     return Path(zip_path)
+
 
 def _read_data(path, stage):
     data = pd.read_csv(path, sep='\t', error_bad_lines=False)

@@ -1,16 +1,41 @@
 """A basic class representing a Dataset."""
 import typing
 
-from torch.utils import data
-import numpy as np
 import functools
+import numpy as np
 import pandas as pd
+from torch.utils import data
 
 import matchzoo as mz
 from matchzoo.dataloader.callbacks import Callback
 
 
 class Dataset(data.Dataset):
+    """
+    Dataset that is built from a data pack.
+
+    :param data_pack: DataPack to build the dataset.
+    :param mode: One of "point", "pair", and "list". (default: "point")
+    :param num_dup: Number of duplications per instance, only effective when
+        `mode` is "pair". (default: 1)
+    :param num_neg: Number of negative samples per instance, only effective
+        when `mode` is "pair". (default: 1)
+    :param callbacks: Callbacks. See `matchzoo.data_generator.callbacks` for
+        more details.
+
+    Examples:
+        >>> import matchzoo as mz
+        >>> data_pack = mz.datasets.toy.load_data(stage='train')
+        >>> preprocessor = mz.preprocessors.CDSSMPreprocessor()
+        >>> data_processed = preprocessor.fit_transform(data_pack)
+        >>> dataset_point = mz.dataloader.Dataset(data_processed, mode='point')
+        >>> len(dataset_point)
+        100
+        >>> dataset_pair = mz.dataloader.Dataset(
+        ...     data_processed, mode='pair', num_neg=2)
+        >>> len(dataset_pair)
+        5
+    """
 
     def __init__(
         self,
@@ -27,21 +52,25 @@ class Dataset(data.Dataset):
         if mode not in ('point', 'pair', 'list'):
             raise ValueError(f"{mode} is not a valid mode type."
                              f"Must be one of `point`, `pair` or `list`.")
-        
+
         self._mode = mode
         self._num_dup = num_dup
         self._num_neg = num_neg
         self._orig_relation = data_pack.relation
         self._callbacks = callbacks
-
         self._data_pack = data_pack
         self._index_pool = None
         self.sample()
 
-    def __len__(self): # 一共多少个数据 = number of batches * batch_size
+    def __len__(self) -> int:
+        """Get the total number of instances."""
         return len(self._index_pool)
-      
-    def __getitem__(self, item: int):
+
+    def __getitem__(self, item: int) -> typing.Tuple[dict, np.ndarray]:
+        """Get a set of instances from index idx.
+
+        :param item: the index of the instance.
+        """
         if isinstance(item, slice):
             indices = sum(self._index_pool[item], [])
         else:
@@ -49,9 +78,9 @@ class Dataset(data.Dataset):
         batch_data_pack = self._data_pack[indices]
         self._handle_callbacks_on_batch_data_pack(batch_data_pack)
         x, y = batch_data_pack.unpack()
-        self._handle_callbacks_on_batch_unpacked(x, y)  
-        return x, y     
-  
+        self._handle_callbacks_on_batch_unpacked(x, y)
+        return x, y
+
     def _handle_callbacks_on_batch_data_pack(self, batch_data_pack):
         for callback in self._callbacks:
             callback.on_batch_data_pack(batch_data_pack)
@@ -61,8 +90,13 @@ class Dataset(data.Dataset):
             callback.on_batch_unpacked(x, y)
 
     def get_index_pool(self):
+        """
+        Set the:attr:`_index_pool`.
+
+        Here the :attr:`_index_pool` records the index of all the instances.
+        """
         if self._mode == 'point':
-            num_instances = len(self._data_pack)            
+            num_instances = len(self._data_pack)
             index_pool = np.expand_dims(range(num_instances), axis=1).tolist()
             return index_pool
         elif self._mode == 'pair':
@@ -81,9 +115,10 @@ class Dataset(data.Dataset):
                 f'{self._mode} data generator not implemented.')
         else:
             raise ValueError(f"{self._mode} is not a valid mode type"
-                             f"Must be one of `point`, `pair` or `list`.")            
- 
+                             f"Must be one of `point`, `pair` or `list`.")
+
     def sample(self):
+        """Resample the instances from data pack."""
         if self._mode == 'pair':
             self._data_pack.relation = self._reorganize_pair_wise(
                 relation=self._orig_relation,
@@ -93,15 +128,17 @@ class Dataset(data.Dataset):
         self._index_pool = self.get_index_pool()
 
     def shuffle(self):
+        """Shuffle the instances."""
         np.random.shuffle(self._index_pool)
 
     def sort(self):
+        """Sort the instances by length_right."""
         old_index_pool = self._index_pool
-        max_text_right_length = []
+        max_instance_right_length = []
         for row in range(len(old_index_pool)):
-            text_right_length = self._data_pack[old_index_pool[row]].unpack()[0]['length_right']
-            max_text_right_length.append(max(text_right_length))
-        sort_index = np.argsort(max_text_right_length)
+            instance = self._data_pack[old_index_pool[row]].unpack()[0]
+            max_instance_right_length.append(max(instance['length_right']))
+        sort_index = np.argsort(max_instance_right_length)
 
         self._index_pool = [old_index_pool[index] for index in sort_index]
 
@@ -170,7 +207,7 @@ class Dataset(data.Dataset):
         pairs = []
         groups = relation.sort_values(
             'label', ascending=False).groupby('id_left')
-        for idx, group in groups:
+        for _, group in groups:
             labels = group.label.unique()
             for label in labels[:-1]:
                 pos_samples = group[group.label == label]

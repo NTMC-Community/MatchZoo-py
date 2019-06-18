@@ -71,7 +71,7 @@ class DSSMPreprocessor(BasePreprocessor):
         :param verbose: Verbosity.
 
         :return: Transformed data as :class:`DataPack` object.
-        """       
+        """
         data_pack = data_pack.copy()
         units_ = self._default_units()
         func = chain_transform(units_)
