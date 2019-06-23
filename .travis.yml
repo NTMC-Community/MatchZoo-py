@@ -13,17 +13,14 @@ matrix:
     - os: osx
   include:
     - os: linux
-      dist: trusty
+      dist: xenial
       python: 3.6
     - os: osx
-      language: generic
-      env: PYTHON_VERSION=3.6
-    - os: osx
-      language: generic
-      env: PYTHON_VERSION=3.7
+      osx_image: xcode10.2
+      language: shell
 
 install:
-  - pip3 install -r requirements.txt
+  - pip3 install --progress-bar off -r requirements.txt
   - python3 -m nltk.downloader punkt
   - python3 -m nltk.downloader wordnet
   - python3 -m nltk.downloader stopwords
