@@ -1,0 +1,40 @@
+language: python
+
+cache: pip
+
+sudo: true
+
+env:
+  global:
+    - PYTHONPATH=$PYTHONPATH:$TRAVIS_BUILD_DIR/tests:$TRAVIS_BUILD_DIR/matchzoo
+
+matrix:
+  allow_failures:
+    - os: osx
+  include:
+    - os: linux
+      dist: trusty
+      python: 3.6
+    - os: osx
+      language: generic
+      env: PYTHON_VERSION=3.6
+    - os: osx
+      language: generic
+      env: PYTHON_VERSION=3.7
+
+install:
+  - pip3 install -r requirements.txt
+  - python3 -m nltk.downloader punkt
+  - python3 -m nltk.downloader wordnet
+  - python3 -m nltk.downloader stopwords
+
+script:
+  - stty cols 80
+  - export COLUMNS=80
+  - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then make push; fi
+  - if [ "$TRAVIS_EVENT_TYPE" == "push" ]; then make push; fi
+  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then make cron; fi
+
+
+after_success:
+  - codecov

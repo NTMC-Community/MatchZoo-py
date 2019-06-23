@@ -21,10 +21,11 @@ class Accuracy(ClassificationMetric):
         Calculate accuracy.
 
         Example:
-            >>> y_true = [0, 1]
-            >>> y_pred = [0, 1]
+            >>> import numpy as np
+            >>> y_true = np.array([1])
+            >>> y_pred = np.array([[0, 1]])
             >>> Accuracy()(y_true, y_pred)
-            1
+            1.0
 
         :param y_true: The ground true label of each document.
         :param y_pred: The predicted scores of each document.

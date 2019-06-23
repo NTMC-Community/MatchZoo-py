@@ -26,22 +26,22 @@ def load_glove_embedding(dimension: int = 50) -> mz.embedding.Embedding:
     if not os.path.exists(file_path):
         zip_path = glove_dir.joinpath('glove.6B.zip')
         if os.path.exists(zip_path):
-            unzip(zip_path)
+            _unzip(zip_path)
         else:
-            unzip(download(_glove_embedding_url, glove_dir))
+            _unzip(_download(_glove_embedding_url, glove_dir))
     return mz.embedding.load_from_file(file_path=str(file_path), mode='glove')
 
 
-def unzip(filepath):
+def _unzip(filepath):
     dirpath = filepath.parent
     with zipfile.ZipFile(filepath) as zf:
         for name in zf.namelist():
             zf.extract(name, dirpath)
 
 
-def download(url, target_dir):
+def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     filepath = os.path.join(target_dir, 'glove.6B.zip')
-    wget.download(url, filepath)
+    wget._download(url, filepath)
     return Path(filepath)

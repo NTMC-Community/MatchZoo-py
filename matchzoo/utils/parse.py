@@ -199,16 +199,16 @@ def parse_metric(
         >>> from matchzoo.utils import parse_metric
 
     Use `str` as MatchZoo metrics:
-        >>> mz_metric = parse_metric('map')
+        >>> mz_metric = parse_metric('map', tasks.Ranking())
         >>> type(mz_metric)
         <class 'matchzoo.metrics.mean_average_precision.MeanAveragePrecision'>
 
     Use :class:`matchzoo.engine.BaseMetric` subclasses as MatchZoo metrics:
-        >>> type(parse_metric(metrics.AveragePrecision))
+        >>> type(parse_metric(metrics.AveragePrecision, tasks.Ranking()))
         <class 'matchzoo.metrics.average_precision.AveragePrecision'>
 
     Use :class:`matchzoo.engine.BaseMetric` instances as MatchZoo metrics:
-        >>> type(parse_metric(metrics.AveragePrecision()))
+        >>> type(parse_metric(metrics.AveragePrecision(), tasks.Ranking()))
         <class 'matchzoo.metrics.average_precision.AveragePrecision'>
 
     """

@@ -11,7 +11,7 @@ import pandas as pd
 
 import matchzoo
 
-_url = "https://download.microsoft.com/download/E/5/F/" \
+_url = "https://_download.microsoft.com/_download/E/5/F/" \
        "E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"
 
 
@@ -79,12 +79,12 @@ def _download_data(stage):
     if os.path.exists(target):
         return target
     elif os.path.exists(zip_path):
-        return unzip(zip_path, stage)
+        return _unzip(zip_path, stage)
     else:
-        return unzip(download(_url, target_dir), stage)
+        return _unzip(_download(_url, target_dir), stage)
 
 
-def unzip(zip_path, stage):
+def _unzip(zip_path, stage):
     dirpath = zip_path.parent
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
@@ -92,11 +92,11 @@ def unzip(zip_path, stage):
     return dirpath.joinpath('WikiQACorpus').joinpath(f'WikiQA-{stage}.tsv')
 
 
-def download(url, target_dir):
+def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'wikiqa.zip')
-    wget.download(url, zip_path)
+    wget._download(url, zip_path)
     return Path(zip_path)
 
 

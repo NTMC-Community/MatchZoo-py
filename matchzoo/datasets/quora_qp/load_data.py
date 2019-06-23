@@ -23,7 +23,7 @@ def load_data(
     """
     Load QuoraQP data.
 
-    :param path: `None` for download from quora, specific path for
+    :param path: `None` for _download from quora, specific path for
         downloaded data.
     :param stage: One of `train`, `dev`, and `test`.
     :param task: Could be one of `ranking`, `classification` or a
@@ -63,12 +63,12 @@ def _download_data(stage):
     if os.path.exists(target):
         return target
     elif os.path.exists(zip_path):
-        return unzip(zip_path, stage)
+        return _unzip(zip_path, stage)
     else:
-        return unzip(download(_url, target_dir), stage)
+        return _unzip(_download(_url, target_dir), stage)
 
 
-def unzip(zip_path, stage):
+def _unzip(zip_path, stage):
     dirpath = zip_path.parent
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
@@ -76,16 +76,16 @@ def unzip(zip_path, stage):
     return dirpath.joinpath('QQP').joinpath(f'{stage}.tsv')
 
 
-def download(url, target_dir):
+def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'QQP.zip')
-    wget.download(url, zip_path)
+    wget._download(url, zip_path)
     return Path(zip_path)
 
 
 def _read_data(path, stage):
-    data = pd.read_csv(path, sep='\t', error_bad_lines=False)
+    data = pd.read_csv(path, sep='\t', error_bad_lines=False, dtype=object)
     data = data.dropna(axis=0, how='any').reset_index(drop=True)
     if stage in ['train', 'dev']:
         df = pd.DataFrame({

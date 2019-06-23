@@ -21,17 +21,17 @@ class WordExactMatch(Unit):
         ... )
         >>> left_out = input_.apply(left_word_exact_match.transform, axis=1)
         >>> left_out[0]
-        [0.0, 1.0, 1.0]
+        [0, 1, 1]
         >>> left_out[1]
-        [0.0, 1.0, 0.0, 0.0]
+        [0, 1, 0, 0]
         >>> right_word_exact_match = WordExactMatch(
         ...     match='text_right', to_match='text_left'
         ... )
         >>> right_out = input_.apply(right_word_exact_match.transform, axis=1)
         >>> right_out[0]
-        [0.0, 1.0, 1.0, 0.0]
+        [0, 1, 1, 0]
         >>> right_out[1]
-        [0.0, 0.0, 1.0]
+        [0, 0, 1]
 
     """
 

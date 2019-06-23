@@ -73,7 +73,11 @@ class DRMMPadding(Callback):
         self._pad_mode = pad_mode
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
-        """Pad `x['text_left']`, `x['text_right]` and `x['match_histogram']`"""
+        """
+        Padding.
+
+        Pad `x['text_left']`, `x['text_right]` and `x['match_histogram']`.
+        """
         batch_size = len(x['id_left'])
 
         max_left_len = max(x['length_left'])
@@ -205,6 +209,8 @@ class DIINPadding(Callback):
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """
+        Pading.
+
         Pad `x['text_left']`, `x['text_right]`,
             `x['char_left']`, `x['char_right]`,
             `x['match_left']`, `x['match_right]`.

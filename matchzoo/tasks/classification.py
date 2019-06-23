@@ -8,7 +8,7 @@ class Classification(BaseTask):
 
     Examples:
         >>> classification_task = Classification(num_classes=2)
-        >>> classification_task.metrics = ['precision']
+        >>> classification_task.metrics = ['acc']
         >>> classification_task.num_classes
         2
         >>> classification_task.output_shape
