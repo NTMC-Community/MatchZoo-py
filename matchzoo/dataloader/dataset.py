@@ -35,6 +35,7 @@ class Dataset(data.Dataset):
         ...     data_processed, mode='pair', num_neg=2)
         >>> len(dataset_pair)
         5
+
     """
 
     def __init__(
@@ -45,7 +46,7 @@ class Dataset(data.Dataset):
         num_neg: int = 1,
         callbacks: typing.List[Callback] = None
     ):
-        """"Init."""
+        """Init."""
         if callbacks is None:
             callbacks = []
 
@@ -194,6 +195,7 @@ class Dataset(data.Dataset):
 
     @property
     def index_pool(self):
+        """`index_pool` getter."""
         return self._index_pool
 
     @classmethod

@@ -75,12 +75,12 @@ def _download_data(stage):
     if os.path.exists(target):
         return target
     elif os.path.exists(zip_path):
-        return unzip(zip_path, stage)
+        return _unzip(zip_path, stage)
     else:
-        return unzip(download(_url, target_dir), stage)
+        return _unzip(_download(_url, target_dir), stage)
 
 
-def unzip(zip_path, stage):
+def _unzip(zip_path, stage):
     dirpath = zip_path.parent
     with zipfile.ZipFile(zip_path) as zf:
         for name in zf.namelist():
@@ -90,11 +90,11 @@ def unzip(zip_path, stage):
     return dirpath.joinpath('snli_1.0').joinpath(f'snli_1.0_{stage}.txt')
 
 
-def download(url, target_dir):
+def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'snli_1.0.zip')
-    wget.download(url, zip_path)
+    wget._download(url, zip_path)
     return Path(zip_path)
 
 

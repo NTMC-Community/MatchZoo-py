@@ -42,4 +42,4 @@ class AveragePrecision(RankingMetric):
         out = [metric(y_true, y_pred) for metric in precision_metrics]
         if not out:
             return 0.
-        return np.asscalar(np.mean(out))
+        return np.mean(out).item()

@@ -122,12 +122,9 @@ class ParamTable(object):
         Example:
 
             >>> import matchzoo
-            >>> model = matchzoo.models.Naive()
+            >>> model = matchzoo.models.DenseBaseline()
             >>> model.params.completed()
             False
-            >>> model.guess_and_fill_missing_params(verbose=0)
-            >>> model.params.completed()
-            True
 
         """
         return all(param for param in self)
@@ -155,13 +152,9 @@ class ParamTable(object):
         Example:
             >>> import matchzoo as mz
             >>> model = mz.models.DenseBaseline()
-            >>> model.params['input_shapes'] is None
-            True
             >>> prpr = model.get_default_preprocessor()
             >>> _ = prpr.fit(mz.datasets.toy.load_data(), verbose=0)
             >>> model.params.update(prpr.context)
-            >>> model.params['input_shapes']
-            [(30,), (30,)]
 
         """
         for key in other:

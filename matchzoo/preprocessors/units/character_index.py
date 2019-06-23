@@ -21,7 +21,7 @@ class CharacterIndex(Unit):
         ...      '<PAD>': 0, '<OOV>': 1, 'a': 2, 'n': 3, 'e':4, '#':5})
         >>> index = character_index.transform(input_)
         >>> index
-        [[5.0, 2.0, 5.0], [5.0, 1.0, 3.0, 4.0, 5.0]]
+        [[5, 2, 5], [5, 1, 3, 4, 5]]
 
     """
 
@@ -48,6 +48,8 @@ class CharacterIndex(Unit):
         """
         idx = []
         for i in range(len(input_)):
-            current = [self._char_index.get(input_[i][j], 1) for j in range(len(input_[i]))]
+            current = [
+                self._char_index.get(input_[i][j], 1)
+                for j in range(len(input_[i]))]
             idx.append(current)
         return idx

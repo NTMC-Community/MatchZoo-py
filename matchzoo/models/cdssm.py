@@ -22,12 +22,13 @@ class CDSSM(BaseModel):
     Information Retrieval. (2014b)
 
     Examples:
+        >>> import matchzoo as mz
         >>> model = CDSSM()
-        >>> model.params['optimizer'] = 'adam'
+        >>> model.params['task'] = mz.tasks.Ranking()
+        >>> model.params['vocab_size'] = 4
         >>> model.params['filters'] =  32
         >>> model.params['kernel_size'] = 3
         >>> model.params['conv_activation_func'] = 'relu'
-        >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
 
     """
@@ -129,8 +130,6 @@ class CDSSM(BaseModel):
 
         :param verbose: Verbosity.
         """
-        self._params.get('input_shapes').set_default([(10, 30),
-                                                      (10, 30)], verbose)
         super().guess_and_fill_missing_params(verbose)
 
 

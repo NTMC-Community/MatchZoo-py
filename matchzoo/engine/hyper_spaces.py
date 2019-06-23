@@ -208,9 +208,9 @@ def sample(space):
 
     Example:
         >>> import matchzoo as mz
-        >>> space = mz.models.Naive.get_default_params().hyper_space
+        >>> space = mz.models.DenseBaseline.get_default_params().hyper_space
         >>> mz.hyper_spaces.sample(space)  # doctest: +ELLIPSIS
-        {'optimizer': ...}
+        {'mlp_num_fan_out': ...}
 
     """
     return hyperopt.pyll.stochastic.sample(space)

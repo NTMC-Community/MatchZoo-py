@@ -37,6 +37,8 @@ class BaseModel(nn.Module, abc.ABC):
         >>> class MyModel(BaseModel):
         ...     def build(self):
         ...         pass
+        ...     def forward(self):
+        ...         pass
         >>> isinstance(MyModel(), BaseModel)
         True
 
@@ -67,6 +69,8 @@ class BaseModel(nn.Module, abc.ABC):
             ...     def build(self):
             ...         print(self._params['num_eggs'], 'eggs')
             ...         print('and', self._params['ham_type'])
+            ...     def forward(self, greeting):
+            ...         print(greeting)
             ...
             ...     @classmethod
             ...     def get_default_params(cls):
@@ -78,6 +82,8 @@ class BaseModel(nn.Module, abc.ABC):
             >>> my_model.build()
             512 eggs
             and Parma Ham
+            >>> my_model('Hello MatchZoo!')
+            Hello MatchZoo!
 
         Notice that all parameters must be serialisable for the entire model
         to be serialisable. Therefore, it's strongly recommended to use python

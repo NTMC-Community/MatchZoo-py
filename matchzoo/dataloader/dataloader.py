@@ -1,4 +1,4 @@
-""""Basic data loader."""
+"""Basic data loader."""
 import typing
 
 import math
@@ -38,6 +38,7 @@ class DataLoader(data.DataLoader):
         ...     dataset, stage='train', callbacks=[padding_callback])
         >>> len(dataloader)
         4
+
     """
 
     def __init__(
@@ -80,11 +81,13 @@ class DataLoader(data.DataLoader):
 
     @property
     def id_left(self) -> np.ndarray:
+        """`id_left` getter."""
         x, _ = self._dataset[:]
         return x['id_left']
 
     @property
     def label(self) -> np.ndarray:
+        """`label` getter."""
         _, y = self._dataset[:]
         return y.squeeze() if y is not None else None
 
@@ -101,11 +104,14 @@ class DataLoader(data.DataLoader):
         self._batch_indices = 0
 
     def __iter__(self) -> typing.Tuple[dict, torch.tensor]:
+        """Iteration."""
         self.init_epoch()
         while self._batch_indices < len(self):
             low = self._batch_indices * self._batch_size
             high = min(
-                (self._batch_indices + 1) * self._batch_size, len(self._dataset))
+                (self._batch_indices + 1) * self._batch_size,
+                len(self._dataset)
+            )
             batch = self._dataset[low:high]
             self._batch_indices += 1
 
