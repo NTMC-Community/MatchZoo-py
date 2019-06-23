@@ -11,7 +11,7 @@ import pandas as pd
 
 import matchzoo
 
-_url = "https://_download.microsoft.com/_download/E/5/F/" \
+_url = "https://download.microsoft.com/download/E/5/F/" \
        "E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"
 
 

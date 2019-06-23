@@ -209,7 +209,7 @@ class DIINPadding(Callback):
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """
-        Pading.
+        Padding.
 
         Pad `x['text_left']`, `x['text_right]`,
             `x['char_left']`, `x['char_right]`,
