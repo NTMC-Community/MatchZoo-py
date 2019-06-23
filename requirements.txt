@@ -1,6 +1,7 @@
 torch >= 1.1.0
 torchvision >= 0.3.0
 tabulate >= 0.8.2
+wget >= 3.2
 nltk >= 3.2.3
 numpy >= 1.14
 tqdm >= 4.19.4
