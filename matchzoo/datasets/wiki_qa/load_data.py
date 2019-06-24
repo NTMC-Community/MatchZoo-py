@@ -96,7 +96,7 @@ def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     zip_path = os.path.join(target_dir, 'wikiqa.zip')
-    wget._download(url, zip_path)
+    wget.download(url, zip_path)
     return Path(zip_path)
 
 

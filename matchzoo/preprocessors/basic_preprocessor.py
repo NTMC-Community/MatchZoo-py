@@ -16,11 +16,13 @@ class BasicPreprocessor(BasePreprocessor):
     """
     Baisc preprocessor helper.
 
+    :param truncated_mode: String, mode used by :class:`TruncatedLength`.
+        Can be 'pre' or 'post'.
     :param truncated_length_left: Integer, maximize length of :attr:`left`
         in the data_pack.
     :param truncated_length_right: Integer, maximize length of :attr:`right`
         in the data_pack.
-    :param filter_mode: String, mode used by :class:`FrequenceFilterUnit`, Can
+    :param filter_mode: String, mode used by :class:`FrequenceFilterUnit`. Can
         be 'df', 'cf', and 'idf'.
     :param filter_low_freq: Float, lower bound value used by
         :class:`FrequenceFilterUnit`.
@@ -55,6 +57,7 @@ class BasicPreprocessor(BasePreprocessor):
     """
 
     def __init__(self,
+                 truncated_mode: str = 'pre',
                  truncated_length_left: int = 30,
                  truncated_length_right: int = 30,
                  filter_mode: str = 'df',
@@ -63,13 +66,14 @@ class BasicPreprocessor(BasePreprocessor):
                  remove_stop_words: bool = False):
         """Initialization."""
         super().__init__()
+        self._truncated_mode = truncated_mode
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
         self._left_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_left
+            self._truncated_length_left, self._truncated_mode
         )
         self._right_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_right
+            self._truncated_length_right, self._truncated_mode
         )
         self._filter_unit = units.FrequencyFilter(
             low=filter_low_freq,

@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
+from matchzoo.dataloader import callbacks
 from matchzoo import preprocessors
 from matchzoo.utils import TensorType, parse_activation
 
@@ -61,6 +62,16 @@ class CDSSM(BaseModel):
         params.add(Param(name='dropout_rate', value=0.3,
                          desc="The dropout rate."))
         return params
+
+    @classmethod
+    def get_default_preprocessor(cls):
+        """:return: Default preprocessor."""
+        return preprocessors.CDSSMPreprocessor()
+
+    @classmethod
+    def get_default_padding_callback(cls):
+        """:return: Default padding callback."""
+        return callbacks.CDSSMPadding()
 
     def _create_base_network(self) -> nn.Module:
         """

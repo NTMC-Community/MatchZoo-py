@@ -10,6 +10,7 @@ import torch.nn as nn
 
 import matchzoo
 from matchzoo.utils import parse_activation
+from matchzoo.dataloader.callbacks import Callback
 from matchzoo.engine import hyper_spaces
 from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine.param_table import ParamTable
@@ -185,13 +186,23 @@ class BaseModel(nn.Module, abc.ABC):
         Model default preprocessor.
 
         The preprocessor's transform should produce a correctly shaped data
-        pack that can be used for training. Some extra configuration (e.g.
-        setting `input_shapes` in :class:`matchzoo.models.DSSMModel` may be
-        required on the user's end.
+        pack that can be used for training.
 
         :return: Default preprocessor.
         """
         return matchzoo.preprocessors.BasicPreprocessor()
+
+    @classmethod
+    def get_default_padding_callback(cls) -> Callback:
+        """
+        Model default padding callback.
+
+        The padding callback's on_batch_unpacked would pad a batch of data to
+        a fixed length.
+
+        :return: Default padding callback.
+        """
+        return matchzoo.dataloader.callbacks.BasicPadding()
 
     @property
     def params(self) -> ParamTable:

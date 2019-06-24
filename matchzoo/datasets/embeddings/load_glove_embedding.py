@@ -43,5 +43,5 @@ def _download(url, target_dir):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
     filepath = os.path.join(target_dir, 'glove.6B.zip')
-    wget._download(url, filepath)
+    wget.download(url, filepath)
     return Path(filepath)

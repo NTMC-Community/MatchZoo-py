@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
+from matchzoo.dataloader import callbacks
 from matchzoo import preprocessors
 
 
@@ -30,6 +31,16 @@ class DSSM(BaseModel):
         params.add(Param(name='vocab_size', value=4,
                          desc="Size of vocabulary."))
         return params
+
+    @classmethod
+    def get_default_preprocessor(cls):
+        """:return: Default preprocessor."""
+        return preprocessors.DSSMPreprocessor()
+
+    @classmethod
+    def get_default_padding_callback(cls):
+        """:return: Default padding callback."""
+        return None
 
     def build(self):
         """

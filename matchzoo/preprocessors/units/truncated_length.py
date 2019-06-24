@@ -46,7 +46,7 @@ class TruncatedLength(Unit):
         :return tokens: list of tokenized tokens in fixed length
             if its origin length larger than :attr:`text_length`.
         """
-        if len(input_) < self._text_length:
+        if len(input_) <= self._text_length:
             truncated_tokens = input_
         else:
             if self._truncate_mode == 'pre':

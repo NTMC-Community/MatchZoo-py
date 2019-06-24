@@ -50,7 +50,7 @@ class DataLoader(data.DataLoader):
         resample: bool = True,
         shuffle: bool = False,
         sort: bool = True,
-        callbacks: typing.List[Callback] = None
+        callbacks: Callback = None
     ):
         """Init."""
         if stage not in ('train', 'dev', 'test'):
@@ -60,9 +60,6 @@ class DataLoader(data.DataLoader):
         if device is None or not isinstance(device, torch.device):
             device = torch.device(
                 "cuda:0" if torch.cuda.is_available() else "cpu")
-
-        if callbacks is None:
-            callbacks = []
 
         self._dataset = dataset
         self._batch_size = batch_size
@@ -133,5 +130,5 @@ class DataLoader(data.DataLoader):
                 yield batch_x, batch_y
 
     def _handle_callbacks_on_batch_unpacked(self, x, y):
-        for callback in self._callbacks:
-            callback.on_batch_unpacked(x, y)
+        if self._callbacks is not None:
+            self._callbacks.on_batch_unpacked(x, y)
