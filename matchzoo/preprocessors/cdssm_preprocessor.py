@@ -15,6 +15,7 @@ class CDSSMPreprocessor(BasePreprocessor):
     """CDSSM Model preprocessor."""
 
     def __init__(self,
+                 truncated_mode: str = 'pre',
                  truncated_length_left: int = 10,
                  truncated_length_right: int = 40,
                  with_word_hashing: bool = True):
@@ -47,12 +48,13 @@ class CDSSMPreprocessor(BasePreprocessor):
 
         """
         super().__init__()
+        self._truncated_mode = truncated_mode
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
         self._left_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_left, truncate_mode='post')
+            self._truncated_length_left, self._truncated_mode)
         self._right_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_right, truncate_mode='post')
+            self._truncated_length_right, self._truncated_mode)
         self._with_word_hashing = with_word_hashing
 
     def fit(self, data_pack: DataPack, verbose: int = 1):

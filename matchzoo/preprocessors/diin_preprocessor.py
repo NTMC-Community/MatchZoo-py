@@ -16,11 +16,14 @@ class DIINPreprocessor(BasePreprocessor):
     """DIIN Model preprocessor."""
 
     def __init__(self,
+                 truncated_mode: str = 'pre',
                  truncated_length_left: int = 30,
                  truncated_length_right: int = 50):
         """
         DIIN Model preprocessor.
 
+        :param truncated_mode: String, mode used by :class:`TruncatedLength`.
+            Can be 'pre' or 'post'.
         :param truncated_length_left: Integer, maximize length of :attr:
             'left' in the data_pack.
         :param truncated_length_right: Integer, maximize length of :attr:
@@ -49,15 +52,16 @@ class DIINPreprocessor(BasePreprocessor):
 
         """
         super().__init__()
+        self._truncated_mode = truncated_mode
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
         self._left_truncatedlength_unit = units.TruncatedLength(
             self._truncated_length_left,
-            truncate_mode='post'
+            self._truncated_mode
         )
         self._right_truncatedlength_unit = units.TruncatedLength(
             self._truncated_length_right,
-            truncate_mode='post'
+            self._truncated_mode
         )
         self._units = self._default_units()
 
