@@ -198,7 +198,7 @@ class BaseModel(nn.Module, abc.ABC):
         Model default padding callback.
 
         The padding callback's on_batch_unpacked would pad a batch of data to
-        fixed length.
+        a fixed length.
 
         :return: Default padding callback.
         """
