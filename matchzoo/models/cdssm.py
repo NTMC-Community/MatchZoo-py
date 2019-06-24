@@ -141,7 +141,7 @@ class CDSSM(BaseModel):
 
         :param verbose: Verbosity.
         """
-        super().guess_and_fill_missing_params(verbose)   
+        super().guess_and_fill_missing_params(verbose)
 
 
 class Squeeze(nn.Module):
