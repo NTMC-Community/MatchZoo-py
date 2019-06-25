@@ -7,7 +7,7 @@ import pandas as pd
 from torch.utils import data
 
 import matchzoo as mz
-from matchzoo.dataloader.callbacks import Callback
+from matchzoo.engine.callback import BaseCallback
 
 
 class Dataset(data.Dataset):
@@ -44,7 +44,7 @@ class Dataset(data.Dataset):
         mode='point',
         num_dup: int = 1,
         num_neg: int = 1,
-        callbacks: typing.List[Callback] = None
+        callbacks: typing.List[BaseCallback] = None
     ):
         """Init."""
         if callbacks is None:

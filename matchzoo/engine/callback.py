@@ -1,9 +1,12 @@
+"""Base callback."""
+import abc
+
 import numpy as np
 
 import matchzoo as mz
 
 
-class Callback(object):
+class BaseCallback(abc.ABC):
     """
     DataGenerator callback base class.
 
@@ -27,6 +30,7 @@ class Callback(object):
         :param data_pack: a sliced DataPack before unpacking.
         """
 
+    @abc.abstractmethod
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """
         `on_batch_unpacked`.

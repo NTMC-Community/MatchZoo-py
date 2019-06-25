@@ -1,9 +1,9 @@
 import numpy as np
 
-from matchzoo.dataloader.callbacks import Callback
+from matchzoo.engine import callback
 
 
-class DynamicPooling(Callback):
+class DynamicPooling(callback.BaseCallback):
     """:class:`DPoolPairDataGenerator` constructor.
 
     :param fixed_length_left: max length of left text.
