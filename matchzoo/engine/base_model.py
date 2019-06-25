@@ -10,7 +10,7 @@ import torch.nn as nn
 
 import matchzoo
 from matchzoo.utils import parse_activation
-from matchzoo.dataloader.callbacks import Callback
+from matchzoo.engine.callback import BaseCallback
 from matchzoo.engine import hyper_spaces
 from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine.param_table import ParamTable
@@ -193,7 +193,7 @@ class BaseModel(nn.Module, abc.ABC):
         return matchzoo.preprocessors.BasicPreprocessor()
 
     @classmethod
-    def get_default_padding_callback(cls) -> Callback:
+    def get_default_padding_callback(cls) -> BaseCallback:
         """
         Model default padding callback.
 

@@ -1,11 +1,11 @@
-from matchzoo.dataloader.callbacks.callback import Callback
+from matchzoo.engine import callback
 
 
-class LambdaCallback(Callback):
+class LambdaCallback(callback.BaseCallback):
     """
     LambdaCallback. Just a shorthand for creating a callback class.
 
-    See :class:`matchzoo.dataloader.callbacks.Callback` for more details.
+    See :class:`matchzoo.engine.callback.BaseCallback` for more details.
 
     Example:
 

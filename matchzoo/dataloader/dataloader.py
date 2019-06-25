@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils import data
 
-from matchzoo.dataloader.callbacks import Callback
+from matchzoo.engine.callback import BaseCallback
 
 
 class DataLoader(data.DataLoader):
@@ -24,8 +24,8 @@ class DataLoader(data.DataLoader):
     :param shuffle: Whether to shuffle data between epochs. (default: `False`)
     :param sort: Whether to sort data according to length_right. (default:
         `True`)
-    :param callbacks: Callbacks. See `matchzoo.dataloader.callbacks` for more
-        details.
+    :param callbacks: BaseCallback. See `matchzoo.engine.callback.BaseCallback`
+        for more details.
 
     Examples:
         >>> import matchzoo as mz
@@ -50,7 +50,7 @@ class DataLoader(data.DataLoader):
         resample: bool = True,
         shuffle: bool = False,
         sort: bool = True,
-        callbacks: Callback = None
+        callbacks: BaseCallback = None
     ):
         """Init."""
         if stage not in ('train', 'dev', 'test'):

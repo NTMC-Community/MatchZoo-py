@@ -2,10 +2,10 @@ import typing
 
 import numpy as np
 
-from matchzoo.dataloader.callbacks import Callback
+from matchzoo.engine import callback
 
 
-class BasicPadding(Callback):
+class BasicPadding(callback.BaseCallback):
     """
     Padding data for basic preprocessor.
 
@@ -54,7 +54,7 @@ class BasicPadding(Callback):
             x[key] = padded_value
 
 
-class DRMMPadding(Callback):
+class DRMMPadding(callback.BaseCallback):
     """
     Pad data for DRMM Model.
 
@@ -113,7 +113,7 @@ class DRMMPadding(Callback):
             x[key] = padded_value
 
 
-class CDSSMPadding(Callback):
+class CDSSMPadding(callback.BaseCallback):
     """
     Pad data for cdssm preprocessor.
 
@@ -189,7 +189,7 @@ class CDSSMPadding(Callback):
             x[key] = padded_value
 
 
-class DIINPadding(Callback):
+class DIINPadding(callback.BaseCallback):
     """
     Pad data for diin preprocessor.
 
