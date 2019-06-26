@@ -7,7 +7,7 @@ import pandas as pd
 from torch.utils import data
 
 import matchzoo as mz
-from matchzoo.engine.callback import BaseCallback
+from matchzoo.engine.base_callback import BaseCallback
 
 
 class Dataset(data.Dataset):

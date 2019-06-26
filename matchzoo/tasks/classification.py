@@ -20,6 +20,8 @@ class Classification(BaseTask):
 
     """
 
+    TYPE = 'classification'
+
     def __init__(self, num_classes: int = 2, **kwargs):
         """Classification task."""
         super().__init__(**kwargs)

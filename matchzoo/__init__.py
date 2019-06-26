@@ -19,6 +19,7 @@ from . import dataloader
 
 from .preprocessors.chain_transform import chain_transform
 
+from . import auto
 from . import tasks
 from . import metrics
 from . import losses

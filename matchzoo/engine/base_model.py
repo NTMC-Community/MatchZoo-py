@@ -10,7 +10,7 @@ import torch.nn as nn
 
 import matchzoo
 from matchzoo.utils import parse_activation
-from matchzoo.engine.callback import BaseCallback
+from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.engine import hyper_spaces
 from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine.param_table import ParamTable

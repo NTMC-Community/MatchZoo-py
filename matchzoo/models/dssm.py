@@ -28,7 +28,7 @@ class DSSM(BaseModel):
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""
         params = super().get_default_params(with_multi_layer_perceptron=True)
-        params.add(Param(name='vocab_size', value=4,
+        params.add(Param(name='vocab_size', value=379,
                          desc="Size of vocabulary."))
         return params
 
