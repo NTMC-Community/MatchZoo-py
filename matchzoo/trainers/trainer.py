@@ -48,6 +48,8 @@ class Trainer:
         Should be a file-like object (has to implement read, readline,
         tell, and seek), or a string containing a file name.
     :param save_dir: Directory to save trainer.
+    :param save_all: Bool. If True, save `Trainer` instance; If False,
+        only save model. Defaults to False.
     :param verbose: 0, 1, or 2. Verbosity mode. 0 = silent,
         1 = verbose, 2 = one log line per epoch.
     """
@@ -68,6 +70,7 @@ class Trainer:
         data_parallel: bool = True,
         checkpoint: typing.Union[str, Path] = None,
         save_dir: typing.Union[str, Path] = None,
+        save_all: bool = False,
         verbose: int = 1,
         **kwargs
     ):
@@ -90,8 +93,9 @@ class Trainer:
         self._epochs = epochs
         self._iteration = 0
         self._verbose = verbose
+        self._save_all = save_all
 
-        self._load_path(save_dir, checkpoint)
+        self._load_path(checkpoint, save_dir)
 
     def _load_dataloader(
         self,
@@ -156,8 +160,8 @@ class Trainer:
 
     def _load_path(
         self,
+        checkpoint: typing.Union[str, Path],
         save_dir: typing.Union[str, Path],
-        checkpoint: typing.Union[str, Path]
     ):
         """
         Load save_dir and Restore from checkpoint.
@@ -167,6 +171,7 @@ class Trainer:
             Should be a file-like object (has to implement read, readline,
             tell, and seek), or a string containing a file name.
         :param save_dir: Directory to save trainer.
+
         """
         if save_dir:
             self._save_dir = Path(save_dir)
@@ -176,14 +181,19 @@ class Trainer:
                 save_dir.mkdir(parents=True)
             self._save_dir = save_dir
         # Restore from checkpoint
+
         if checkpoint:
-            self.restore(checkpoint)
+            if self._save_all:
+                self.restore(checkpoint)
+            else:
+                self.restore_model(checkpoint)
 
     def _backward(self, loss):
         """
         Computes the gradient of current `loss` graph leaves.
 
         :param loss: Tensor. Loss of model.
+
         """
         self._optimizer.zero_grad()
         loss.backward()
@@ -214,7 +224,8 @@ class Trainer:
             self._run_scheduler()
             if self._early_stopping.should_stop_early:
                 break
-        tqdm.write(f'Cost time: {timer.time}s')
+        if self._verbose:
+            tqdm.write(f'Cost time: {timer.time}s')
 
     def _run_epoch(self):
         """
@@ -226,6 +237,7 @@ class Trainer:
             - Loss backwards and optimizer steps
             - Evaluation
             - Update and output result
+
         """
         # Get total number of batch
         num_batch = len(self.trainloader)
@@ -258,11 +270,11 @@ class Trainer:
                     # Early stopping
                     self._early_stopping.update(result)
                     if self._early_stopping.should_stop_early:
-                        self.save()
+                        self._save()
                         pbar.write('Ran out of patience. Stop training...')
                         break
                     elif self._early_stopping.is_best_so_far:
-                        self.save()
+                        self._save()
 
     def evaluate(
         self,
@@ -272,6 +284,7 @@ class Trainer:
         Evaluate the model.
 
         :param dataloader: A DataLoader object to iterate over the data.
+
         """
         result = dict()
         y_pred = self.predict(dataloader)
@@ -306,6 +319,7 @@ class Trainer:
         :param y_true: Labels of dataset.
         :param y_pred: Outputs of model.
         :return: Evaluation result.
+
         """
         eval_df = pd.DataFrame(data={
             'id': id_left,
@@ -339,18 +353,42 @@ class Trainer:
             self._model.train()
             return torch.cat(predictions, dim=0).numpy()
 
-    def save(self):
+    def _save(self, checkpoint: typing.Union[str, Path] = None):
+        """Save."""
+        if self._save_all:
+            self.save(checkpoint)
+        else:
+            self.save_model(checkpoint)
+
+    def save_model(self, checkpoint: typing.Union[str, Path] = None):
+        """
+        Save the model.
+
+        :param save_dir: Path to save trainer.
+
+        """
+        best_so_far = self._early_stopping.best_so_far
+        if not checkpoint:
+            checkpoint = self._save_dir.joinpath(
+                f'model-epoch_{self._epoch}-best_{best_so_far:.4f}.pt'
+            )
+        torch.save(self._model.state_dict(), checkpoint)
+
+    def save(self, checkpoint: typing.Union[str, Path] = None):
         """
         Save the trainer.
 
         `Trainer` parameters like epoch, best_so_far, model, optimizer
         and early_stopping will be savad to specific file path.
 
+        :param path: Path to save trainer.
+
         """
         best_so_far = self._early_stopping.best_so_far
-        path = self._save_dir.joinpath(
-            f'trainer-epoch_{self._epoch}-best_{best_so_far:.4f}.pt'
-        )
+        if not checkpoint:
+            checkpoint = self._save_dir.joinpath(
+                f'trainer-epoch_{self._epoch}-best_{best_so_far:.4f}.pt'
+            )
         state = {
             'epoch': self._epoch,
             'model': self._model.state_dict(),
@@ -359,16 +397,22 @@ class Trainer:
         }
         if self._scheduler:
             state['scheduler'] = self._scheduler.state_dict()
-        torch.save(state, path)
+        torch.save(state, checkpoint)
 
-    def restore(self, checkpoint: typing.Union[str, typing.Any]):
+    def restore_model(self, checkpoint: typing.Union[str, Path]):
+        """
+        Restore model.
+
+        :param checkpoint: A checkpoint from which to continue training.
+
+        """
+        self._model.load_state_dict(torch.load(checkpoint))
+
+    def restore(self, checkpoint: typing.Union[str, Path] = None):
         """
         Restore trainer.
 
         :param checkpoint: A checkpoint from which to continue training.
-            If None, training starts from scratch. Defaults to None.
-            Should be a file-like object (has to implement read, readline,
-            tell, and seek), or a string containing a file name.
 
         """
         state = torch.load(checkpoint)

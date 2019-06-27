@@ -1,5 +1,7 @@
 import torch
 import pytest
+from pathlib import Path
+import shutil
 
 import matchzoo as mz
 
@@ -71,37 +73,36 @@ def scheduler(optimizer):
 
 
 @pytest.fixture(scope='module')
-def validate_interval():
-    return 5
-
-
-@pytest.fixture(scope='module')
-def patience():
-    return 1
-
-
-@pytest.fixture(scope='module')
-def clip_norm():
-    return 10
-
-
-@pytest.mark.slow
-def test_trainer(
-    model, optimizer, dataloader, scheduler,
-    validate_interval, patience, clip_norm
+def trainer(
+    model, optimizer, dataloader, scheduler
 ):
-    trainer = mz.trainers.Trainer(
+    return mz.trainers.Trainer(
         model=model,
         optimizer=optimizer,
         trainloader=dataloader,
         validloader=dataloader,
-        epochs=3,
-        validate_interval=validate_interval,
-        patience=patience,
+        epochs=4,
+        validate_interval=2,
+        patience=1,
         scheduler=scheduler,
-        clip_norm=clip_norm,
-        verbose=0
+        clip_norm=10,
+        save_all=True,
+        verbose=1,
     )
+
+
+@pytest.mark.slow
+def test_trainer(trainer, dataloader):
     trainer.run()
     assert trainer.evaluate(dataloader)
     assert trainer.predict(dataloader) is not None
+
+    # Save model
+    model_checkpoint = 'matchzoo_model_checkpoint.pt'
+    trainer.save_model(model_checkpoint)
+    trainer.restore_model(model_checkpoint)
+
+    # Save model
+    trainer_checkpoint = 'matchzoo_trainer_checkpoint.pt'
+    trainer.save(trainer_checkpoint)
+    trainer.restore(trainer_checkpoint)
