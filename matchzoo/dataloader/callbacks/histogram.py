@@ -1,10 +1,10 @@
 import numpy as np
 
 import matchzoo as mz
-from matchzoo.engine import callback
+from matchzoo.engine.base_callback import BaseCallback
 
 
-class Histogram(callback.BaseCallback):
+class Histogram(BaseCallback):
     """
     Generate data with matching histogram.
 

@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils import data
 
-from matchzoo.engine.callback import BaseCallback
+from matchzoo.engine.base_callback import BaseCallback
 
 
 class DataLoader(data.DataLoader):
@@ -24,8 +24,8 @@ class DataLoader(data.DataLoader):
     :param shuffle: Whether to shuffle data between epochs. (default: `False`)
     :param sort: Whether to sort data according to length_right. (default:
         `True`)
-    :param callbacks: BaseCallback. See `matchzoo.engine.callback.BaseCallback`
-        for more details.
+    :param callback: BaseCallback. See
+        `matchzoo.engine.base_callback.BaseCallback` for more details.
 
     Examples:
         >>> import matchzoo as mz
@@ -35,7 +35,7 @@ class DataLoader(data.DataLoader):
         >>> dataset = mz.dataloader.Dataset(data_processed, mode='point')
         >>> padding_callback = mz.dataloader.callbacks.CDSSMPadding()
         >>> dataloader = mz.dataloader.DataLoader(
-        ...     dataset, stage='train', callbacks=[padding_callback])
+        ...     dataset, stage='train', callback=padding_callback)
         >>> len(dataloader)
         4
 
@@ -50,7 +50,7 @@ class DataLoader(data.DataLoader):
         resample: bool = True,
         shuffle: bool = False,
         sort: bool = True,
-        callbacks: BaseCallback = None
+        callback: BaseCallback = None
     ):
         """Init."""
         if stage not in ('train', 'dev', 'test'):
@@ -68,7 +68,7 @@ class DataLoader(data.DataLoader):
         self._shuffle = shuffle
         self._resample = resample
         self._sort = sort
-        self._callbacks = callbacks
+        self._callback = callback
 
         self._batch_indices = 0
 
@@ -130,5 +130,5 @@ class DataLoader(data.DataLoader):
                 yield batch_x, batch_y
 
     def _handle_callbacks_on_batch_unpacked(self, x, y):
-        if self._callbacks is not None:
-            self._callbacks.on_batch_unpacked(x, y)
+        if self._callback is not None:
+            self._callback.on_batch_unpacked(x, y)

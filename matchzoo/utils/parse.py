@@ -4,8 +4,6 @@ import torch
 from torch import nn
 
 import matchzoo
-from matchzoo import tasks
-from matchzoo.engine import base_task
 from matchzoo.engine.base_metric import (
     BaseMetric, RankingMetric, ClassificationMetric
 )
@@ -126,7 +124,7 @@ def parse_activation(
 
 def parse_loss(
     identifier: typing.Union[str, typing.Type[nn.Module], nn.Module],
-    task: 'base_task.BaseTask' = None
+    task: typing.Optional[str] = None
 ) -> nn.Module:
     """
     Retrieves a torch Module instance.
@@ -135,6 +133,7 @@ def parse_loss(
             - String: name of a loss
             - Torch Module subclass
             - Torch Module instance (it will be returned unchanged).
+    :param task: Task type for determining specific loss.
     :return: A :class:`nn.Module` instance
 
     Examples::
@@ -185,7 +184,7 @@ def _parse_metric(
 
 def parse_metric(
     metric: typing.Union[str, typing.Type[BaseMetric], BaseMetric],
-    task: 'base_task.BaseTask' = None
+    task: str
 ) -> BaseMetric:
     """
     Parse input metric in any form into a :class:`BaseMetric` instance.
@@ -199,26 +198,26 @@ def parse_metric(
         >>> from matchzoo.utils import parse_metric
 
     Use `str` as MatchZoo metrics:
-        >>> mz_metric = parse_metric('map', tasks.Ranking())
+        >>> mz_metric = parse_metric('map', 'ranking')
         >>> type(mz_metric)
         <class 'matchzoo.metrics.mean_average_precision.MeanAveragePrecision'>
 
     Use :class:`matchzoo.engine.BaseMetric` subclasses as MatchZoo metrics:
-        >>> type(parse_metric(metrics.AveragePrecision, tasks.Ranking()))
+        >>> type(parse_metric(metrics.AveragePrecision, 'ranking'))
         <class 'matchzoo.metrics.average_precision.AveragePrecision'>
 
     Use :class:`matchzoo.engine.BaseMetric` instances as MatchZoo metrics:
-        >>> type(parse_metric(metrics.AveragePrecision(), tasks.Ranking()))
+        >>> type(parse_metric(metrics.AveragePrecision(), 'ranking'))
         <class 'matchzoo.metrics.average_precision.AveragePrecision'>
 
     """
-    if task is None and not isinstance(task, base_task.BaseTask):
+    if task is None:
         raise ValueError(
             'Should specify one `BaseTask`.'
         )
-    if isinstance(task, tasks.Ranking):
+    if task == 'ranking':
         return _parse_metric(metric, RankingMetric)
-    if isinstance(task, tasks.Classification):
+    if task == 'classification':
         return _parse_metric(metric, ClassificationMetric)
     else:
         raise ValueError(

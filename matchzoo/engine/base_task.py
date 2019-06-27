@@ -13,6 +13,8 @@ from matchzoo.utils import parse_metric, parse_loss
 class BaseTask(abc.ABC):
     """Base Task, shouldn't be used directly."""
 
+    TYPE = 'base'
+
     def __init__(self, losses=None, metrics=None):
         """
         Base task constructor.
@@ -31,7 +33,8 @@ class BaseTask(abc.ABC):
         elif not isinstance(identifiers, list):
             identifiers = [identifiers]
         return [
-            parse(identifier, self) for identifier in identifiers
+            parse(identifier, self.__class__.TYPE)
+            for identifier in identifiers
         ]
 
     def _assure_losses(self):

@@ -40,9 +40,9 @@ class CDSSM(BaseModel):
         # set :attr:`with_multi_layer_perceptron` to False to support
         # user-defined variable dense layer units
         params = super().get_default_params(with_multi_layer_perceptron=True)
-        params.add(Param(name='vocab_size', value=4,
+        params.add(Param(name='vocab_size', value=379,
                          desc="Size of vocabulary."))
-        params.add(Param(name='filters', value=4,
+        params.add(Param(name='filters', value=3,
                          desc="Number of filters in the 1D convolution "
                               "layer."))
         params.add(Param(name='kernel_size', value=3,

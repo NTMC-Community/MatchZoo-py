@@ -18,6 +18,8 @@ class Ranking(base_task.BaseTask):
 
     """
 
+    TYPE = 'ranking'
+
     @classmethod
     def list_available_losses(cls) -> list:
         """:return: a list of available losses."""
