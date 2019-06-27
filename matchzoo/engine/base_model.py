@@ -281,7 +281,7 @@ class BaseModel(nn.Module, abc.ABC):
         if isinstance(task, tasks.Classification):
             return nn.Sequential(
                 nn.Linear(in_features, task.num_classes),
-                nn.Softmax()
+                nn.Softmax(dim=-1)
             )
         elif isinstance(task, tasks.Ranking):
             return nn.Sequential(
