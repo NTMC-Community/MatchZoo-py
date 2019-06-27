@@ -1,8 +1,5 @@
 import torch
 import pytest
-import copy
-from pathlib import Path
-import shutil
 
 import matchzoo as mz
 

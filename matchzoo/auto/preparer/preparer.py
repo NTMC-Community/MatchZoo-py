@@ -68,13 +68,6 @@ class Preparer(object):
 
         self._infer_num_neg()
 
-    def prepare_model(
-        self,
-        model_class: typing.Type[BaseModel],
-        embedding: typing.Optional['mz.Embedding'] = None
-    ) -> BaseModel:
-        """Prepare model."""
-
     def prepare(
         self,
         model_class: typing.Type[BaseModel],
