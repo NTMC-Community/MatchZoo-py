@@ -185,6 +185,14 @@ class Preparer(object):
             )
             builder_kwargs['callbacks'].append(hashing_callback)
 
+        if isinstance(model, mz.models.DRMM):
+            histo_callback = mz.dataloader.callbacks.Histogram(
+                embedding_matrix=embedding_matrix,
+                bin_size=self._config['bin_size'],
+                hist_mode=self._config['hist_mode']
+            )
+            builder_kwargs['callbacks'].append(histo_callback)
+
         return DatasetBuilder(**builder_kwargs)
 
     def _build_dataloader_builder(self, model, callback):

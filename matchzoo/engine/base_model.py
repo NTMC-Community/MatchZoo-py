@@ -122,9 +122,9 @@ class BaseModel(nn.Module, abc.ABC):
                 desc='Should be set manually.'
             ))
             params.add(Param(
-                name='embedding_trainable', value=True,
-                desc='`True` to enable embedding layer training, '
-                     '`False` to freeze embedding parameters.'
+                name='embedding_freeze', value=False,
+                desc='`True` to freeze embedding layer training, '
+                     '`False` to enable embedding parameters.'
             ))
         if with_multi_layer_perceptron:
             params.add(Param(
@@ -240,9 +240,7 @@ class BaseModel(nn.Module, abc.ABC):
         **kwargs
     ) -> nn.Module:
         """:return: an embedding module."""
-        if not embedding and isinstance(
-            self._params['embedding'], np.ndarray
-        ):
+        if isinstance(embedding, np.ndarray):
             return nn.Embedding.from_pretrained(
                 embeddings=torch.Tensor(embedding),
                 freeze=freeze
@@ -267,7 +265,7 @@ class BaseModel(nn.Module, abc.ABC):
             )
             return nn.Embedding.from_pretrained(
                 embeddings=torch.Tensor(self._params['embedding']),
-                freeze=self._params['embedding_trainable']
+                freeze=self._params['embedding_freeze']
             )
         else:
             return nn.Embedding(
