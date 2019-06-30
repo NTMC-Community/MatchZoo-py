@@ -1,4 +1,6 @@
 """An implementation of DSSM, Deep Structured Semantic Model."""
+import typing
+
 import torch
 import torch.nn.functional as F
 
