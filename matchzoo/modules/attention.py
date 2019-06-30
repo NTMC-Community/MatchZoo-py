@@ -11,7 +11,7 @@ class Attention(nn.Module):
     Attention module.
 
     :param input_size: Size of input
-    :param mask: A int to mask the invalid values. Defaults to 0.
+    :param mask: An integer to mask the invalid values. Defaults to 0.
 
     Examples:
         >>> import torch

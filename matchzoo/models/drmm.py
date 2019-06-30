@@ -29,8 +29,10 @@ class DRMM(BaseModel):
     @classmethod
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""
-        params = super().get_default_params(with_embedding=True,
-                                            with_multi_layer_perceptron=True)
+        params = super().get_default_params(
+            with_embedding=True,
+            with_multi_layer_perceptron=True
+        )
         params.add(Param(name='mask_value', value=0,
                          desc="The value to be masked from inputs."))
         params.add(Param(name='hist_bin_size', value=30,
@@ -51,7 +53,8 @@ class DRMM(BaseModel):
         """
         self.embedding = self._make_default_embedding_layer()
         self.attention = Attention(
-            self._params['embedding_output_dim']
+            input_size=self._params['embedding_output_dim'],
+            mask=self._params['mask_value']
         )
         self.mlp = self._make_multi_layer_perceptron_layer(
             self._params['hist_bin_size']
