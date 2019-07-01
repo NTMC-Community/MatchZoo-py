@@ -339,7 +339,7 @@ class DIINPadding(BaseCallback):
             `x['match_left']`, `x['match_right]`.
         """
         pad_length_left = 0
-		pad_length_right = 0
+        pad_length_right = 0
         pad_length_word_left = 0
         pad_length_word_right = 0
 
