@@ -2,6 +2,7 @@ from .dense_baseline import DenseBaseline
 from .dssm import DSSM
 from .cdssm import CDSSM
 from .drmm import DRMM
+from .drmmtks import DRMMTKS
 
 def list_available() -> list:
     from matchzoo.engine.base_model import BaseModel
