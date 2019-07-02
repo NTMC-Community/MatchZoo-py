@@ -57,8 +57,6 @@ class CDSSM(BaseModel):
         params.add(Param(name='conv_activation_func', value='relu',
                          desc="Activation function in the convolution"
                               " layer."))
-        params.add(Param(name='w_initializer', value='glorot_normal'))
-        params.add(Param(name='b_initializer', value='zeros'))
         params.add(Param(name='dropout_rate', value=0.3,
                          desc="The dropout rate."))
         return params
@@ -149,4 +147,4 @@ class Squeeze(nn.Module):
 
     def forward(self, x):
         """Forward."""
-        return x.squeeze()
+        return x.squeeze(dim=-1)

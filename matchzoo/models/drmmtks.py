@@ -46,11 +46,7 @@ class DRMMTKS(BaseModel):
         return params
 
     def build(self):
-        """
-        Build model structure.
-
-        DSSM use Siamese arthitecture.
-        """
+        """Build model structure."""
         self.embedding = self._make_default_embedding_layer()
         self.attention = Attention(
             input_size=self._params['embedding_output_dim'],
@@ -101,7 +97,7 @@ class DRMMTKS(BaseModel):
         attention_probs = self.attention(embed_query)
 
         # shape = [B, L]
-        dense_output = self.mlp(matching_topk).squeeze()
+        dense_output = self.mlp(matching_topk).squeeze(dim=-1)
 
         x = torch.einsum('bl,bl->b', dense_output, attention_probs)
 

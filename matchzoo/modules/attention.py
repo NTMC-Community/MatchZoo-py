@@ -32,7 +32,7 @@ class Attention(nn.Module):
 
     def forward(self, x):
         """Perform attention on the input."""
-        x = self.linear(x).squeeze()
+        x = self.linear(x).squeeze(dim=-1)
         mask = (x != self.mask)
         x = x.masked_fill(mask == self.mask, -float('inf'))
         return F.softmax(x, dim=-1)
