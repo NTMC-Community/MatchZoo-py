@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -108,22 +108,24 @@ class Trainer:
 
         :param trainloader: A :class`DataLoader` instance. The dataloader
             is used to train the model.
+        :param validloader: A :class`DataLoader` instance. The dataloader
+            is used to validate the model.
         :param validate_interval: int. Interval of validation.
         """
         if not isinstance(trainloader, DataLoader):
             raise ValueError(
                 'trainloader should be a `DataLoader` instance.'
             )
-        if not isinstance(trainloader, DataLoader):
+        if not isinstance(validloader, DataLoader):
             raise ValueError(
                 'validloader should be a `DataLoader` instance.'
             )
-        self.trainloader = trainloader
-        self.validloader = validloader
+        self._trainloader = trainloader
+        self._validloader = validloader
         if not validate_interval:
-            self.validate_interval = len(self.trainloader)
+            self._validate_interval = len(self._trainloader)
         else:
-            self.validate_interval = validate_interval
+            self._validate_interval = validate_interval
 
     def _load_model(
         self,
@@ -151,9 +153,9 @@ class Trainer:
             device = torch.device(
                 'cuda:0' if torch.cuda.is_available() else 'cpu'
             )
-        self.device = device
-        self._model = model.to(self.device)
-        if (('cuda' in str(self.device)) and (
+        self._device = device
+        self._model = model.to(self._device)
+        if (('cuda' in str(self._device)) and (
                 torch.cuda.device_count() > 1) and (
                     data_parallel is True)):
             self._model = torch.nn.DataParallel(self._model)
@@ -240,9 +242,9 @@ class Trainer:
 
         """
         # Get total number of batch
-        num_batch = len(self.trainloader)
+        num_batch = len(self._trainloader)
         train_loss = AverageMeter()
-        with tqdm(enumerate(self.trainloader), total=num_batch) as pbar:
+        with tqdm(enumerate(self._trainloader), total=num_batch) as pbar:
             for step, (inputs, target) in pbar:
                 outputs = self._model(inputs)
                 # Caculate all losses and sum them up
@@ -258,12 +260,12 @@ class Trainer:
 
                 # Run validate
                 self._iteration += 1
-                if self._iteration % self.validate_interval == 0:
-                    pbar.update()
+                if self._iteration % self._validate_interval == 0:
+                    pbar.update(1)
                     pbar.write(
                         f'[Iter-{self._iteration} '
                         f'Loss-{train_loss.avg:.3f}]:')
-                    result = self.evaluate(self.validloader)
+                    result = self.evaluate(self._validloader)
                     if self._verbose:
                         pbar.write('  Validation: ' + ' - '.join(
                             f'{k}: {round(v, 4)}' for k, v in result.items()))
