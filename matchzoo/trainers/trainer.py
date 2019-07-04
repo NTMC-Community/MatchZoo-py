@@ -180,7 +180,7 @@ class Trainer:
         if not Path(save_dir).exists():
             Path(save_dir).mkdir(parents=True)
 
-        self._save_dir = save_dir
+        self._save_dir = Path(save_dir)
         # Restore from checkpoint
 
         if checkpoint:
