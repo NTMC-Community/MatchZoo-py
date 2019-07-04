@@ -1,6 +1,7 @@
 import torch
 import pytest
 from pathlib import Path
+import shutil
 
 import matchzoo as mz
 
@@ -72,8 +73,13 @@ def scheduler(optimizer):
 
 
 @pytest.fixture(scope='module')
+def save_dir():
+    return Path('.matchzoo_test_save_load_tmpdir')
+
+
+@pytest.fixture(scope='module')
 def trainer(
-    model, optimizer, dataloader, scheduler
+    model, optimizer, dataloader, scheduler, save_dir
 ):
     return mz.trainers.Trainer(
         model=model,
@@ -85,23 +91,27 @@ def trainer(
         patience=1,
         scheduler=scheduler,
         clip_norm=10,
+        save_dir=save_dir,
         save_all=True,
         verbose=1,
     )
 
 
 @pytest.mark.slow
-def test_trainer(trainer, dataloader):
+def test_trainer(trainer, dataloader, save_dir):
     trainer.run()
     assert trainer.evaluate(dataloader)
     assert trainer.predict(dataloader) is not None
 
     # Save model
-    model_checkpoint = 'matchzoo_model_checkpoint.pt'
+    model_checkpoint = save_dir.joinpath('matchzoo_model_checkpoint.pt')
     trainer.save_model(model_checkpoint)
     trainer.restore_model(model_checkpoint)
 
     # Save model
-    trainer_checkpoint = 'matchzoo_trainer_checkpoint.pt'
+    trainer_checkpoint = save_dir.joinpath('matchzoo_trainer_checkpoint.pt')
     trainer.save(trainer_checkpoint)
     trainer.restore(trainer_checkpoint)
+
+    if save_dir.exists():
+        shutil.rmtree(save_dir)

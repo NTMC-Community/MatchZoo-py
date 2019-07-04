@@ -80,7 +80,6 @@ class Trainer:
             trainloader, validloader, validate_interval
         )
 
-        self._task = self._model.params['task']
         self._optimizer = optimizer
         self._scheduler = scheduler
         self._clip_norm = clip_norm
@@ -154,6 +153,7 @@ class Trainer:
                 'cuda:0' if torch.cuda.is_available() else 'cpu'
             )
         self._device = device
+        self._task = model.params['task']
         self._model = model.to(self._device)
         if (('cuda' in str(self._device)) and (
                 torch.cuda.device_count() > 1) and (
@@ -175,13 +175,12 @@ class Trainer:
         :param save_dir: Directory to save trainer.
 
         """
-        if save_dir:
-            self._save_dir = Path(save_dir)
-        else:
+        if not save_dir:
             save_dir = Path('.').joinpath('save')
-            if not save_dir.exists():
-                save_dir.mkdir(parents=True)
-            self._save_dir = save_dir
+        if not Path(save_dir).exists():
+            Path(save_dir).mkdir(parents=True)
+
+        self._save_dir = Path(save_dir)
         # Restore from checkpoint
 
         if checkpoint:

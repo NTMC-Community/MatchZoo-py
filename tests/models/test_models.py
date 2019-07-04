@@ -4,6 +4,8 @@ run, making CI fails as it reaches the time limit.
 """
 import torch
 import pytest
+from pathlib import Path
+import shutil
 
 import matchzoo as mz
 
@@ -72,14 +74,23 @@ def optimizer(model):
     return torch.optim.Adam(model.parameters())
 
 
+@pytest.fixture(scope='module')
+def save_dir():
+    return Path('.matchzoo_test_save_load_tmpdir')
+
+
 @pytest.mark.slow
-def test_model_fit_eval_predict(model, optimizer, dataloader):
+def test_model_fit_eval_predict(model, optimizer, dataloader, save_dir):
     trainer = mz.trainers.Trainer(
         model=model,
         optimizer=optimizer,
         trainloader=dataloader,
         validloader=dataloader,
         epochs=2,
+        save_dir=save_dir,
         verbose=0
     )
     trainer.run()
+
+    if save_dir.exists():
+        shutil.rmtree(save_dir)
