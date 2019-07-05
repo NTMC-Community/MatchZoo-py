@@ -13,13 +13,20 @@ class StackedBRNN(nn.Module):
 
     Examples:
         >>> import torch
-        >>> rnn = StackedBRNN(10, 10, 2, concat_layers=True)
+        >>> rnn = StackedBRNN(
+        ...     input_size=10,
+        ...     hidden_size=10,
+        ...     num_layers=2,
+        ...     dropout_rate=0.2,
+        ...     dropout_output=True,
+        ...     concat_layers=False
+        ... )
         >>> x = torch.randn(2, 5, 10)
         >>> x.size()
         torch.Size([2, 5, 10])
         >>> x_mask = (torch.ones(2, 5) == 1)
         >>> rnn(x, x_mask).shape
-        torch.Size([2, 5, 40])
+        torch.Size([2, 5, 20])
 
     """
 
