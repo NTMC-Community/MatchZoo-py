@@ -5,3 +5,4 @@ from .parse import parse_loss, parse_activation, parse_metric
 from .average_meter import AverageMeter
 from .timer import Timer
 from .early_stopping import EarlyStopping
+from .get_file import get_file

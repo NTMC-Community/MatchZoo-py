@@ -1,12 +1,9 @@
 """WikiQA data loader."""
 
 import typing
+import csv
 from pathlib import Path
 
-import os
-import csv
-import wget
-import zipfile
 import pandas as pd
 
 import matchzoo
@@ -38,8 +35,8 @@ def load_data(
         raise ValueError(f"{stage} is not a valid stage."
                          f"Must be one of `train`, `dev`, and `test`.")
 
-    file_path = _download_data(stage)
-    data_root = file_path.parent
+    data_root = _download_data()
+    file_path = data_root.joinpath(f'WikiQA-{stage}.tsv')
     data_pack = _read_data(file_path)
     if filtered and stage in ('dev', 'test'):
         ref_path = data_root.joinpath(f'WikiQA-{stage}.ref')
@@ -70,34 +67,13 @@ def load_data(
                          f"Must be one of `Ranking` and `Classification`.")
 
 
-def _download_data(stage):
-    target_dir = matchzoo.USER_DATA_DIR.joinpath('wiki_qa')
-    zip_path = target_dir.joinpath('wikiqa.zip')
-    target = target_dir.joinpath(
-        'WikiQACorpus').joinpath(f'WikiQA-{stage}.tsv')
-
-    if os.path.exists(target):
-        return target
-    elif os.path.exists(zip_path):
-        return _unzip(zip_path, stage)
-    else:
-        return _unzip(_download(_url, target_dir), stage)
-
-
-def _unzip(zip_path, stage):
-    dirpath = zip_path.parent
-    with zipfile.ZipFile(zip_path) as zf:
-        for name in zf.namelist():
-            zf.extract(name, dirpath)
-    return dirpath.joinpath('WikiQACorpus').joinpath(f'WikiQA-{stage}.tsv')
-
-
-def _download(url, target_dir):
-    if not os.path.exists(target_dir):
-        os.mkdir(target_dir)
-    zip_path = os.path.join(target_dir, 'wikiqa.zip')
-    wget.download(url, zip_path)
-    return Path(zip_path)
+def _download_data():
+    ref_path = matchzoo.utils.get_file(
+        'wikiqa', _url, extract=True,
+        cache_dir=matchzoo.USER_DATA_DIR,
+        cache_subdir='wiki_qa'
+    )
+    return Path(ref_path).parent.joinpath('WikiQACorpus')
 
 
 def _read_data(path):
