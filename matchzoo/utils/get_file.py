@@ -170,6 +170,7 @@ class Progbar(object):
         self._last_update = now
 
     def add(self, n, values=None):
+        """Add `_seen_so_far` and update the progress bar."""
         self.update(self._seen_so_far + n, values)
 
 
@@ -177,6 +178,7 @@ if sys.version_info[0] == 2:
     def urlretrieve(url, filename, reporthook=None, data=None):
         """
         Replacement for `urlretrive` for Python 2.
+
         Under Python 2, `urlretrieve` relies on `FancyURLopener` from legacy
         `urllib` module, known to have issues with proxy management.
 
