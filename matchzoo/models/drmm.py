@@ -43,7 +43,7 @@ class DRMM(BaseModel):
     @classmethod
     def get_default_padding_callback(cls):
         """:return: Default padding callback."""
-        return callbacks.DRMMPadding()
+        return callbacks.BasicPadding()
 
     def build(self):
         """Build model structure."""

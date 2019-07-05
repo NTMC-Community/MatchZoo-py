@@ -19,7 +19,6 @@ activation = nn.ModuleDict([
     ['logsoftmax', nn.LogSoftmax()],
     ['elu', nn.ELU()],
     ['selu', nn.SELU()],
-    ['celu', nn.CELU()],
     ['hardshrink', nn.Hardshrink()],
     ['leakyrelu', nn.LeakyReLU()],
     ['logsigmoid', nn.LogSigmoid()],

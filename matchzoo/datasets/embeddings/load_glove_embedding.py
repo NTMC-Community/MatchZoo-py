@@ -20,11 +20,11 @@ def load_glove_embedding(dimension: int = 50) -> mz.embedding.Embedding:
     :return: The :class:`mz.embedding.Embedding` object.
     """
     glove_dir = mz.USER_DATA_DIR.joinpath('glove')
-    file_name = 'glove.6B.' + str(dimension) + 'd.txt'
+    file_name = 'glove.840B.' + str(dimension) + 'd.txt'
     file_path = glove_dir.joinpath(file_name)
 
     if not os.path.exists(file_path):
-        zip_path = glove_dir.joinpath('glove.6B.zip')
+        zip_path = glove_dir.joinpath('glove.840B.zip')
         if os.path.exists(zip_path):
             _unzip(zip_path)
         else:
