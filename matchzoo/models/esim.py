@@ -28,17 +28,17 @@ class ESIM(BaseModel):
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""
         params = super().get_default_params(
-                with_embedding=True,
-                with_multi_layer_perceptron=False
-                )
+            with_embedding=True,
+            with_multi_layer_perceptron=False
+        )
         params.add(Param(name='mask_value', value=0,
-                        desc="The value to be masked from inputs."))
+                         desc="The value to be masked from inputs."))
         params.add(Param(name='dropout', value=0.2,
-                        desc="Dropout rate."))
+                         desc="Dropout rate."))
         params.add(Param(name='hidden_size', value=200,
-                        desc="Hidden size."))
+                         desc="Hidden size."))
         params.add(Param(name='lstm_layer', value=1,
-                        desc="Number of LSTM layers"))
+                         desc="Number of LSTM layers"))
         return params
 
     @classmethod
@@ -50,33 +50,41 @@ class ESIM(BaseModel):
         """Instantiating layers."""
         self.embedding = self._make_default_embedding_layer()
         self.rnn_dropout = RNNDropout(p=self._params['dropout'])
-        self.input_encoding = StackedBRNN(self._params['embedding_output_dim'],
-                                    int(self._params['hidden_size'] / 2 / self._params['lstm_layer']),
-                                    self._params['lstm_layer'],
-                                    dropout_rate=0,
-                                    dropout_output=False,
-                                    rnn_type=nn.LSTM,
-                                    concat_layers=True,
-                                    padding=False)
+        lstm_size = self._params['hidden_size'] / self._params['lstm_layer']
+        self.input_encoding = StackedBRNN(
+            self._params['embedding_output_dim'],
+            int(lstm_size / 2),
+            self._params['lstm_layer'],
+            dropout_rate=0,
+            dropout_output=False,
+            rnn_type=nn.LSTM,
+            concat_layers=True,
+            padding=False)
         self.attention = BidirectionalAttention()
-        self.projection = nn.Sequential(nn.Linear(4 * self._params['hidden_size'],
-                                        self._params['hidden_size']),
-                                        nn.ReLU())
-        self.composition = StackedBRNN(self._params['hidden_size'],
-                                        int(self._params['hidden_size'] / 2 / self._params['lstm_layer']),
-                                        self._params['lstm_layer'],
-                                        dropout_rate=0,
-                                        dropout_output=False,
-                                        rnn_type=nn.LSTM,
-                                        concat_layers=True,
-                                        padding=False)
-        self.classification = nn.Sequential(nn.Dropout(p=self._params['dropout']),
-                                            nn.Linear(4 * self._params['hidden_size'],
-                                                self._params['hidden_size']),
-                                            nn.Tanh(),
-                                            nn.Dropout(p=self._params['dropout']))
+        self.projection = nn.Sequential(
+            nn.Linear(
+                4 * self._params['hidden_size'],
+                self._params['hidden_size']),
+            nn.ReLU())
+        self.composition = StackedBRNN(
+            self._params['hidden_size'],
+            int(lstm_size / 2),
+            self._params['lstm_layer'],
+            dropout_rate=0,
+            dropout_output=False,
+            rnn_type=nn.LSTM,
+            concat_layers=True,
+            padding=False)
+        self.classification = nn.Sequential(
+            nn.Dropout(
+                p=self._params['dropout']),
+            nn.Linear(
+                4 * self._params['hidden_size'],
+                self._params['hidden_size']),
+            nn.Tanh(),
+            nn.Dropout(
+                p=self._params['dropout']))
         self.out = self._make_output_layer(self._params['hidden_size'])
-
 
     def forward(self, inputs):
         """Forward."""
@@ -100,7 +108,6 @@ class ESIM(BaseModel):
         query = self.embedding(query)
         doc = self.embedding(doc)
 
-
         # [B, L, D]
         # [B, R, D]
         query = self.rnn_dropout(query)
@@ -112,7 +119,8 @@ class ESIM(BaseModel):
         doc = self.input_encoding(doc, doc_mask)
 
         # [B, L, H], [B, L, H]
-        attended_query, attended_doc = self.attention(query, query_mask, doc, doc_mask)
+        attended_query, attended_doc = self.attention(
+            query, query_mask, doc, doc_mask)
 
         # [B, L, 4 * H]
         # [B, L, 4 * H]
@@ -120,12 +128,12 @@ class ESIM(BaseModel):
                                     attended_query,
                                     query - attended_query,
                                     query * attended_query],
-                                    dim=-1)
+                                   dim=-1)
         enhanced_doc = torch.cat([doc,
                                   attended_doc,
                                   doc - attended_doc,
                                   doc * attended_doc],
-                                  dim=-1)
+                                 dim=-1)
         # [B, L, H]
         # [B, L, H]
         projected_query = self.projection(enhanced_query)
@@ -138,15 +146,15 @@ class ESIM(BaseModel):
 
         # [B, L]
         # [B, R]
-        reverse_query_mask = ( 1 - query_mask).float()
+        reverse_query_mask = (1 - query_mask).float()
         reverse_doc_mask = (1 - doc_mask).float()
 
         # [B, H]
         # [B, H]
         query_avg = torch.sum(query * reverse_query_mask.unsqueeze(2), dim=1)\
-                / (torch.sum(reverse_query_mask, dim=1, keepdim=True) + 1e-8)
+            / (torch.sum(reverse_query_mask, dim=1, keepdim=True) + 1e-8)
         doc_avg = torch.sum(doc * reverse_doc_mask.unsqueeze(2), dim=1)\
-                / (torch.sum(reverse_doc_mask, dim=1, keepdim=True) + 1e-8)
+            / (torch.sum(reverse_doc_mask, dim=1, keepdim=True) + 1e-8)
 
         # [B, L, H]
         # [B, L, H]
@@ -168,4 +176,3 @@ class ESIM(BaseModel):
         out = self.out(hidden)
 
         return out
-

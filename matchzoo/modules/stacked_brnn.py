@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
+
 
 class StackedBRNN(nn.Module):
     """Stacked Bi-directional RNNs.
@@ -7,19 +9,12 @@ class StackedBRNN(nn.Module):
     and concat the hidden states between layers. (i.e. the output hidden size
     for each sequence input is num_layers * hidden_size).
     """
+
     def __init__(self, input_size, hidden_size, num_layers,
                  dropout_rate=0, dropout_output=False, rnn_type=nn.LSTM,
                  concat_layers=False, padding=False):
 
-        """
-        Examples:
-        >>> import torch
-        >>> layer = StackedBRNN(12,12,2)
-        >>> input = torch.Tensor(32, 10, 12)
-        >>> output = layer(input)
-        >>> assert output.size(1) == 10
-        """
-        super(StackedBRNN, self).__init__()
+        super().__init__()
         self.padding = padding
         self.dropout_output = dropout_output
         self.dropout_rate = dropout_rate
@@ -149,4 +144,3 @@ class StackedBRNN(nn.Module):
                                p=self.dropout_rate,
                                training=self.training)
         return output
-
