@@ -3,6 +3,8 @@ from .dssm import DSSM
 from .cdssm import CDSSM
 from .drmm import DRMM
 from .drmmtks import DRMMTKS
+from .esim import ESIM
+
 
 def list_available() -> list:
     from matchzoo.engine.base_model import BaseModel
