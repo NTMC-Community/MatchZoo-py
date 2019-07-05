@@ -40,6 +40,8 @@ class ESIM(BaseModel):
                          desc="Hidden size."))
         params.add(Param(name='lstm_layer', value=1,
                          desc="Number of LSTM layers"))
+        params.add(Param(name='drop_lstm', value=False,
+                         desc="Whether dropout LSTM."))
         return params
 
     @classmethod
@@ -56,8 +58,8 @@ class ESIM(BaseModel):
             self._params['embedding_output_dim'],
             int(lstm_size / 2),
             self._params['lstm_layer'],
-            dropout_rate=0,
-            dropout_output=False,
+            dropout_rate=self._params['dropout'],
+            dropout_output=self._params['drop_lstm'],
             rnn_type=nn.LSTM,
             concat_layers=True,
             padding=False)
@@ -71,8 +73,8 @@ class ESIM(BaseModel):
             self._params['hidden_size'],
             int(lstm_size / 2),
             self._params['lstm_layer'],
-            dropout_rate=0,
-            dropout_output=False,
+            dropout_rate=self._params['dropout'],
+            dropout_output=self._params['drop_lstm'],
             rnn_type=nn.LSTM,
             concat_layers=True,
             padding=False)
