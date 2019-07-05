@@ -42,6 +42,10 @@ class ESIM(BaseModel):
                          desc="Number of LSTM layers"))
         params.add(Param(name='drop_lstm', value=False,
                          desc="Whether dropout LSTM."))
+        params.add(Param(name='concat_lstm', value=True,
+                         desc="Whether concat intermediate outputs."))
+        params.add(Param(name='rnn_type', value='lstm',
+                         desc="Choose rnn type, lstm or gru."))
         return params
 
     @classmethod
@@ -51,18 +55,20 @@ class ESIM(BaseModel):
 
     def build(self):
         """Instantiating layers."""
+        rnn_mapping = {'lstm': nn.LSTM, 'gru': nn.GRU}
         self.embedding = self._make_default_embedding_layer()
         self.rnn_dropout = RNNDropout(p=self._params['dropout'])
-        lstm_size = self._params['hidden_size'] / self._params['lstm_layer']
+        if self._params['concat_lstm']:
+            lstm_layer = self._params['lstm_layer']
+            lstm_size = self._params['hidden_size'] / lstm_layer
         self.input_encoding = StackedBRNN(
             self._params['embedding_output_dim'],
             int(lstm_size / 2),
             self._params['lstm_layer'],
             dropout_rate=self._params['dropout'],
             dropout_output=self._params['drop_lstm'],
-            rnn_type=nn.LSTM,
-            concat_layers=True,
-            padding=False)
+            rnn_type=rnn_mapping[self._params['rnn_type'].lower()],
+            concat_layers=self._params['concat_lstm'])
         self.attention = BidirectionalAttention()
         self.projection = nn.Sequential(
             nn.Linear(
@@ -75,9 +81,8 @@ class ESIM(BaseModel):
             self._params['lstm_layer'],
             dropout_rate=self._params['dropout'],
             dropout_output=self._params['drop_lstm'],
-            rnn_type=nn.LSTM,
-            concat_layers=True,
-            padding=False)
+            rnn_type=rnn_mapping[self._params['rnn_type'].lower()],
+            concat_layers=self._params['concat_lstm'])
         self.classification = nn.Sequential(
             nn.Dropout(
                 p=self._params['dropout']),
