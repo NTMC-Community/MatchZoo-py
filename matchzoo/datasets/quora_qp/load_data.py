@@ -63,7 +63,7 @@ def _download_data():
 
 
 def _read_data(path, stage):
-    data = pd.read_csv(path, sep='\t', error_bad_lines=False)
+    data = pd.read_csv(path, sep='\t', error_bad_lines=False, dtype=object)
     data = data.dropna(axis=0, how='any').reset_index(drop=True)
     if stage in ['train', 'dev']:
         df = pd.DataFrame({

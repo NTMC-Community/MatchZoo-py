@@ -1,4 +1,7 @@
 """Download file."""
+import typing
+from pathlib import Path
+
 import os
 import hashlib
 import shutil
@@ -7,11 +10,10 @@ import tarfile
 import time
 import zipfile
 import collections
-from contextlib import closing
 import six
 from six.moves.urllib.error import HTTPError
 from six.moves.urllib.error import URLError
-from six.moves.urllib.request import urlopen
+from six.moves.urllib.request import urlretrieve
 import numpy as np
 
 import matchzoo
@@ -74,7 +76,7 @@ class Progbar(object):
         self._seen_so_far = current
 
         now = time.time()
-        info = ' - %.0fs' % (now - self._start)
+        info = ' - {0:.0f}s'.format(now - self._start)
         if self.verbose == 1:
             if (now - self._last_update < self.interval and self.target is not
                None and current < self.target):
@@ -89,8 +91,8 @@ class Progbar(object):
 
             if self.target is not None:
                 numdigits = int(np.floor(np.log10(self.target))) + 1
-                barstr = '%%%dd/%d [' % (numdigits, self.target)
-                bar = barstr % current
+                bar = '{2:{0:d}d}/{1} ['.format(
+                    numdigits, self.target, current)
                 prog = float(current) / self.target
                 prog_width = int(self.width * prog)
                 if prog_width > 0:
@@ -102,7 +104,7 @@ class Progbar(object):
                 bar += ('.' * (self.width - prog_width))
                 bar += ']'
             else:
-                bar = '%7d/Unknown' % current
+                bar = '{0:7d}/Unknown'.format(current)
 
             self._total_width = len(bar)
             sys.stdout.write(bar)
@@ -112,35 +114,35 @@ class Progbar(object):
             else:
                 time_per_unit = 0
             if self.target is not None and current < self.target:
-                eta = time_per_unit * (self.target - current)
+                eta = int(time_per_unit * (self.target - current))
                 if eta > 3600:
-                    eta_format = ('%d:%02d:%02d' %
-                                  (eta // 3600, (eta % 3600) // 60, eta % 60))
+                    eta_format = ('{0:d}:{1:02d}:{2:02d}'.format(
+                        eta // 3600, (eta % 3600) // 60, eta % 60))
                 elif eta > 60:
-                    eta_format = '%d:%02d' % (eta // 60, eta % 60)
+                    eta_format = '{0:d}:{1:02d}'.format(eta // 60, eta % 60)
                 else:
-                    eta_format = '%ds' % eta
+                    eta_format = '{0:d}s'.format(eta)
 
-                info = ' - ETA: %s' % eta_format
+                info = ' - ETA: {0}'.format(eta_format)
             else:
                 if time_per_unit >= 1:
-                    info += ' %.0fs/step' % time_per_unit
+                    info += ' {0:.0f}s/step'.format(time_per_unit)
                 elif time_per_unit >= 1e-3:
-                    info += ' %.0fms/step' % (time_per_unit * 1e3)
+                    info += ' {0:.0f}ms/step'.format(time_per_unit * 1e3)
                 else:
-                    info += ' %.0fus/step' % (time_per_unit * 1e6)
+                    info += ' {0:.0f}us/step'.format(time_per_unit * 1e6)
 
             for k in self._values:
-                info += ' - %s:' % k
+                info += ' - {0}:'.format(k)
                 if isinstance(self._values[k], list):
                     avg = np.mean(
                         self._values[k][0] / max(1, self._values[k][1]))
                     if abs(avg) > 1e-3:
-                        info += ' %.4f' % avg
+                        info += ' {0:.4f}'.format(avg)
                     else:
-                        info += ' %.4e' % avg
+                        info += ' {0:.4e}'.format(avg)
                 else:
-                    info += ' %s' % self._values[k]
+                    info += ' {0}'.format(self._values[k])
 
             self._total_width += len(info)
             if prev_total_width > self._total_width:
@@ -155,15 +157,14 @@ class Progbar(object):
         elif self.verbose == 2:
             if self.target is None or current >= self.target:
                 for k in self._values:
-                    info += ' - %s:' % k
+                    info += ' - {0}:'.format(k)
                     avg = np.mean(
                         self._values[k][0] / max(1, self._values[k][1]))
                     if avg > 1e-3:
-                        info += ' %.4f' % avg
+                        info += ' {0:.4f}'.format(avg)
                     else:
-                        info += ' %.4e' % avg
+                        info += ' {0:.4e}'.format(avg)
                 info += '\n'
-
                 sys.stdout.write(info)
                 sys.stdout.flush()
 
@@ -172,47 +173,6 @@ class Progbar(object):
     def add(self, n, values=None):
         """Add `_seen_so_far` and update the progress bar."""
         self.update(self._seen_so_far + n, values)
-
-
-if sys.version_info[0] == 2:
-    def urlretrieve(url, filename, reporthook=None, data=None):
-        """
-        Replacement for `urlretrive` for Python 2.
-
-        Under Python 2, `urlretrieve` relies on `FancyURLopener` from legacy
-        `urllib` module, known to have issues with proxy management.
-
-        :param url: url to retrieve.
-        :param filename: where to store the retrieved data locally.
-        :param reporthook: a hook function that will be called once
-            on establishment of the network connection and once
-            after each block read thereafter.
-            The hook will be passed three arguments;
-            a count of blocks transferred so far,
-            a block size in bytes, and the total size of the file.
-        :param data: `data` argument passed to `urlopen`.
-        """
-        def chunk_read(response, chunk_size=8192, reporthook=None):
-            content_type = response.info().get('Content-Length')
-            total_size = -1
-            if content_type is not None:
-                total_size = int(content_type.strip())
-            count = 0
-            while True:
-                chunk = response.read(chunk_size)
-                count += 1
-                if reporthook is not None:
-                    reporthook(count, chunk_size, total_size)
-                if chunk:
-                    yield chunk
-                else:
-                    break
-
-        with closing(urlopen(url, data)) as res, open(filename, 'wb') as fd:
-            for chunk in chunk_read(res, reporthook=reporthook):
-                fd.write(chunk)
-else:
-    from six.moves.urllib.request import urlretrieve
 
 
 def _extract_archive(file_path, path='.', archive_format='auto'):
@@ -261,16 +221,18 @@ def _extract_archive(file_path, path='.', archive_format='auto'):
     return False
 
 
-def get_file(fname,
-             origin,
-             untar=False,
-             md5_hash=None,
-             file_hash=None,
-             cache_subdir='data',
-             hash_algorithm='auto',
-             extract=False,
-             archive_format='auto',
-             cache_dir=matchzoo.USER_DATA_DIR):
+def get_file(
+    fname: str = None,
+    origin: str = None,
+    untar: bool = False,
+    extract: bool = False,
+    md5_hash: typing.Any = None,
+    file_hash: typing.Any = None,
+    hash_algorithm: str = 'auto',
+    archive_format: str = 'auto',
+    cache_subdir: typing.Union[Path, str] = 'data',
+    cache_dir: typing.Union[Path, str] = matchzoo.USER_DATA_DIR
+) -> str:
     """
     Downloads a file from a URL if it not already in the cache.
 
@@ -289,7 +251,7 @@ def get_file(fname,
     :param untar: Deprecated in favor of 'extract'. Boolean, whether the file
         should be decompressed.
     :param md5_hash: Deprecated in favor of 'file_hash'. md5 hash of the file
-        for verification
+        for verification.
     :param file_hash: The expected hash string of the file after download.
         The sha256 and md5 hash algorithms are both supported.
     :param cache_subdir: Subdirectory under the cache dir where the file is
