@@ -231,7 +231,7 @@ class CDSSMPadding(BaseCallback):
         batch_size = len(x['id_left'])
         max_length_left = max(x['length_left'])
         max_length_right = max(x['length_right'])
-        vocab_size = len(x['text_left'][0][1])
+        vocab_size = len(x['text_left'][0][0])
 
         if self._fixed_length_left is None:
             pad_length_left = max_length_left

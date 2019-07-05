@@ -47,14 +47,21 @@ class NgramLetter(Unit):
         :return n_letters: generated n_letters.
         """
         n_letters = []
-        for token in input_:
-            token = '#' + token + '#'
+        if len(input_) == 0:
             token_ngram = []
-            while len(token) >= self._ngram:
-                token_ngram.append(token[:self._ngram])
-                token = token[1:]
             if self._reduce_dim:
                 n_letters.extend(token_ngram)
             else:
                 n_letters.append(token_ngram)
+        else:
+            for token in input_:
+                token = '#' + token + '#'
+                token_ngram = []
+                while len(token) >= self._ngram:
+                    token_ngram.append(token[:self._ngram])
+                    token = token[1:]
+                if self._reduce_dim:
+                    n_letters.extend(token_ngram)
+                else:
+                    n_letters.append(token_ngram)
         return n_letters
