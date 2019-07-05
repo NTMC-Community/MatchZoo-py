@@ -4,7 +4,9 @@ from torch.nn import functional as F
 
 
 class StackedBRNN(nn.Module):
-    """Stacked Bi-directional RNNs.
+    """
+    Stacked Bi-directional RNNs.
+
     Differs from standard PyTorch library in that it has the option to save
     and concat the hidden states between layers. (i.e. the output hidden size
     for each sequence input is num_layers * hidden_size).
@@ -13,7 +15,7 @@ class StackedBRNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers,
                  dropout_rate=0, dropout_output=False, rnn_type=nn.LSTM,
                  concat_layers=False, padding=False):
-
+        """Init."""
         super().__init__()
         self.padding = padding
         self.dropout_output = dropout_output
@@ -29,6 +31,7 @@ class StackedBRNN(nn.Module):
 
     def forward(self, x, x_mask):
         """Encode either padded or non-padded sequences.
+
         Can choose to either handle or ignore variable length sequences.
         Always handle padding in eval.
         Args:
@@ -85,9 +88,7 @@ class StackedBRNN(nn.Module):
         return output
 
     def _forward_padded(self, x, x_mask):
-        """Slower (significantly), but more precise, encoding that handles
-        padding.
-        """
+        """Slower but more precise, encoding that handles padding."""
         # Compute sorted sequence lengths
         lengths = x_mask.data.eq(0).long().sum(1).squeeze()
         _, idx_sort = torch.sort(lengths, dim=0, descending=True)

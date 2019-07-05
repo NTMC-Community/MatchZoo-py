@@ -39,15 +39,14 @@ class Attention(nn.Module):
 
 
 class BidirectionalAttention(nn.Module):
-    """
-    Computing the soft attention between two sequence.
-    """
+    """Computing the soft attention between two sequence."""
 
     def __init__(self):
+        """Init."""
         super().__init__()
 
     def forward(self, v1, v1_mask, v2, v2_mask):
-        """Forward. """
+        """Forward."""
         similarity_matrix = v1.bmm(v2.transpose(2, 1).contiguous())
 
         v2_v1_attn = F.softmax(

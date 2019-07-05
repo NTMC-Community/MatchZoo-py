@@ -16,14 +16,15 @@ from matchzoo.modules import StackedBRNN
 
 class ESIM(BaseModel):
     """
-    ESIM Model
-    This is a simplified esim implementation without tree-LSTM
+    ESIM Model.
 
     Examples:
         >>> model = ESIM()
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
+
     """
+
     @classmethod
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""

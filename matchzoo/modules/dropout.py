@@ -2,12 +2,10 @@ import torch.nn as nn
 
 
 class RNNDropout(nn.Dropout):
-    """Dropout for RNN"""
+    """Dropout for RNN."""
 
     def forward(self, sequences_batch):
-        """
-        Masking whole hidden vector for tokens
-        """
+        """Masking whole hidden vector for tokens."""
         # B: batch size
         # L: sequence length
         # D: hidden size
