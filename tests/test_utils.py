@@ -1,3 +1,4 @@
+import matchzoo
 from matchzoo import utils
 from matchzoo.engine.base_model import BaseModel
 
@@ -42,3 +43,14 @@ def test_early_stopping():
     assert new_es.best_so_far == 1.0
     assert new_es.is_best_so_far is False
     assert new_es.should_stop_early is True
+
+
+def test_get_file():
+    _url = "https://github.com/NTMC-Community/MatchZoo-py/blob/master/LICENSE"
+    file_path = utils.get_file(
+        'LICENSE', _url, extract=False,
+        cache_dir=matchzoo.USER_DATA_DIR,
+        cache_subdir='LICENSE'
+    )
+    num_lines = 1819
+    assert len(open(file_path, 'rb').readlines()) == num_lines
