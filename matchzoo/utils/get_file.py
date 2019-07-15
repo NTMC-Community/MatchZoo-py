@@ -231,7 +231,8 @@ def get_file(
     hash_algorithm: str = 'auto',
     archive_format: str = 'auto',
     cache_subdir: typing.Union[Path, str] = 'data',
-    cache_dir: typing.Union[Path, str] = matchzoo.USER_DATA_DIR
+    cache_dir: typing.Union[Path, str] = matchzoo.USER_DATA_DIR,
+    verbose: int = 1
 ) -> str:
     """
     Downloads a file from a URL if it not already in the cache.
@@ -269,6 +270,7 @@ def get_file(
         None or an empty list will return no matches found.
     :param cache_dir: Location to store cached files, when None it defaults to
         the [matchzoo.USER_DATA_DIR](~/.matchzoo/datasets).
+    :param verbose: Verbosity mode, 0 (silent), 1 (verbose), 2 (semi-verbose)
 
     :return: Path to the downloaded file.
     """
@@ -310,7 +312,8 @@ def get_file(
             if ProgressTracker.progbar is None:
                 if total_size == -1:
                     total_size = None
-                ProgressTracker.progbar = Progbar(total_size)
+                ProgressTracker.progbar = Progbar(
+                    target=total_size, verbose=verbose)
             else:
                 ProgressTracker.progbar.update(count * block_size)
 

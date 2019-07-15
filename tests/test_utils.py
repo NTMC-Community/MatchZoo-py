@@ -50,9 +50,10 @@ def test_early_stopping():
 def test_get_file():
     _url = "https://github.com/NTMC-Community/MatchZoo-py/blob/master/LICENSE"
     file_path = utils.get_file(
-        'LICENSE', _url, extract=False,
+        'LICENSE', _url, extract=True,
         cache_dir=matchzoo.USER_DATA_DIR,
-        cache_subdir='LICENSE'
+        cache_subdir='LICENSE',
+        verbose=1
     )
     num_lines = 1819
     assert len(open(file_path, 'rb').readlines()) == num_lines
@@ -60,9 +61,10 @@ def test_get_file():
 
     file_path2 = utils.get_file(
         'LICENSE', _url, extract=False,
-        file_hash=file_hash,
+        md5_hash=file_hash,
         cache_dir=matchzoo.USER_DATA_DIR,
-        cache_subdir='LICENSE'
+        cache_subdir='LICENSE',
+        verbose=1
     )
     file_hash2 = utils._hash_file(file_path2, algorithm='md5')
     assert file_hash == file_hash2
