@@ -1,4 +1,6 @@
 import os
+import shutil
+from pathlib import Path
 
 import matchzoo
 from matchzoo import utils
@@ -68,3 +70,7 @@ def test_get_file():
     )
     file_hash2 = utils._hash_file(file_path2, algorithm='md5')
     assert file_hash == file_hash2
+
+    file_dir = matchzoo.USER_DATA_DIR.joinpath('LICENSE')
+    if os.path.exists(file_dir):
+        shutil.rmtree(file_dir)
