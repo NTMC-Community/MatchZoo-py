@@ -1,3 +1,5 @@
+import os
+
 import matchzoo
 from matchzoo import utils
 from matchzoo.engine.base_model import BaseModel
@@ -54,3 +56,13 @@ def test_get_file():
     )
     num_lines = 1819
     assert len(open(file_path, 'rb').readlines()) == num_lines
+    file_hash = utils._hash_file(file_path, algorithm='md5')
+
+    file_path2 = utils.get_file(
+        'LICENSE', _url, extract=False,
+        file_hash=file_hash,
+        cache_dir=matchzoo.USER_DATA_DIR,
+        cache_subdir='LICENSE'
+    )
+    file_hash2 = utils._hash_file(file_path2, algorithm='md5')
+    assert file_hash == file_hash2
