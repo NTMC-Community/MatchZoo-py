@@ -104,13 +104,13 @@ def test_trainer(trainer, dataloader, save_dir):
     assert trainer.predict(dataloader) is not None
 
     # Save model
-    model_checkpoint = save_dir.joinpath('matchzoo_model_checkpoint.pt')
-    trainer.save_model(model_checkpoint)
+    model_checkpoint = save_dir.joinpath('model.pt')
+    trainer.save_model()
     trainer.restore_model(model_checkpoint)
 
     # Save model
-    trainer_checkpoint = save_dir.joinpath('matchzoo_trainer_checkpoint.pt')
-    trainer.save(trainer_checkpoint)
+    trainer_checkpoint = save_dir.joinpath('trainer.pt')
+    trainer.save()
     trainer.restore(trainer_checkpoint)
 
     if save_dir.exists():
