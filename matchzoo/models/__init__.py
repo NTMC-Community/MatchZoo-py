@@ -4,6 +4,7 @@ from .cdssm import CDSSM
 from .drmm import DRMM
 from .drmmtks import DRMMTKS
 from .esim import ESIM
+from .knrm import KNRM
 
 
 def list_available() -> list:
