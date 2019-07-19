@@ -61,7 +61,7 @@ class BasicPreprocessor(BasePreprocessor):
                  truncated_length_left: int = 30,
                  truncated_length_right: int = 30,
                  filter_mode: str = 'df',
-                 filter_low_freq: float = 2,
+                 filter_low_freq: float = 1,
                  filter_high_freq: float = float('inf'),
                  remove_stop_words: bool = False):
         """Initialization."""
