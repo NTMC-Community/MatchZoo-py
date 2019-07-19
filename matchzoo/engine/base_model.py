@@ -273,7 +273,11 @@ class BaseModel(nn.Module, abc.ABC):
                 embedding_dim=self._params['embedding_output_dim']
             )
 
-    def _make_output_layer(self, in_features) -> nn.Module:
+    def _make_output_layer(
+        self,
+        in_features: int = 0,
+        activation: typing.Union[str, nn.Module] = None
+    ) -> nn.Module:
         """:return: a correctly shaped torch module for model output."""
         task = self._params['task']
         if isinstance(task, tasks.Classification):
@@ -282,9 +286,13 @@ class BaseModel(nn.Module, abc.ABC):
                 nn.Softmax(dim=-1)
             )
         elif isinstance(task, tasks.Ranking):
-            return nn.Sequential(
-                nn.Linear(in_features, 1)
-            )
+            if activation:
+                return nn.Sequential(
+                    nn.Linear(in_features, 1),
+                    parse_activation(activation)
+                )
+            else:
+                return nn.Linear(in_features, 1)
         else:
             raise ValueError(f"{task} is not a valid task type. "
                              f"Must be in `Ranking` and `Classification`.")
