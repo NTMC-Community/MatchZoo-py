@@ -58,7 +58,7 @@ def test_get_file():
         cache_subdir='LICENSE',
         verbose=1
     )
-    num_lines = 204
+    num_lines = 203
     assert len(open(file_path, 'rb').readlines()) == num_lines
     file_hash = utils._hash_file(file_path, algorithm='md5')
 
