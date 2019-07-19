@@ -42,6 +42,7 @@ class Trainer:
     :param clip_norm: Max norm of the gradients to be clipped.
     :param patience: Number fo events to wait if no improvement and
         then stop the training.
+    :param key: Key of metric to be compared.
     :param data_parallel: Bool. Whether support data parallel.
     :param checkpoint: A checkpoint from which to continue training.
         If None, training starts from scratch. Defaults to None.
@@ -67,6 +68,7 @@ class Trainer:
         scheduler: typing.Any = None,
         clip_norm: typing.Union[float, int] = None,
         patience: typing.Optional[int] = None,
+        key: typing.Any = None,
         data_parallel: bool = True,
         checkpoint: typing.Union[str, Path] = None,
         save_dir: typing.Union[str, Path] = None,
@@ -84,10 +86,14 @@ class Trainer:
         self._scheduler = scheduler
         self._clip_norm = clip_norm
         self._criterions = self._task.losses
+
+        if not key:
+            key = self._task.metrics[0]
         self._early_stopping = EarlyStopping(
             patience=patience,
-            key=self._task.metrics[0]
+            key=key
         )
+
         self._start_epoch = start_epoch
         self._epochs = epochs
         self._iteration = 0
@@ -354,25 +360,16 @@ class Trainer:
             self._model.train()
             return torch.cat(predictions, dim=0).numpy()
 
-    def _save(self, checkpoint: typing.Union[str, Path] = None):
+    def _save(self):
         """Save."""
         if self._save_all:
-            self.save(checkpoint)
+            self.save()
         else:
-            self.save_model(checkpoint)
+            self.save_model()
 
-    def save_model(self, checkpoint: typing.Union[str, Path] = None):
-        """
-        Save the model.
-
-        :param save_dir: Path to save trainer.
-
-        """
-        best_so_far = self._early_stopping.best_so_far
-        if not checkpoint:
-            checkpoint = self._save_dir.joinpath(
-                f'model-epoch_{self._epoch}-best_{best_so_far:.4f}.pt'
-            )
+    def save_model(self):
+        """Save the model."""
+        checkpoint = self._save_dir.joinpath('model.pt')
         torch.save(self._model.state_dict(), checkpoint)
 
     def save(self, checkpoint: typing.Union[str, Path] = None):
@@ -385,11 +382,7 @@ class Trainer:
         :param path: Path to save trainer.
 
         """
-        best_so_far = self._early_stopping.best_so_far
-        if not checkpoint:
-            checkpoint = self._save_dir.joinpath(
-                f'trainer-epoch_{self._epoch}-best_{best_so_far:.4f}.pt'
-            )
+        checkpoint = self._save_dir.joinpath('trainer.pt')
         state = {
             'epoch': self._epoch,
             'model': self._model.state_dict(),
