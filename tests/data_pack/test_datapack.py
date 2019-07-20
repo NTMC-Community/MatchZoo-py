@@ -37,8 +37,6 @@ def test_save_load(data_pack):
     dirpath = '.tmpdir'
     data_pack.save(dirpath)
     dp = load_data_pack(dirpath)
-    with pytest.raises(FileExistsError):
-        data_pack.save(dirpath)
     assert len(data_pack) == 2
     assert len(dp) == 2
     shutil.rmtree(dirpath)
