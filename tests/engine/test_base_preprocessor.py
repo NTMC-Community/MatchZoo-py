@@ -16,6 +16,4 @@ def test_save_load(base_preprocessor):
     dirpath = '.tmpdir'
     base_preprocessor.save(dirpath)
     assert mz.load_preprocessor(dirpath)
-    with pytest.raises(FileExistsError):
-        base_preprocessor.save(dirpath)
     shutil.rmtree(dirpath)
