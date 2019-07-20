@@ -110,11 +110,8 @@ class BasePreprocessor(metaclass=abc.ABCMeta):
         dirpath = Path(dirpath)
         data_file_path = dirpath.joinpath(self.DATA_FILENAME)
 
-        if data_file_path.exists():
-            raise FileExistsError(
-                f'{data_file_path} instance exist, fail to save.')
-        elif not dirpath.exists():
-            dirpath.mkdir()
+        if not dirpath.exists():
+            dirpath.mkdir(parents=True)
 
         dill.dump(self, open(data_file_path, mode='wb'))
 
