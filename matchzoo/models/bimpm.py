@@ -1,4 +1,4 @@
-"""An implementation of ESIM Model."""
+"""An implementation of BiMPM Model."""
 import typing
 
 import torch
@@ -52,11 +52,6 @@ class BiMPM(BaseModel):
 
     def build(self):
         """Make function layers."""
-        self.embedding = None
-        self.context_LSTM = None
-        self.aggregation_LSTM = None
-        self.pred_fc1 = None
-        self.pred_fc2 = None
 
         self.embedding = self._make_default_embedding_layer()
 
@@ -88,9 +83,6 @@ class BiMPM(BaseModel):
         self.pred_fc1 = nn.Linear(
             self._params['hidden_size'] * 4,
             self._params['hidden_size'] * 2)
-        # self.pred_fc2 = nn.Linear(
-        #     self._params['hidden_size'] * 2,
-        #     self.args.class_size)
         self.pred_fc2 = self._make_output_layer(
             self._params['hidden_size'] * 2)
 
@@ -99,122 +91,6 @@ class BiMPM(BaseModel):
 
     def forward(self, inputs):
         """Forward."""
-
-        self.num_psp = self._params['num_perspective']
-
-        # Matching Layer
-        def mp_matching_func(v1, v2, w):
-            """
-            Basic mp_matching_func.
-
-            :param v1: (batch, seq_len, hidden_size)
-            :param v2: (batch, seq_len, hidden_size) or (batch, hidden_size)
-            :param w: (num_psp, hidden_size)
-            :return: (batch, num_psp)
-            """
-            seq_len = v1.size(1)
-            """
-            # Trick for large memory requirement
-            if len(v2.size()) == 2:
-                v2 = torch.stack([v2] * seq_len, dim=1)
-            m = []
-            for i in range(self.num_psp):
-                v1: (batch, seq_len, hidden_size)
-                v2: (batch, seq_len, hidden_size)
-                # w: (1, 1, hidden_size) -> (batch, seq_len)
-                m.append(F.cosine_similarity(
-                    w[i].view(1, 1, -1) * v1, w[i].view(1, 1, -1) * v2, dim=2))
-            # list of (batch, seq_len) -> (batch, seq_len, l)
-            m = torch.stack(m, dim=2)
-            """
-
-            # (1, 1, hidden_size, l)
-            w = w.transpose(1, 0).unsqueeze(0).unsqueeze(0)
-            # (batch, seq_len, hidden_size, l)
-            v1 = w * torch.stack([v1] * self.num_psp, dim=3)
-            if len(v2.size()) == 3:
-                v2 = w * torch.stack([v2] * self.num_psp, dim=3)
-            else:
-                v2 = w * torch.stack(
-                    [torch.stack([v2] * seq_len, dim=1)] * self.num_psp, dim=3)
-
-            m = F.cosine_similarity(v1, v2, dim=2)
-
-            return m
-
-        def mp_matching_func_pairwise(v1, v2, w):
-            """
-            Basic mp_matching_func_pairwise.
-
-            :param v1: (batch, seq_len1, hidden_size)
-            :param v2: (batch, seq_len2, hidden_size)
-            :param w: (num_psp, hidden_size)
-            :return: (batch, num_psp, seq_len1, seq_len2)
-            """
-
-            """
-            # Trick for large memory requirement
-            m = []
-            for i in range(self.num_psp):
-                # (1, 1, hidden_size)
-                w_i = w[i].view(1, 1, -1)
-                # (batch, seq_len1, hidden_size), (batch,seq_len2, hidden_size)
-                v1, v2 = w_i * v1, w_i * v2
-                # (batch, seq_len, hidden_size->1)
-                v1_norm = v1.norm(p=2, dim=2, keepdim=True)
-                v2_norm = v2.norm(p=2, dim=2, keepdim=True)
-                # (batch, seq_len1, seq_len2)
-                n = torch.matmul(v1, v2.permute(0, 2, 1))
-                d = v1_norm * v2_norm.permute(0, 2, 1)
-                m.append(div_with_small_value(n, d))
-            # list of (batch, seq_len1, seq_len2)
-            #     -> (batch, seq_len1, seq_len2, l)
-            m = torch.stack(m, dim=3)
-            """
-
-            # (1, l, 1, hidden_size)
-            w = w.unsqueeze(0).unsqueeze(2)
-            # (batch, l, seq_len, hidden_size)
-            v1, v2 = (w * torch.stack([v1] * self.num_psp, dim=1),
-                      w * torch.stack([v2] * self.num_psp, dim=1))
-            # (batch, l, seq_len, hidden_size->1)
-            v1_norm = v1.norm(p=2, dim=3, keepdim=True)
-            v2_norm = v2.norm(p=2, dim=3, keepdim=True)
-
-            # (batch, l, seq_len1, seq_len2)
-            n = torch.matmul(v1, v2.transpose(2, 3))
-            d = v1_norm * v2_norm.transpose(2, 3)
-
-            # (batch, seq_len1, seq_len2, l)
-            m = div_with_small_value(n, d).permute(0, 2, 3, 1)
-
-            return m
-
-        def attention(v1, v2):
-            """
-            Attention.
-
-            :param v1: (batch, seq_len1, hidden_size)
-            :param v2: (batch, seq_len2, hidden_size)
-            :return: (batch, seq_len1, seq_len2)
-            """
-
-            # (batch, seq_len1, 1)
-            v1_norm = v1.norm(p=2, dim=2, keepdim=True)
-            # (batch, 1, seq_len2)
-            v2_norm = v2.norm(p=2, dim=2, keepdim=True).permute(0, 2, 1)
-
-            # (batch, seq_len1, seq_len2)
-            a = torch.bmm(v1, v2.permute(0, 2, 1))
-            d = v1_norm * v2_norm
-
-            return div_with_small_value(a, d)
-
-        def div_with_small_value(n, d, eps=1e-8):
-            # small values are replaced by 1e-8 to prevent it from exploding.
-            d = d * (d > eps).float() + eps * (d <= eps).float()
-            return n / d
-
         # Word Representation Layer
         # (batch, seq_len) -> (batch, seq_len, word_dim)
 
@@ -375,38 +251,38 @@ class BiMPM(BaseModel):
         # Word Representation Layer
 
         # <unk> vectors is randomly initialized
-        nn.init.uniform(self.embedding.weight.data[0], -0.1, 0.1)
+        nn.init.uniform_(self.embedding.weight.data[0], -0.1, 0.1)
 
         # Context Representation Layer
-        nn.init.kaiming_normal(self.context_LSTM.weight_ih_l0)
-        nn.init.constant(self.context_LSTM.bias_ih_l0, val=0)
-        nn.init.orthogonal(self.context_LSTM.weight_hh_l0)
-        nn.init.constant(self.context_LSTM.bias_hh_l0, val=0)
+        nn.init.kaiming_normal_(self.context_LSTM.weight_ih_l0)
+        nn.init.constant_(self.context_LSTM.bias_ih_l0, val=0)
+        nn.init.orthogonal_(self.context_LSTM.weight_hh_l0)
+        nn.init.constant_(self.context_LSTM.bias_hh_l0, val=0)
 
-        nn.init.kaiming_normal(self.context_LSTM.weight_ih_l0_reverse)
-        nn.init.constant(self.context_LSTM.bias_ih_l0_reverse, val=0)
-        nn.init.orthogonal(self.context_LSTM.weight_hh_l0_reverse)
-        nn.init.constant(self.context_LSTM.bias_hh_l0_reverse, val=0)
+        nn.init.kaiming_normal_(self.context_LSTM.weight_ih_l0_reverse)
+        nn.init.constant_(self.context_LSTM.bias_ih_l0_reverse, val=0)
+        nn.init.orthogonal_(self.context_LSTM.weight_hh_l0_reverse)
+        nn.init.constant_(self.context_LSTM.bias_hh_l0_reverse, val=0)
 
         # Matching Layer
         for i in range(1, 9):
             w = getattr(self, f'mp_w{i}')
-            nn.init.kaiming_normal(w)
+            nn.init.kaiming_normal_(w)
 
         # Aggregation Layer
-        nn.init.kaiming_normal(self.aggregation_LSTM.weight_ih_l0)
-        nn.init.constant(self.aggregation_LSTM.bias_ih_l0, val=0)
-        nn.init.orthogonal(self.aggregation_LSTM.weight_hh_l0)
-        nn.init.constant(self.aggregation_LSTM.bias_hh_l0, val=0)
+        nn.init.kaiming_normal_(self.aggregation_LSTM.weight_ih_l0)
+        nn.init.constant_(self.aggregation_LSTM.bias_ih_l0, val=0)
+        nn.init.orthogonal_(self.aggregation_LSTM.weight_hh_l0)
+        nn.init.constant_(self.aggregation_LSTM.bias_hh_l0, val=0)
 
-        nn.init.kaiming_normal(self.aggregation_LSTM.weight_ih_l0_reverse)
-        nn.init.constant(self.aggregation_LSTM.bias_ih_l0_reverse, val=0)
-        nn.init.orthogonal(self.aggregation_LSTM.weight_hh_l0_reverse)
-        nn.init.constant(self.aggregation_LSTM.bias_hh_l0_reverse, val=0)
+        nn.init.kaiming_normal_(self.aggregation_LSTM.weight_ih_l0_reverse)
+        nn.init.constant_(self.aggregation_LSTM.bias_ih_l0_reverse, val=0)
+        nn.init.orthogonal_(self.aggregation_LSTM.weight_hh_l0_reverse)
+        nn.init.constant_(self.aggregation_LSTM.bias_hh_l0_reverse, val=0)
 
         # Prediction Layer ----
-        nn.init.uniform(self.pred_fc1.weight, -0.005, 0.005)
-        nn.init.constant(self.pred_fc1.bias, val=0)
+        nn.init.uniform_(self.pred_fc1.weight, -0.005, 0.005)
+        nn.init.constant_(self.pred_fc1.bias, val=0)
 
         # nn.init.uniform(self.pred_fc2.weight, -0.005, 0.005)
         # nn.init.constant(self.pred_fc2.bias, val=0)
@@ -414,3 +290,125 @@ class BiMPM(BaseModel):
     def dropout(self, v):
         """Dropout Layer."""
         return F.dropout(v, p=self._params['dropout'], training=self.training)
+
+
+def mp_matching_func(v1, v2, w):
+    """
+    Basic mp_matching_func.
+
+    :param v1: (batch, seq_len, hidden_size)
+    :param v2: (batch, seq_len, hidden_size) or (batch, hidden_size)
+    :param w: (num_psp, hidden_size)
+    :return: (batch, num_psp)
+    """
+
+    """
+    # Trick for large memory requirement
+    if len(v2.size()) == 2:
+        v2 = torch.stack([v2] * seq_len, dim=1)
+    m = []
+    for i in range(self.num_psp):
+        v1: (batch, seq_len, hidden_size)
+        v2: (batch, seq_len, hidden_size)
+        # w: (1, 1, hidden_size) -> (batch, seq_len)
+        m.append(F.cosine_similarity(
+            w[i].view(1, 1, -1) * v1, w[i].view(1, 1, -1) * v2, dim=2))
+    # list of (batch, seq_len) -> (batch, seq_len, l)
+    m = torch.stack(m, dim=2)
+    """
+
+    seq_len = v1.size(1)
+    num_psp = w.size(0)
+
+    # (1, 1, hidden_size, l)
+    w = w.transpose(1, 0).unsqueeze(0).unsqueeze(0)
+    # (batch, seq_len, hidden_size, l)
+    v1 = w * torch.stack([v1] * num_psp, dim=3)
+    if len(v2.size()) == 3:
+        v2 = w * torch.stack([v2] * num_psp, dim=3)
+    else:
+        v2 = w * torch.stack(
+            [torch.stack([v2] * seq_len, dim=1)] * num_psp, dim=3)
+
+    m = F.cosine_similarity(v1, v2, dim=2)
+
+    return m
+
+
+def mp_matching_func_pairwise(v1, v2, w):
+    """
+    Basic mp_matching_func_pairwise.
+
+    :param v1: (batch, seq_len1, hidden_size)
+    :param v2: (batch, seq_len2, hidden_size)
+    :param w: (num_psp, hidden_size)
+    :param num_psp
+    :return: (batch, num_psp, seq_len1, seq_len2)
+    """
+
+    """
+    # Trick for large memory requirement
+    m = []
+    for i in range(self.num_psp):
+        # (1, 1, hidden_size)
+        w_i = w[i].view(1, 1, -1)
+        # (batch, seq_len1, hidden_size), (batch,seq_len2, hidden_size)
+        v1, v2 = w_i * v1, w_i * v2
+        # (batch, seq_len, hidden_size->1)
+        v1_norm = v1.norm(p=2, dim=2, keepdim=True)
+        v2_norm = v2.norm(p=2, dim=2, keepdim=True)
+        # (batch, seq_len1, seq_len2)
+        n = torch.matmul(v1, v2.permute(0, 2, 1))
+        d = v1_norm * v2_norm.permute(0, 2, 1)
+        m.append(div_with_small_value(n, d))
+    # list of (batch, seq_len1, seq_len2)
+    #     -> (batch, seq_len1, seq_len2, l)
+    m = torch.stack(m, dim=3)
+    """
+
+    num_psp = w.size(0)
+
+    # (1, l, 1, hidden_size)
+    w = w.unsqueeze(0).unsqueeze(2)
+    # (batch, l, seq_len, hidden_size)
+    v1, v2 = (w * torch.stack([v1] * num_psp, dim=1),
+              w * torch.stack([v2] * num_psp, dim=1))
+    # (batch, l, seq_len, hidden_size->1)
+    v1_norm = v1.norm(p=2, dim=3, keepdim=True)
+    v2_norm = v2.norm(p=2, dim=3, keepdim=True)
+
+    # (batch, l, seq_len1, seq_len2)
+    n = torch.matmul(v1, v2.transpose(2, 3))
+    d = v1_norm * v2_norm.transpose(2, 3)
+
+    # (batch, seq_len1, seq_len2, l)
+    m = div_with_small_value(n, d).permute(0, 2, 3, 1)
+
+    return m
+
+
+def attention(v1, v2):
+    """
+    Attention.
+
+    :param v1: (batch, seq_len1, hidden_size)
+    :param v2: (batch, seq_len2, hidden_size)
+    :return: (batch, seq_len1, seq_len2)
+    """
+
+    # (batch, seq_len1, 1)
+    v1_norm = v1.norm(p=2, dim=2, keepdim=True)
+    # (batch, 1, seq_len2)
+    v2_norm = v2.norm(p=2, dim=2, keepdim=True).permute(0, 2, 1)
+
+    # (batch, seq_len1, seq_len2)
+    a = torch.bmm(v1, v2.permute(0, 2, 1))
+    d = v1_norm * v2_norm
+
+    return div_with_small_value(a, d)
+
+
+def div_with_small_value(n, d, eps=1e-8):
+    # small values are replaced by 1e-8 to prevent it from exploding.
+    d = d * (d > eps).float() + eps * (d <= eps).float()
+    return n / d
