@@ -239,7 +239,7 @@ class BiMPM(BaseModel):
         x = self.dropout(x)
 
         # Prediction Layer
-        x = F.tanh(self.pred_fc1(x))
+        x = torch.tanh(self.pred_fc1(x))
         x = self.dropout(x)
         x = self.pred_fc2(x)
 
@@ -409,6 +409,12 @@ def attention(v1, v2):
 
 
 def div_with_small_value(n, d, eps=1e-8):
-    # small values are replaced by 1e-8 to prevent it from exploding.
+    """
+    Small values are replaced by 1e-8 to prevent it from exploding.
+
+    :param n:
+    :param d:
+    :return: n/d
+    """
     d = d * (d > eps).float() + eps * (d <= eps).float()
     return n / d
