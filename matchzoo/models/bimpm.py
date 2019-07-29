@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+from matchzoo.engine import hyper_spaces
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
@@ -20,6 +21,7 @@ class BiMPM(BaseModel):
 
     Examples:
         >>> model = BiMPM()
+        >>> model.params['num_perspective'] = 4
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
 
@@ -37,10 +39,14 @@ class BiMPM(BaseModel):
         params.add(Param(name='dropout', value=0.2,
                          desc="Dropout rate."))
         params.add(Param(name='hidden_size', value=100,
+                         hyper_space=hyper_spaces.quniform(
+                             low=100, high=300, q=100),
                          desc="Hidden size."))
 
         # BiMPM parameters
         params.add(Param(name='num_perspective', value=20,
+                         hyper_space=hyper_spaces.quniform(
+                             low=20, high=100, q=20),
                          desc='num_perspective'))
 
         return params
@@ -302,21 +308,6 @@ def mp_matching_func(v1, v2, w):
     :return: (batch, num_psp)
     """
 
-    """
-    # Trick for large memory requirement
-    if len(v2.size()) == 2:
-        v2 = torch.stack([v2] * seq_len, dim=1)
-    m = []
-    for i in range(self.num_psp):
-        v1: (batch, seq_len, hidden_size)
-        v2: (batch, seq_len, hidden_size)
-        # w: (1, 1, hidden_size) -> (batch, seq_len)
-        m.append(F.cosine_similarity(
-            w[i].view(1, 1, -1) * v1, w[i].view(1, 1, -1) * v2, dim=2))
-    # list of (batch, seq_len) -> (batch, seq_len, l)
-    m = torch.stack(m, dim=2)
-    """
-
     seq_len = v1.size(1)
     num_psp = w.size(0)
 
@@ -344,26 +335,6 @@ def mp_matching_func_pairwise(v1, v2, w):
     :param w: (num_psp, hidden_size)
     :param num_psp
     :return: (batch, num_psp, seq_len1, seq_len2)
-    """
-
-    """
-    # Trick for large memory requirement
-    m = []
-    for i in range(self.num_psp):
-        # (1, 1, hidden_size)
-        w_i = w[i].view(1, 1, -1)
-        # (batch, seq_len1, hidden_size), (batch,seq_len2, hidden_size)
-        v1, v2 = w_i * v1, w_i * v2
-        # (batch, seq_len, hidden_size->1)
-        v1_norm = v1.norm(p=2, dim=2, keepdim=True)
-        v2_norm = v2.norm(p=2, dim=2, keepdim=True)
-        # (batch, seq_len1, seq_len2)
-        n = torch.matmul(v1, v2.permute(0, 2, 1))
-        d = v1_norm * v2_norm.permute(0, 2, 1)
-        m.append(div_with_small_value(n, d))
-    # list of (batch, seq_len1, seq_len2)
-    #     -> (batch, seq_len1, seq_len2, l)
-    m = torch.stack(m, dim=3)
     """
 
     num_psp = w.size(0)

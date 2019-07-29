@@ -5,6 +5,7 @@ from .drmm import DRMM
 from .drmmtks import DRMMTKS
 from .esim import ESIM
 from .knrm import KNRM
+from .bimpm import BiMPM
 
 
 def list_available() -> list:
