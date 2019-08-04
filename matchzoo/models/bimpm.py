@@ -103,11 +103,6 @@ class BiMPM(BaseModel):
         # [B, L], [B, R]
         p, h = inputs['text_left'].long(), inputs['text_right'].long()
 
-        # [B, L]
-        # [B, R]
-        # p_mask = (p == self._params['mask_value'])
-        # h_mask = (h == self._params['mask_value'])
-
         # [B, L, D]
         # [B, R, D]
         p = self.embedding(p)
@@ -383,9 +378,9 @@ def div_with_small_value(n, d, eps=1e-8):
     """
     Small values are replaced by 1e-8 to prevent it from exploding.
 
-    :param n:
-    :param d:
-    :return: n/d
+    :param n: tensor
+    :param d: tensor
+    :return: n/d: tensor
     """
     d = d * (d > eps).float() + eps * (d <= eps).float()
     return n / d
