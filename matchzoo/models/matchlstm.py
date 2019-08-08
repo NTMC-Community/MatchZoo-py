@@ -23,9 +23,6 @@ class MatchLSTM(BaseModel):
         >>> model = MatchLSTM()
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
-        >>> query = torch.ones(4,5).long()
-        >>> docs = torch.ones(4,5).long()
-        >>> model({'text'})
 
     """
 
