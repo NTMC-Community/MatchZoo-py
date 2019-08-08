@@ -106,8 +106,7 @@ class ConvKNRM(BaseModel):
             self.kernels.append(GaussianKernel(mu=mu, sigma=sigma))
 
         dim = self._params['max_ngram'] ** 2 * self._params['kernel_num']
-        self.out = nn.Linear(dim, 1, bias=False)
-        torch.nn.init.uniform_(self.out.weight, -0.014, 0.014)
+        self.out = self._make_output_layer(dim)
 
     def forward(self, inputs):
         """Forward."""
