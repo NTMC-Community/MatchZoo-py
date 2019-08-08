@@ -6,6 +6,7 @@ from .drmmtks import DRMMTKS
 from .esim import ESIM
 from .knrm import KNRM
 from .conv_knrm import ConvKNRM
+from .matchlstm import MatchLSTM
 
 
 def list_available() -> list:
