@@ -2,10 +2,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch._jit_internal import weak_module, weak_script_method
 
 
-@weak_module
 class RankCrossEntropyLoss(nn.Module):
     """Creates a criterion that measures rank cross entropy loss."""
 
@@ -13,21 +11,20 @@ class RankCrossEntropyLoss(nn.Module):
 
     def __init__(self, num_neg: int = 1):
         """
-        :class:`RankHingeLoss` constructor.
+        :class:`RankCrossEntropyLoss` constructor.
 
         :param num_neg: Number of negative instances in hinge loss.
         """
         super().__init__()
         self.num_neg = num_neg
 
-    @weak_script_method
     def forward(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         """
-        Calculate rank hinge loss.
+        Calculate rank cross entropy loss.
 
         :param y_pred: Label.
         :param y_true: Predicted result.
-        :return: Hinge loss computed by user-defined margin.
+        :return: Rank cross loss.
         """
         y_true = torch.unsqueeze(y_true, 1).float()
         logits = y_pred[::(self.num_neg + 1), :]
