@@ -7,6 +7,7 @@ from .esim import ESIM
 from .knrm import KNRM
 from .conv_knrm import ConvKNRM
 from .bimpm import BiMPM
+from .matchlstm import MatchLSTM
 
 
 def list_available() -> list:
