@@ -2,10 +2,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch._jit_internal import weak_module, weak_script_method
 
 
-@weak_module
 class RankHingeLoss(nn.Module):
     """
     Creates a criterion that measures rank hinge loss.
@@ -45,7 +43,6 @@ class RankHingeLoss(nn.Module):
         self.margin = margin
         self.reduction = reduction
 
-    @weak_script_method
     def forward(self, y_pred: torch.Tensor, y_true: torch.Tensor):
         """
         Calculate rank hinge loss.

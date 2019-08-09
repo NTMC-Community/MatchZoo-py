@@ -1,4 +1,4 @@
-torch >= 1.1.0
+torch >= 1.2.0
 tabulate >= 0.8.3
 nltk >= 3.4.3
 numpy >= 1.16.4

@@ -154,8 +154,8 @@ class ESIM(BaseModel):
 
         # [B, L]
         # [B, R]
-        reverse_query_mask = (1 - query_mask).float()
-        reverse_doc_mask = (1 - doc_mask).float()
+        reverse_query_mask = 1. - query_mask.float()
+        reverse_doc_mask = 1. - doc_mask.float()
 
         # [B, H]
         # [B, H]
