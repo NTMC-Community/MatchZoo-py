@@ -82,12 +82,11 @@ class ConvKNRM(BaseModel):
         self.d_convs = nn.ModuleList()
         for i in range(self._params['max_ngram']):
             conv = nn.Sequential(
+                nn.ConstantPad1d((0, i), 0),
                 nn.Conv1d(
                     in_channels=self._params['embedding_output_dim'],
                     out_channels=self._params['filters'],
-                    kernel_size=i + 1,
-                    stride=1,
-                    padding=(i + 1) // 2
+                    kernel_size=i + 1
                 ),
                 parse_activation(
                     self._params['conv_activation_func']
