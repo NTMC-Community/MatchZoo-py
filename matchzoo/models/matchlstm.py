@@ -1,4 +1,4 @@
-"""An implementation of MLSTM Model."""
+"""An implementation of Match LSTM Model."""
 import typing
 
 import torch
@@ -22,6 +22,8 @@ class MatchLSTM(BaseModel):
     Examples:
         >>> model = MatchLSTM()
         >>> model.guess_and_fill_missing_params(verbose=0)
+        >>> model.params['dropout'] = 0.2
+        >>> model.params['hidden_size'] = 200
         >>> model.build()
 
     """
