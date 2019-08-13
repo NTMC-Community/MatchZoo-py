@@ -77,7 +77,7 @@ def tune(
         ...     optimizer=optimizer,
         ...     trainloader=trainloader,
         ...     validloader=validloader,
-        ...     embedding = embedding,
+        ...     embedding=embedding,
         ...     num_runs=1,
         ...     verbose=0
         ... )
