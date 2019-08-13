@@ -124,9 +124,11 @@ class DataLoader(data.DataLoader):
                 yield batch_x, None
             else:
                 if y.dtype == 'int':
+                    # Classification: [batch_size]
                     batch_y = torch.LongTensor(y.squeeze()).to(self._device)
                 else:
-                    batch_y = torch.FloatTensor(y.squeeze()).to(self._device)
+                    # Ranking: [batch_size, 1]
+                    batch_y = torch.FloatTensor(y).to(self._device)
                 yield batch_x, batch_y
 
     def _handle_callbacks_on_batch_unpacked(self, x, y):

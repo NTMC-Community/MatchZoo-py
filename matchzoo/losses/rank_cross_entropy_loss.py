@@ -26,7 +26,7 @@ class RankCrossEntropyLoss(nn.Module):
         :param y_true: Predicted result.
         :return: Rank cross loss.
         """
-        y_true = torch.unsqueeze(y_true, 1).float()
+        y_true = y_true.float()
         logits = y_pred[::(self.num_neg + 1), :]
         labels = y_true[::(self.num_neg + 1), :]
         for neg_idx in range(self.num_neg):

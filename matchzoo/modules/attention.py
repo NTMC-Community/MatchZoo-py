@@ -100,7 +100,7 @@ class MatchModule(nn.Module):
 
         v1_v2_attn = F.softmax(
             similarity_matrix.masked_fill(
-                v2_mask.unsqueeze(1), -1e-7), dim=2)
+                v2_mask.unsqueeze(1).bool(), -1e-7), dim=2)
         v2_wsum = v1_v2_attn.bmm(v2)
         fusion = torch.cat([v1, v2_wsum, v1 - v2_wsum, v1 * v2_wsum], dim=2)
         match = self.dropout(F.relu(self.proj(fusion)))
