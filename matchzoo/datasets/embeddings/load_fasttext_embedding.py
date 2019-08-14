@@ -4,7 +4,8 @@ from pathlib import Path
 
 import matchzoo as mz
 
-_fasttext_embedding_url = "https://dl.fbaipublicfiles.com/fasttext/vectors-wiki/wiki.{}.vec"
+_fasttext_embedding_url = "https://dl.fbaipublicfiles.com/fasttext/vectors" \
+                          "-wiki/wiki.{}.vec"
 
 
 def load_fasttext_embedding(language: str = 'en') -> mz.embedding.Embedding:
@@ -23,4 +24,5 @@ def load_fasttext_embedding(language: str = 'en') -> mz.embedding.Embedding:
                           extract=False,
                           cache_dir=mz.USER_DATA_DIR,
                           cache_subdir='fasttext')
-    return mz.embedding.load_from_file(file_path=str(file_path), mode='fasttext')
+    return mz.embedding.load_from_file(file_path=str(file_path),
+                                       mode='fasttext')
