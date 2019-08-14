@@ -16,4 +16,3 @@ def test_embedding(term_index):
                                         mode='glove')
     matrix = embed.build_matrix(term_index)
     assert matrix.shape == (len(term_index), 10)
-    assert embed.input_dim == 5
