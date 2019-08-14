@@ -16,7 +16,6 @@ def load_fasttext_embedding(language: str = 'en') -> mz.embedding.Embedding:
     :return: The :class:`mz.embedding.Embedding` object.
     """
     file_name = _fasttext_embedding_url.split('/')[-1].format(language)
-    print(file_name)
     file_path = (Path(mz.USER_DATA_DIR) / 'fasttext').joinpath(file_name)
     if not file_path.exists():
         mz.utils.get_file(file_name,
