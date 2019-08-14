@@ -39,40 +39,23 @@ class Progbar(object):
         width=30,
         verbose=1,
         interval=0.05,
-        stateful_metrics=None
     ):
         """Init."""
         self.target = target
         self.width = width
         self.verbose = verbose
         self.interval = interval
-        if stateful_metrics:
-            self.stateful_metrics = set(stateful_metrics)
-        else:
-            self.stateful_metrics = set()
 
         self._dynamic_display = ((hasattr(sys.stdout,
                                   'isatty') and sys.stdout.isatty()
                                   ) or 'ipykernel' in sys.modules)
         self._total_width = 0
         self._seen_so_far = 0
-        self._values = collections.OrderedDict()
         self._start = time.time()
         self._last_update = 0
 
-    def update(self, current, values=None):
+    def update(self, current):
         """Updates the progress bar."""
-        values = values or []
-        for k, v in values:
-            if k not in self.stateful_metrics:
-                if k not in self._values:
-                    self._values[k] = [v * (current - self._seen_so_far),
-                                       current - self._seen_so_far]
-                else:
-                    self._values[k][0] += v * (current - self._seen_so_far)
-                    self._values[k][1] += (current - self._seen_so_far)
-            else:
-                self._values[k] = [v, 1]
         self._seen_so_far = current
 
         now = time.time()
@@ -132,18 +115,6 @@ class Progbar(object):
                 else:
                     info += ' {0:.0f}us/step'.format(time_per_unit * 1e6)
 
-            for k in self._values:
-                info += ' - {0}:'.format(k)
-                if isinstance(self._values[k], list):
-                    avg = np.mean(
-                        self._values[k][0] / max(1, self._values[k][1]))
-                    if abs(avg) > 1e-3:
-                        info += ' {0:.4f}'.format(avg)
-                    else:
-                        info += ' {0:.4e}'.format(avg)
-                else:
-                    info += ' {0}'.format(self._values[k])
-
             self._total_width += len(info)
             if prev_total_width > self._total_width:
                 info += (' ' * (prev_total_width - self._total_width))
@@ -156,23 +127,11 @@ class Progbar(object):
 
         elif self.verbose == 2:
             if self.target is None or current >= self.target:
-                for k in self._values:
-                    info += ' - {0}:'.format(k)
-                    avg = np.mean(
-                        self._values[k][0] / max(1, self._values[k][1]))
-                    if avg > 1e-3:
-                        info += ' {0:.4f}'.format(avg)
-                    else:
-                        info += ' {0:.4e}'.format(avg)
                 info += '\n'
                 sys.stdout.write(info)
                 sys.stdout.flush()
 
         self._last_update = now
-
-    def add(self, n, values=None):
-        """Add `_seen_so_far` and update the progress bar."""
-        self.update(self._seen_so_far + n, values)
 
 
 def _extract_archive(file_path, path='.', archive_format='auto'):
@@ -378,7 +337,7 @@ def _hash_file(fpath, algorithm='sha256', chunk_size=65535):
 
     :return: The file hash.
     """
-    if (algorithm == 'sha256') or (algorithm == 'auto' and len(hash) == 64):
+    if algorithm == 'sha256':
         hasher = hashlib.sha256()
     else:
         hasher = hashlib.md5()

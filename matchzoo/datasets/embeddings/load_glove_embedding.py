@@ -1,4 +1,4 @@
-"""Embedding data loader."""
+"""GloVe Embedding data loader."""
 
 from pathlib import Path
 

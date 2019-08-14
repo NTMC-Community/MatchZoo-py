@@ -29,31 +29,23 @@ class Embedding(object):
         True
 
     To build your own:
-        >>> data = pd.DataFrame(data=[[0, 1], [2, 3]], index=['A', 'B'])
-        >>> embedding = mz.Embedding(data)
+        >>> data = {'A':[0, 1], 'B':[2, 3]}
+        >>> embedding = mz.Embedding(data, 2)
         >>> matrix = embedding.build_matrix({'A': 2, 'B': 1, '_PAD': 0})
         >>> matrix.shape == (3, 2)
         True
 
     """
 
-    def __init__(self, data: pd.DataFrame):
+    def __init__(self, data: dict, output_dim: int):
         """
         Embedding.
 
-        :param data: DataFrame to use as term to vector mapping.
+        :param data: Dictionary to use as term to vector mapping.
+        :param output_dim: The dimension of embedding.
         """
         self._data = data
-
-    @property
-    def input_dim(self) -> int:
-        """:return Embedding input dimension."""
-        return self._data.shape[0]
-
-    @property
-    def output_dim(self) -> int:
-        """:return Embedding output dimension."""
-        return self._data.shape[1]
+        self._output_dim = output_dim
 
     def build_matrix(
         self,
@@ -71,15 +63,14 @@ class Embedding(object):
         :return: A matrix.
         """
         input_dim = len(term_index)
+        matrix = np.empty((input_dim, self._output_dim))
 
-        matrix = np.empty((input_dim, self.output_dim))
-        for index in np.ndindex(*matrix.shape):
-            matrix[index] = initializer()
-
-        valid_keys = set(self._data.index)
+        valid_keys = self._data.keys()
         for term, index in term_index.items():
             if term in valid_keys:
-                matrix[index] = self._data.loc[term]
+                matrix[index] = self._data[term]
+            else:
+                matrix[index] = initializer()
 
         return matrix
 
@@ -89,23 +80,28 @@ def load_from_file(file_path: str, mode: str = 'word2vec') -> Embedding:
     Load embedding from `file_path`.
 
     :param file_path: Path to file.
-    :param mode: Embedding file format mode, one of 'word2vec' or 'glove'.
-        (default: 'word2vec')
+    :param mode: Embedding file format mode, one of 'word2vec', 'fasttext'
+        or 'glove'.(default: 'word2vec')
     :return: An :class:`matchzoo.embedding.Embedding` instance.
     """
-    if mode == 'word2vec':
-        data = pd.read_csv(file_path,
-                           sep=" ",
-                           index_col=0,
-                           header=None,
-                           skiprows=1)
+    embedding_data = {}
+    output_dim = 0
+    if mode == 'word2vec' or mode == 'fasttext':
+        with open(file_path, 'r') as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    output_dim = int(line.strip().split(' ')[-1])
+                else:
+                    current_line = line.rstrip().split(' ')
+                    embedding_data[current_line[0]] = current_line[1:]
     elif mode == 'glove':
-        data = pd.read_csv(file_path,
-                           sep=" ",
-                           index_col=0,
-                           header=None,
-                           quoting=csv.QUOTE_NONE)
+        with open(file_path, 'r') as f:
+            for i, line in enumerate(f):
+                current_line = line.rstrip().split(' ')
+                if i == 0:
+                    output_dim = len(current_line) - 1
+                embedding_data[current_line[0]] = current_line[1:]
     else:
         raise TypeError(f"{mode} is not a supported embedding type."
-                        f"`word2vec` or `glove` expected.")
-    return Embedding(data)
+                        f"`word2vec`, `fasttext` or `glove` expected.")
+    return Embedding(embedding_data, output_dim)
