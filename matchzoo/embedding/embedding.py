@@ -88,18 +88,16 @@ def load_from_file(file_path: str, mode: str = 'word2vec') -> Embedding:
     output_dim = 0
     if mode == 'word2vec' or mode == 'fasttext':
         with open(file_path, 'r') as f:
-            for i, line in enumerate(f):
-                if i == 0:
-                    output_dim = int(line.strip().split(' ')[-1])
-                else:
-                    current_line = line.rstrip().split(' ')
-                    embedding_data[current_line[0]] = current_line[1:]
+            output_dim = int(f.readline().strip().split(' ')[-1])
+            for line in f:
+                current_line = line.rstrip().split(' ')
+                embedding_data[current_line[0]] = current_line[1:]
     elif mode == 'glove':
         with open(file_path, 'r') as f:
-            for i, line in enumerate(f):
+            output_dim = len(f.readline().rstrip().split(' ')) - 1
+            f.seek(0)
+            for line in f:
                 current_line = line.rstrip().split(' ')
-                if i == 0:
-                    output_dim = len(current_line) - 1
                 embedding_data[current_line[0]] = current_line[1:]
     else:
         raise TypeError(f"{mode} is not a supported embedding type."

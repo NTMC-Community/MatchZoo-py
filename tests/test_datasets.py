@@ -82,15 +82,3 @@ def test_load_quora_qp():
     dev_data = mz.datasets.quora_qp.load_data('dev', 'ranking')
     x, y = dev_data.unpack()
     assert y.shape == (40371, 1)
-
-
-@pytest.mark.cron
-def test_load_glove_embedding():
-    glove_embedding = mz.datasets.embeddings.load_glove_embedding(dimension=50)
-    assert glove_embedding._output_dim == 50
-
-
-@pytest.mark.cron
-def test_load_fasttext_embedding():
-    fasttext_embedding = mz.datasets.embeddings.load_fasttext_embedding(language='en')
-    assert fasttext_embedding._output_dim == 300

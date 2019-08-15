@@ -12,7 +12,9 @@ def load_fasttext_embedding(language: str = 'en') -> mz.embedding.Embedding:
     """
     Return the pretrained fasttext embedding.
 
-    :param language: the language of embedding.
+    :param language: the language of embedding. Supported language can be
+        referred to "https://github.com/facebookresearch/fastText/blob/master"
+        "/docs/pretrained-vectors.md"
     :return: The :class:`mz.embedding.Embedding` object.
     """
     file_name = _fasttext_embedding_url.split('/')[-1].format(language)
