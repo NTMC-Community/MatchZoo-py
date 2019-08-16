@@ -94,11 +94,11 @@ class ArcI(BaseModel):
         activation = parse_activation(self._params['conv_activation_func'])
         left_in_channels = [
             self._params['embedding_output_dim'],
-            *self._params['left_filters'][:-2]
+            *self._params['left_filters'][:-1]
         ]
         right_in_channels = [
             self._params['embedding_output_dim'],
-            *self._params['right_filters'][:-2]
+            *self._params['right_filters'][:-1]
         ]
         conv_left = [
             self._make_conv_pool_block(ic, oc, ks, activation, ps)
