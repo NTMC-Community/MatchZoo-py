@@ -161,12 +161,13 @@ class DataLoader(object):
             else:
                 if y.dtype == 'int':
                     batch_y = torch.tensor(
-                        y.squeeze(), device=self._device,
-                        pin_memory=self._pin_momory
+                        y.squeeze(), dtype=torch.long,
+                        device=self._device, pin_memory=self._pin_momory
                     )
                 else:
                     batch_y = torch.tensor(
-                        y, device=self._device, pin_memory=self._pin_momory
+                        y, dtype=torch.float,
+                        device=self._device, pin_memory=self._pin_momory
                     )
                 yield batch_x, batch_y
 
