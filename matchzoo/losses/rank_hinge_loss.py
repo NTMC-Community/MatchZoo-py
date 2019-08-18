@@ -47,8 +47,8 @@ class RankHingeLoss(nn.Module):
         """
         Calculate rank hinge loss.
 
-        :param y_pred: Label.
-        :param y_true: Predicted result.
+        :param y_pred: Predicted result.
+        :param y_true: Label.
         :return: Hinge loss computed by user-defined margin.
         """
         y_pos = y_pred[::(self.num_neg + 1), :]

@@ -22,11 +22,10 @@ class RankCrossEntropyLoss(nn.Module):
         """
         Calculate rank cross entropy loss.
 
-        :param y_pred: Label.
-        :param y_true: Predicted result.
+        :param y_pred: Predicted result.
+        :param y_true: Label.
         :return: Rank cross loss.
         """
-        y_true = y_true.float()
         logits = y_pred[::(self.num_neg + 1), :]
         labels = y_true[::(self.num_neg + 1), :]
         for neg_idx in range(self.num_neg):
