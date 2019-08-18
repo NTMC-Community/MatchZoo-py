@@ -2,6 +2,7 @@ import typing
 
 import torch
 from torch import nn
+from torch import optim
 
 import matchzoo
 from matchzoo.engine.base_metric import (
@@ -53,6 +54,19 @@ loss = nn.ModuleDict([
     ['triplet_margin', nn.TripletMarginLoss()],
     ['poisson_nll', nn.PoissonNLLLoss()]
 ])
+
+optimizer = dict({
+    'adadelta': optim.Adadelta,
+    'adagrad': optim.Adagrad,
+    'adam': optim.Adam,
+    'sparse_adam': optim.SparseAdam,
+    'adamax': optim.Adamax,
+    'asgd': optim.ASGD,
+    'lbfgs': optim.LBFGS,
+    'rmsprop': optim.RMSprop,
+    'rprop': optim.Rprop,
+    'sgd': optim.SGD
+})
 
 
 def _parse(
@@ -222,4 +236,42 @@ def parse_metric(
     else:
         raise ValueError(
             'Should be a Ranking or Classification task.'
+        )
+
+
+def parse_optimizer(
+    identifier: typing.Union[str, typing.Type[optim.Optimizer]],
+) -> optim.Optimizer:
+    """
+    Parse input metric in any form into a :class:`Optimizer` class.
+
+    :param optimizer: Input optimizer in any form.
+    :return: A :class:`Optimizer` class
+
+    Examples::
+        >>> from torch import optim
+        >>> from matchzoo.utils import parse_optimizer
+
+    Use `str` as optimizer:
+        >>> parse_optimizer('adam')
+        <class 'torch.optim.adam.Adam'>
+
+    Use :class:`torch.optim.Optimizer` subclasses as optimizer:
+        >>> parse_optimizer(optim.Adam)
+        <class 'torch.optim.adam.Adam'>
+
+    """
+    if isinstance(identifier, str):
+        identifier = identifier.lower()  # ignore case
+        if identifier in optimizer:
+            return optimizer[identifier]
+        else:
+            raise ValueError(
+                f'Could not interpret optimizer identifier: ' + str(identifier)
+            )
+    elif issubclass(identifier, optim.Optimizer):
+        return identifier
+    else:
+        raise ValueError(
+            f'Could not interpret optimizer identifier: ' + str(identifier)
         )

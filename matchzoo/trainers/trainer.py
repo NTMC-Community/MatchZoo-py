@@ -249,7 +249,8 @@ class Trainer:
         # Get total number of batch
         num_batch = len(self._trainloader)
         train_loss = AverageMeter()
-        with tqdm(enumerate(self._trainloader), total=num_batch) as pbar:
+        with tqdm(enumerate(self._trainloader), total=num_batch,
+                  disable=not self._verbose) as pbar:
             for step, (inputs, target) in pbar:
                 outputs = self._model(inputs)
                 # Caculate all losses and sum them up
@@ -267,9 +268,10 @@ class Trainer:
                 self._iteration += 1
                 if self._iteration % self._validate_interval == 0:
                     pbar.update(1)
-                    pbar.write(
-                        f'[Iter-{self._iteration} '
-                        f'Loss-{train_loss.avg:.3f}]:')
+                    if self._verbose:
+                        pbar.write(
+                            f'[Iter-{self._iteration} '
+                            f'Loss-{train_loss.avg:.3f}]:')
                     result = self.evaluate(self._validloader)
                     if self._verbose:
                         pbar.write('  Validation: ' + ' - '.join(
