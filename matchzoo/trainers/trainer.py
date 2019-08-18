@@ -161,9 +161,11 @@ class Trainer:
         self._device = device
         self._task = model.params['task']
         self._model = model.to(self._device)
-        if (('cuda' in str(self._device)) and (
-                torch.cuda.device_count() > 1) and (
-                    data_parallel is True)):
+        self._data_parallel = (
+            data_parallel and (
+                'cuda' in str(self._device)) and (
+                    torch.cuda.device_count() > 1))
+        if self._data_parallel:
             self._model = torch.nn.DataParallel(self._model)
 
     def _load_path(
@@ -372,9 +374,12 @@ class Trainer:
     def save_model(self):
         """Save the model."""
         checkpoint = self._save_dir.joinpath('model.pt')
-        torch.save(self._model.state_dict(), checkpoint)
+        if self._data_parallel:
+            torch.save(self._model.module.state_dict(), checkpoint)
+        else:
+            torch.save(self._model.state_dict(), checkpoint)
 
-    def save(self, checkpoint: typing.Union[str, Path] = None):
+    def save(self):
         """
         Save the trainer.
 
@@ -385,9 +390,13 @@ class Trainer:
 
         """
         checkpoint = self._save_dir.joinpath('trainer.pt')
+        if self._data_parallel:
+            model = self._model.module.state_dict()
+        else:
+            model = self._model.state_dict()
         state = {
             'epoch': self._epoch,
-            'model': self._model.state_dict(),
+            'model': model,
             'optimizer': self._optimizer.state_dict(),
             'early_stopping': self._early_stopping.state_dict(),
         }
@@ -402,7 +411,11 @@ class Trainer:
         :param checkpoint: A checkpoint from which to continue training.
 
         """
-        self._model.load_state_dict(torch.load(checkpoint))
+        state = torch.load(checkpoint, map_location=self._device)
+        if self._data_parallel:
+            self._model.module.load_state_dict(state)
+        else:
+            self._model.load_state_dict(state)
 
     def restore(self, checkpoint: typing.Union[str, Path] = None):
         """
@@ -411,8 +424,11 @@ class Trainer:
         :param checkpoint: A checkpoint from which to continue training.
 
         """
-        state = torch.load(checkpoint)
-        self._model.load_state_dict(state['model'])
+        state = torch.load(checkpoint, map_location=self._device)
+        if self._data_parallel:
+            self._model.module.load_state_dict(state['model'])
+        else:
+            self._model.load_state_dict(state['model'])
         self._optimizer.load_state_dict(state['optimizer'])
         self._start_epoch = state['epoch'] + 1
         self._early_stopping.load_state_dict(state['early_stopping'])
