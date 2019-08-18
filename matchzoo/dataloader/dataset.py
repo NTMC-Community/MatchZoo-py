@@ -72,9 +72,9 @@ class Dataset(data.Dataset):
 
         :param item: the index of the instance.
         """
-        batch_data_pack = self._data_pack[item]
-        self._handle_callbacks_on_batch_data_pack(batch_data_pack)
-        x, y = batch_data_pack.unpack()
+        item_data_pack = self._data_pack[item]
+        self._handle_callbacks_on_batch_data_pack(item_data_pack)
+        x, y = item_data_pack.unpack()
         self._handle_callbacks_on_batch_unpacked(x, y)
         return x, y
 

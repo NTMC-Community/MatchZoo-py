@@ -3,19 +3,19 @@ import typing
 
 import math
 import numpy as np
-from torch.utils import data
+from torch.utils.data import Sampler, Dataset
 
 import matchzoo as mz
 
 
-class SequentialSampler(data.Sampler):
+class SequentialSampler(Sampler):
     """
     Samples elements sequentially, always in the same order.
 
     :param dataset: The dataset to sample from.
     """
 
-    def __init__(self, dataset: data.Dataset):
+    def __init__(self, dataset: Dataset):
         """Init."""
         self._dataset = dataset
 
@@ -28,14 +28,14 @@ class SequentialSampler(data.Sampler):
         return len(self._dataset)
 
 
-class SortedSampler(data.Sampler):
+class SortedSampler(Sampler):
     """
     Samples elements according to `length_right`.
 
     :param dataset: The dataset to sample from.
     """
 
-    def __init__(self, dataset: data.Dataset):
+    def __init__(self, dataset: Dataset):
         """Init."""
         self._dataset = dataset
 
@@ -49,14 +49,14 @@ class SortedSampler(data.Sampler):
         return len(self._dataset)
 
 
-class RandomSampler(data.Sampler):
+class RandomSampler(Sampler):
     """
     Samples elements randomly.
 
     :param dataset: The dataset to sample from.
     """
 
-    def __init__(self, dataset: data.Dataset):
+    def __init__(self, dataset: Dataset):
         """Init."""
         self._dataset = dataset
 
@@ -70,7 +70,7 @@ class RandomSampler(data.Sampler):
         return len(self._dataset)
 
 
-class BatchSampler(data.Sampler):
+class BatchSampler(Sampler):
     """
     Wraps another sampler to yield the indices of a batch.
 
@@ -80,7 +80,7 @@ class BatchSampler(data.Sampler):
 
     def __init__(
         self,
-        sampler: data.Sampler,
+        sampler: Sampler,
         batch_size: int = 32,
     ):
         """Init."""

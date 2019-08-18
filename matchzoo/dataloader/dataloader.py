@@ -3,9 +3,10 @@ import typing
 
 import math
 import random
+import collections
 import numpy as np
 import torch
-from torch.utils import data
+from torch.utils.data import DataLoader, Dataset
 
 from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.dataloader.sampler import (SequentialSampler, RandomSampler,
@@ -54,7 +55,7 @@ class DataLoader(object):
 
     def __init__(
         self,
-        dataset: data.Dataset,
+        dataset: Dataset,
         batch_size: int = 32,
         device: typing.Optional[torch.device] = None,
         stage='train',
@@ -73,8 +74,8 @@ class DataLoader(object):
                              f"Must be one of `train`, `dev`, `test`.")
 
         if shuffle and sort:
-            raise ValueError(f"parameter `shuffle` and `sort` is conflict, "
-                             f"but get both are True.")
+            raise ValueError(f"parameters `shuffle` and `sort` conflict, "
+                             f"should not both be `True`.")
 
         if device is None or not isinstance(device, torch.device):
             device = torch.device(
@@ -130,7 +131,7 @@ class DataLoader(object):
         batch_sampler = BatchSampler(
             sampler, self._batch_size)
 
-        self._dataloader = data.DataLoader(
+        self._dataloader = DataLoader(
             self._dataset,
             collate_fn=mz_collate,
             batch_sampler=batch_sampler,
@@ -161,7 +162,7 @@ class DataLoader(object):
             else:
                 if y.dtype == 'int':
                     batch_y = torch.tensor(
-                        y.squeeze(), dtype=torch.long,
+                        y.squeeze(dim=-1), dtype=torch.long,
                         device=self._device, pin_memory=self._pin_momory
                     )
                 else:
@@ -179,11 +180,8 @@ class DataLoader(object):
 def mz_collate(batch):
     """Put each data field into an array with outer dimension batch size."""
 
-    key_all = batch[0][0].keys()
-    batch_x = {}
+    batch_x = collections.defaultdict(list)
     batch_y = []
-    for key in key_all:
-        batch_x[key] = []
 
     for x, y in batch:
         for key in x.keys():
