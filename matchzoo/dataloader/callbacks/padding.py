@@ -466,3 +466,38 @@ class DIINPadding(BaseCallback):
             else:
                 continue
             x[key] = padded_value
+
+
+class BERTPadding(BaseCallback):
+    """
+    Padding data for bert preprocessor.
+
+    :param fixed_length_left: Integer. If set, `text_left` will be padded
+        to this length.
+    :param fixed_length_right: Integer. If set, `text_right` will be padded
+        to this length.
+    :param pad_value: the value to fill text.
+    :param pad_mode: String, `pre` or `post`:
+        pad either before or after each sequence.
+    """
+
+    def __init__(
+        self,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre',
+    ):
+        """Init."""
+        self._padding = BasicPadding(fixed_length_left=fixed_length_left,
+                                     fixed_length_right=fixed_length_right,
+                                     pad_value=pad_value,
+                                     pad_mode=pad_mode)
+
+    def on_batch_unpacked(self, x: dict, y: np.ndarray):
+        """Pad `x['text_left']` and `x['text_right]`."""
+        self._padding.on_batch_unpacked(x, y)
+        x['text_left'] = np.insert(x['text_left'], 0, 101, axis=1)
+        x['text_right'] = np.insert(x['text_right'], 0, 102, axis=1)
+        SEP = [[102]] * len(x['text_right'])
+        x['text_right'] = np.append(x['text_right'], SEP, axis=1)
