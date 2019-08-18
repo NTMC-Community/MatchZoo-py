@@ -6,7 +6,7 @@ import random
 import collections
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils import data
 
 from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.dataloader.sampler import (SequentialSampler, RandomSampler,
@@ -55,7 +55,7 @@ class DataLoader(object):
 
     def __init__(
         self,
-        dataset: Dataset,
+        dataset: data.Dataset,
         batch_size: int = 32,
         device: typing.Optional[torch.device] = None,
         stage='train',
@@ -131,7 +131,7 @@ class DataLoader(object):
         batch_sampler = BatchSampler(
             sampler, self._batch_size)
 
-        self._dataloader = DataLoader(
+        self._dataloader = data.DataLoader(
             self._dataset,
             collate_fn=mz_collate,
             batch_sampler=batch_sampler,
@@ -162,7 +162,7 @@ class DataLoader(object):
             else:
                 if y.dtype == 'int':
                     batch_y = torch.tensor(
-                        y.squeeze(dim=-1), dtype=torch.long,
+                        y.squeeze(axis=-1), dtype=torch.long,
                         device=self._device, pin_memory=self._pin_momory
                     )
                 else:
