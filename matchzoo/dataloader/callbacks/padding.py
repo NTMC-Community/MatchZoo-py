@@ -7,7 +7,7 @@ from matchzoo.engine.base_callback import BaseCallback
 
 class BasicPadding(BaseCallback):
     """
-    Padding data for basic preprocessor.
+    Pad data for basic preprocessor.
 
     :param fixed_length_left: Integer. If set, `text_left` will be padded
         to this length.
@@ -470,7 +470,7 @@ class DIINPadding(BaseCallback):
 
 class BERTPadding(BaseCallback):
     """
-    Padding data for bert preprocessor.
+    Pad data for bert preprocessor.
 
     :param fixed_length_left: Integer. If set, `text_left` will be padded
         to this length.

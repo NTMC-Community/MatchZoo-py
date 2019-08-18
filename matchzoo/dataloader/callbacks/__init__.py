@@ -5,4 +5,4 @@ from .padding import BasicPadding
 from .padding import DRMMPadding
 from .padding import CDSSMPadding
 from .padding import DIINPadding
-from .padding import BERTPadding
+from .padding import BertPadding
