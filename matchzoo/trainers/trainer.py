@@ -9,10 +9,10 @@ from tqdm.auto import tqdm
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 
 import matchzoo
 from matchzoo import tasks
+from matchzoo.dataloader import DataLoader
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.base_metric import BaseMetric
 from matchzoo.utils import AverageMeter, Timer, EarlyStopping

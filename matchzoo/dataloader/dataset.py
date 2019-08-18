@@ -72,11 +72,7 @@ class Dataset(data.Dataset):
 
         :param item: the index of the instance.
         """
-        if isinstance(item, slice):
-            indices = sum(self._index_pool[item], [])
-        else:
-            indices = self._index_pool[item]
-        batch_data_pack = self._data_pack[indices]
+        batch_data_pack = self._data_pack[item]
         self._handle_callbacks_on_batch_data_pack(batch_data_pack)
         x, y = batch_data_pack.unpack()
         self._handle_callbacks_on_batch_unpacked(x, y)
