@@ -468,7 +468,7 @@ class DIINPadding(BaseCallback):
             x[key] = padded_value
 
 
-class BERTPadding(BaseCallback):
+class BertPadding(BaseCallback):
     """
     Pad data for bert preprocessor.
 
