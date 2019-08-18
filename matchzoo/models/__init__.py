@@ -10,6 +10,7 @@ from .bimpm import BiMPM
 from .matchlstm import MatchLSTM
 from .arci import ArcI
 from .arcii import ArcII
+from .bert import Bert
 
 
 def list_available() -> list:
