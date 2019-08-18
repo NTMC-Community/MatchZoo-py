@@ -143,13 +143,13 @@ class ArcII(BaseModel):
         input_left, input_right = inputs['text_left'], inputs['text_right']
 
         # Process left and right input.
-        # shape = [B, L, D]
-        # shape = [B, R, D]
+        # shape = [B, D, L]
+        # shape = [B, D, R]
         embed_left = self.embedding(input_left.long()).transpose(1, 2)
         embed_right = self.embedding(input_right.long()).transpose(1, 2)
 
-        # shape = [B, F1, L]
-        # shape = [B, F1, R]
+        # shape = [B, L, F1]
+        # shape = [B, R, F1]
         conv1d_left = self.conv1d_left(embed_left).transpose(1, 2)
         conv1d_right = self.conv1d_right(embed_right).transpose(1, 2)
 
@@ -181,7 +181,7 @@ class ArcII(BaseModel):
         return nn.Sequential(
             # Same padding
             nn.ConstantPad2d(
-                (0, kernel_size[0] - 1, 0, kernel_size[1] - 1), 0
+                (0, kernel_size[1] - 1, 0, kernel_size[0] - 1), 0
             ),
             nn.Conv2d(
                 in_channels=in_channels,
