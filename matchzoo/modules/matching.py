@@ -18,7 +18,7 @@ class Matching(nn.Module):
 
     Examples:
         >>> import torch
-        >>> matching = Matching(matching_type='dot')
+        >>> matching = Matching(matching_type='dot', normalize=True)
         >>> x = torch.randn(2, 3, 2)
         >>> y = torch.randn(2, 4, 2)
         >>> matching(x, y).shape
