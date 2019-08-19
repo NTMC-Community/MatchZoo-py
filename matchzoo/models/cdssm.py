@@ -5,10 +5,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+import matchzoo
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
-from matchzoo.dataloader import callbacks
 from matchzoo import preprocessors
 from matchzoo.utils import TensorType, parse_activation
 
@@ -48,12 +48,6 @@ class CDSSM(BaseModel):
         params.add(Param(name='kernel_size', value=3,
                          desc="Number of kernel size in the 1D "
                               "convolution layer."))
-        params.add(Param(name='strides', value=1,
-                         desc="Strides in the 1D convolution layer."))
-        params.add(Param(name='padding', value=0,
-                         desc="The padding mode in the convolution "
-                              "layer. It should be one of `same`, "
-                              "`valid`, ""and `causal`."))
         params.add(Param(name='conv_activation_func', value='relu',
                          desc="Activation function in the convolution"
                               " layer."))
@@ -64,12 +58,22 @@ class CDSSM(BaseModel):
     @classmethod
     def get_default_preprocessor(cls):
         """:return: Default preprocessor."""
-        return preprocessors.CDSSMPreprocessor()
+        return matchzoo.preprocessors.CDSSMPreprocessor()
 
     @classmethod
-    def get_default_padding_callback(cls):
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
         """:return: Default padding callback."""
-        return callbacks.CDSSMPadding()
+        return matchzoo.dataloader.callbacks.CDSSMPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode)
 
     def _create_base_network(self) -> nn.Module:
         """
@@ -81,12 +85,11 @@ class CDSSM(BaseModel):
 
         :return: A :class:`nn.Module` of CDSSM network, tensor in tensor out.
         """
+        pad = nn.ConstantPad1d((0, self._params['kernel_size'] - 1), 0)
         conv = nn.Conv1d(
             in_channels=self._params['vocab_size'],
             out_channels=self._params['filters'],
-            kernel_size=self._params['kernel_size'],
-            stride=self._params['strides'],
-            padding=self._params['padding']
+            kernel_size=self._params['kernel_size']
         )
         activation = parse_activation(
             self._params['conv_activation_func']
@@ -98,7 +101,7 @@ class CDSSM(BaseModel):
             self._params['filters']
         )
         return nn.Sequential(
-            conv, activation, dropout, pool, squeeze, mlp
+            pad, conv, activation, dropout, pool, squeeze, mlp
         )
 
     def build(self):

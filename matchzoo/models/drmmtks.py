@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
@@ -44,6 +45,28 @@ class DRMMTKS(BaseModel):
         ))
         params['mlp_num_fan_out'] = 1
         return params
+
+    @classmethod
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = 10,
+        fixed_length_right: int = 100,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
+        """
+        Model default padding callback.
+
+        The padding callback's on_batch_unpacked would pad a batch of data to
+        a fixed length.
+
+        :return: Default padding callback.
+        """
+        return matchzoo.dataloader.callbacks.BasicPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode)
 
     def build(self):
         """Build model structure."""

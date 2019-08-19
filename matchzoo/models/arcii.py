@@ -4,11 +4,11 @@ import typing
 import torch
 import torch.nn as nn
 
+import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
-from matchzoo.dataloader import callbacks
 from matchzoo.modules import Matching
 from matchzoo.utils import parse_activation
 
@@ -34,9 +34,9 @@ class ArcII(BaseModel):
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""
         params = super().get_default_params(with_embedding=True)
-        params.add(Param(name='left_length', value=8,
+        params.add(Param(name='left_length', value=10,
                          desc='Length of left input.'))
-        params.add(Param(name='right_length', value=10,
+        params.add(Param(name='right_length', value=100,
                          desc='Length of right input.'))
         params.add(Param(name='kernel_1d_count', value=32,
                          desc="Kernel count of 1D convolution layer."))
@@ -61,11 +61,19 @@ class ArcII(BaseModel):
         return params
 
     @classmethod
-    def get_default_padding_callback(cls):
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = 10,
+        fixed_length_right: int = 100,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
         """:return: Default padding callback."""
-        return callbacks.BasicPadding(
-            fixed_length_left=8, fixed_length_right=10
-        )
+        return matchzoo.dataloader.callbacks.BasicPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode)
 
     def build(self):
         """

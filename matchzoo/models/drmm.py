@@ -4,10 +4,10 @@ import typing
 import torch
 import torch.nn as nn
 
+import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.dataloader import callbacks
 from matchzoo.modules import Attention
 
 
@@ -41,9 +41,20 @@ class DRMM(BaseModel):
         return params
 
     @classmethod
-    def get_default_padding_callback(cls):
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
         """:return: Default padding callback."""
-        return callbacks.DRMMPadding()
+        return matchzoo.dataloader.callbacks.DRMMPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode
+        )
 
     def build(self):
         """Build model structure."""

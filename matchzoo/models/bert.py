@@ -5,9 +5,11 @@ import torch
 import torch.nn as nn
 from pytorch_transformers import BertModel
 
+import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
+from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine import hyper_spaces
 from matchzoo.modules import BertModule
 
@@ -28,6 +30,26 @@ class Bert(BaseModel):
             desc="The dropout rate."
         ))
         return params
+
+    @classmethod
+    def get_default_preprocessor(cls) -> BasePreprocessor:
+        """:return: Default preprocessor."""
+        return matchzoo.preprocessors.BertPreprocessor()
+
+    @classmethod
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
+        """:return: Default padding callback."""
+        return matchzoo.dataloader.callbacks.BertPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode)
 
     def build(self):
         """Build model structure."""

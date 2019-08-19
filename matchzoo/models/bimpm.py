@@ -51,11 +51,6 @@ class BiMPM(BaseModel):
 
         return params
 
-    @classmethod
-    def get_default_padding_callback(cls):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding()
-
     def build(self):
         """Make function layers."""
 

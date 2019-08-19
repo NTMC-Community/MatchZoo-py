@@ -48,11 +48,6 @@ class ESIM(BaseModel):
                          desc="Choose rnn type, lstm or gru."))
         return params
 
-    @classmethod
-    def get_default_padding_callback(cls):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding()
-
     def build(self):
         """Instantiating layers."""
         rnn_mapping = {'lstm': nn.LSTM, 'gru': nn.GRU}
