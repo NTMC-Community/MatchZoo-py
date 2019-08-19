@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 import matchzoo
+from matchzoo.engine.base_task import BaseTask
 
 _url = "https://firebasestorage.googleapis.com/v0/b/mtl-sentence" \
        "-representations.appspot.com/o/data%2FQQP.zip?alt=media&" \
@@ -14,7 +15,7 @@ _url = "https://firebasestorage.googleapis.com/v0/b/mtl-sentence" \
 
 def load_data(
     stage: str = 'train',
-    task: str = 'classification',
+    task: typing.Union[str, BaseTask] = 'classification',
     return_classes: bool = False,
 ) -> typing.Union[matchzoo.DataPack, tuple]:
     """
@@ -35,16 +36,12 @@ def load_data(
 
     data_root = _download_data()
     file_path = data_root.joinpath(f"{stage}.tsv")
-    data_pack = _read_data(file_path, stage)
+    data_pack = _read_data(file_path, stage, task)
 
-    if task == 'ranking':
-        task = matchzoo.tasks.Ranking()
-    elif task == 'classification':
-        task = matchzoo.tasks.Classification()
-
-    if isinstance(task, matchzoo.tasks.Ranking):
+    if task == 'ranking' or isinstance(task, matchzoo.tasks.Ranking):
         return data_pack
-    elif isinstance(task, matchzoo.tasks.Classification):
+    elif task == 'classification' or isinstance(
+            task, matchzoo.tasks.Classification):
         if return_classes:
             return data_pack, [False, True]
         else:
@@ -62,7 +59,7 @@ def _download_data():
     return Path(ref_path).parent.joinpath('QQP')
 
 
-def _read_data(path, stage):
+def _read_data(path, stage, task):
     data = pd.read_csv(path, sep='\t', error_bad_lines=False, dtype=object)
     data = data.dropna(axis=0, how='any').reset_index(drop=True)
     if stage in ['train', 'dev']:
@@ -78,4 +75,4 @@ def _read_data(path, stage):
             'text_left': data['question1'],
             'text_right': data['question2']
         })
-    return matchzoo.pack(df)
+    return matchzoo.pack(df, task)

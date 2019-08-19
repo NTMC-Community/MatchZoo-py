@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 import matchzoo
+from matchzoo.engine.base_task import BaseTask
 
 _url = "https://download.microsoft.com/download/E/5/F/" \
        "E5FCFCEE-7005-4814-853D-DAA7C66507E0/WikiQACorpus.zip"
@@ -14,7 +15,7 @@ _url = "https://download.microsoft.com/download/E/5/F/" \
 
 def load_data(
     stage: str = 'train',
-    task: str = 'ranking',
+    task: typing.Union[str, BaseTask] = 'ranking',
     filtered: bool = False,
     return_classes: bool = False
 ) -> typing.Union[matchzoo.DataPack, tuple]:
@@ -37,7 +38,7 @@ def load_data(
 
     data_root = _download_data()
     file_path = data_root.joinpath(f'WikiQA-{stage}.tsv')
-    data_pack = _read_data(file_path)
+    data_pack = _read_data(file_path, task)
     if filtered and stage in ('dev', 'test'):
         ref_path = data_root.joinpath(f'WikiQA-{stage}.ref')
         filter_ref_path = data_root.joinpath(f'WikiQA-{stage}-filtered.ref')
@@ -50,14 +51,10 @@ def load_data(
                     filtered_lines.append(idx)
         data_pack = data_pack[filtered_lines]
 
-    if task == 'ranking':
-        task = matchzoo.tasks.Ranking()
-    if task == 'classification':
-        task = matchzoo.tasks.Classification()
-
-    if isinstance(task, matchzoo.tasks.Ranking):
+    if task == 'ranking' or isinstance(task, matchzoo.tasks.Ranking):
         return data_pack
-    elif isinstance(task, matchzoo.tasks.Classification):
+    elif task == 'classification' or isinstance(
+            task, matchzoo.tasks.Classification):
         if return_classes:
             return data_pack, [False, True]
         else:
@@ -76,7 +73,7 @@ def _download_data():
     return Path(ref_path).parent.joinpath('WikiQACorpus')
 
 
-def _read_data(path):
+def _read_data(path, task):
     table = pd.read_csv(path, sep='\t', header=0, quoting=csv.QUOTE_NONE)
     df = pd.DataFrame({
         'text_left': table['Question'],
@@ -85,4 +82,4 @@ def _read_data(path):
         'id_right': table['SentenceID'],
         'label': table['Label']
     })
-    return matchzoo.pack(df)
+    return matchzoo.pack(df, task)
