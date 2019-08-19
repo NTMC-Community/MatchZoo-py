@@ -5,6 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from matchzoo import preprocessors
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
