@@ -4,11 +4,12 @@ from pathlib import Path
 import pandas as pd
 
 import matchzoo
+from matchzoo.engine.base_task import BaseTask
 
 
 def load_data(
     stage: str = 'train',
-    task: str = 'ranking',
+    task: typing.Union[str, BaseTask] = 'ranking',
     return_classes: bool = False
 ) -> typing.Union[matchzoo.DataPack, typing.Tuple[matchzoo.DataPack, list]]:
     """
@@ -35,20 +36,13 @@ def load_data(
         raise ValueError(f"{stage} is not a valid stage."
                          f"Must be one of `train`, `dev`, and `test`.")
 
-    if task == 'ranking':
-        task = matchzoo.tasks.Ranking()
-    if task == 'classification':
-        task = matchzoo.tasks.Classification()
-
     path = Path(__file__).parent.joinpath(f'{stage}.csv')
-    data_pack = matchzoo.pack(pd.read_csv(path, index_col=0))
+    data_pack = matchzoo.pack(pd.read_csv(path, index_col=0), task)
 
-    if isinstance(task, matchzoo.tasks.Ranking):
-        data_pack.relation['label'] = \
-            data_pack.relation['label'].astype('float32')
+    if task == 'ranking' or isinstance(task, matchzoo.tasks.Ranking):
         return data_pack
-    elif isinstance(task, matchzoo.tasks.Classification):
-        data_pack.relation['label'] = data_pack.relation['label'].astype(int)
+    elif task == 'classification' or isinstance(
+            task, matchzoo.tasks.Classification):
         if return_classes:
             return data_pack, [False, True]
         else:

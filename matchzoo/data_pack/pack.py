@@ -6,9 +6,13 @@ import pandas as pd
 import numpy as np
 
 import matchzoo
+from matchzoo.engine.base_task import BaseTask
 
 
-def pack(df: pd.DataFrame) -> 'matchzoo.DataPack':
+def pack(
+    df: pd.DataFrame,
+    task: typing.Union[str, BaseTask] = 'classification',
+) -> 'matchzoo.DataPack':
     """
     Pack a :class:`DataPack` using `df`.
 
@@ -18,6 +22,8 @@ def pack(df: pd.DataFrame) -> 'matchzoo.DataPack':
     generated if not specified.
 
     :param df: Input :class:`pandas.DataFrame` to use.
+    :param task: Could be one of `ranking`, `classification` or a
+        :class:`matchzoo.engine.BaseTask` instance.
 
     Examples::
         >>> import matchzoo as mz
@@ -25,12 +31,18 @@ def pack(df: pd.DataFrame) -> 'matchzoo.DataPack':
         >>> df = pd.DataFrame(data={'text_left': list('AABC'),
         ...                         'text_right': list('abbc'),
         ...                         'label': [0, 1, 1, 0]})
-        >>> mz.pack(df).frame()
+        >>> mz.pack(df, task='classification').frame()
           id_left text_left id_right text_right  label
         0     L-0         A      R-0          a      0
         1     L-0         A      R-1          b      1
         2     L-1         B      R-1          b      1
         3     L-2         C      R-2          c      0
+        >>> mz.pack(df, task='ranking').frame()
+          id_left text_left id_right text_right  label
+        0     L-0         A      R-0          a    0.0
+        1     L-0         A      R-1          b    1.0
+        2     L-1         B      R-1          b    1.0
+        3     L-2         C      R-2          c    0.0
 
     """
     if 'text_left' not in df or 'text_right' not in df:
@@ -52,6 +64,14 @@ def pack(df: pd.DataFrame) -> 'matchzoo.DataPack':
     for col in df:
         if col not in ['id_left', 'id_right', 'text_left', 'text_right']:
             relation[col] = df[col]
+    if 'label' in relation:
+        if task == 'classification' or isinstance(
+           task, matchzoo.tasks.Classification):
+            relation['label'] = relation['label'].astype(int)
+        elif task == 'ranking' or isinstance(task, matchzoo.tasks.Ranking):
+            relation['label'] = relation['label'].astype(float)
+        else:
+            raise ValueError(f"{task} is not a valid task.")
 
     # Build Left and Right
     left = _merge(df, id_left, 'text_left', 'id_left')

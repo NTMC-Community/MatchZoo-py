@@ -160,12 +160,12 @@ class DataLoader(object):
             if self._stage == 'test':
                 yield batch_x, None
             else:
-                if y.dtype == 'int':
+                if y.dtype == 'int':  # task='classification'
                     batch_y = torch.tensor(
                         y.squeeze(axis=-1), dtype=torch.long,
                         device=self._device, pin_memory=self._pin_momory
                     )
-                else:
+                else:  # task='ranking'
                     batch_y = torch.tensor(
                         y, dtype=torch.float,
                         device=self._device, pin_memory=self._pin_momory
