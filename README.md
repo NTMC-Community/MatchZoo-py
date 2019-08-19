@@ -96,7 +96,7 @@ trainset = mz.dataloader.Dataset(
 )
 validset = mz.dataloader.Dataset(
     data_pack=valid_processed,
-  	mode='point'
+    mode='point'
 )
 ```
 
@@ -237,8 +237,6 @@ If you use MatchZoo in your research, please use the following BibTex entry.
          <a href="https://github.com/caiyinqiong">Yinqiong Cai</a>
          <p>Core Dev<br> M.S. ICT</p>​
       </td>
-    </tr>
-    <tr align="center">
       <td>
         ​ <a href="https://github.com/lixinsu"><img width="40" height="40" src="https://github.com/lixinsu.png?s=40" alt="lixinsu"></a><br>
         ​ <a href="https://github.com/lixinsu">Lixin Su</a>
