@@ -4,12 +4,12 @@ import typing
 import torch
 import torch.nn as nn
 
-import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
 from matchzoo.modules import Matching
+from matchzoo.dataloader import callbacks
 from matchzoo.utils import parse_activation
 
 
@@ -69,7 +69,7 @@ class ArcII(BaseModel):
         pad_mode: str = 'pre'
     ):
         """:return: Default padding callback."""
-        return matchzoo.dataloader.callbacks.BasicPadding(
+        return callbacks.BasicPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
             pad_value=pad_value,

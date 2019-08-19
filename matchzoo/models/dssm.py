@@ -4,12 +4,9 @@ import typing
 import torch
 import torch.nn.functional as F
 
-import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.dataloader import callbacks
-from matchzoo import preprocessors
 
 
 class DSSM(BaseModel):
@@ -38,7 +35,7 @@ class DSSM(BaseModel):
     @classmethod
     def get_default_preprocessor(cls):
         """:return: Default preprocessor."""
-        return matchzoo.preprocessors.DSSMPreprocessor()
+        return preprocessors.DSSMPreprocessor()
 
     @classmethod
     def get_default_padding_callback(cls):

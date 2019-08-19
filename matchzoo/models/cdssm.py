@@ -5,11 +5,10 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-import matchzoo
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
-from matchzoo import preprocessors
+from matchzoo.dataloader import callbacks
 from matchzoo.utils import TensorType, parse_activation
 
 
@@ -58,7 +57,7 @@ class CDSSM(BaseModel):
     @classmethod
     def get_default_preprocessor(cls):
         """:return: Default preprocessor."""
-        return matchzoo.preprocessors.CDSSMPreprocessor()
+        return preprocessors.CDSSMPreprocessor()
 
     @classmethod
     def get_default_padding_callback(
@@ -69,7 +68,7 @@ class CDSSM(BaseModel):
         pad_mode: str = 'pre'
     ):
         """:return: Default padding callback."""
-        return matchzoo.dataloader.callbacks.CDSSMPadding(
+        return callbacks.CDSSMPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
             pad_value=pad_value,

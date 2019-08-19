@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 from pytorch_transformers import BertModel
 
-import matchzoo
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine import hyper_spaces
+from matchzoo.dataloader import callbacks
 from matchzoo.modules import BertModule
 
 
@@ -34,7 +34,7 @@ class Bert(BaseModel):
     @classmethod
     def get_default_preprocessor(cls) -> BasePreprocessor:
         """:return: Default preprocessor."""
-        return matchzoo.preprocessors.BertPreprocessor()
+        return preprocessors.BertPreprocessor()
 
     @classmethod
     def get_default_padding_callback(
@@ -45,7 +45,7 @@ class Bert(BaseModel):
         pad_mode: str = 'pre'
     ):
         """:return: Default padding callback."""
-        return matchzoo.dataloader.callbacks.BertPadding(
+        return callbacks.BertPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
             pad_value=pad_value,

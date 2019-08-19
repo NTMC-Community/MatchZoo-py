@@ -8,7 +8,6 @@ from torch.nn import functional as F
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.dataloader import callbacks
 from matchzoo.modules import MatchModule
 from matchzoo.modules import StackedBRNN
 
