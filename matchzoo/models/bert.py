@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from pytorch_transformers import BertModel
 
-from matchzoo import preprocessor
+from matchzoo import preprocessors
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
