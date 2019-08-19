@@ -42,9 +42,9 @@ class ArcI(BaseModel):
             with_embedding=True,
             with_multi_layer_perceptron=True
         )
-        params.add(Param(name='left_length', value=8,
+        params.add(Param(name='left_length', value=10,
                          desc='Length of left input.'))
-        params.add(Param(name='right_length', value=10,
+        params.add(Param(name='right_length', value=100,
                          desc='Length of right input.'))
         params.add(Param(name='conv_activation_func', value='relu',
                          desc="The activation function in the "
@@ -76,11 +76,19 @@ class ArcI(BaseModel):
         return params
 
     @classmethod
-    def get_default_padding_callback(cls):
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = 10,
+        fixed_length_right: int = 100,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
         """:return: Default padding callback."""
         return callbacks.BasicPadding(
-            fixed_length_left=8, fixed_length_right=10
-        )
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode)
 
     def build(self):
         """

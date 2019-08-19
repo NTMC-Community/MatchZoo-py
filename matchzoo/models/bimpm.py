@@ -9,7 +9,6 @@ from matchzoo.engine import hyper_spaces
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.dataloader import callbacks
 
 
 class BiMPM(BaseModel):
@@ -50,11 +49,6 @@ class BiMPM(BaseModel):
                          desc='num_perspective'))
 
         return params
-
-    @classmethod
-    def get_default_padding_callback(cls):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding()
 
     def build(self):
         """Make function layers."""

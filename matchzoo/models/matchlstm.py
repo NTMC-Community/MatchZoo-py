@@ -8,7 +8,6 @@ from torch.nn import functional as F
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.dataloader import callbacks
 from matchzoo.modules import MatchModule
 from matchzoo.modules import StackedBRNN
 
@@ -50,11 +49,6 @@ class MatchLSTM(BaseModel):
         params.add(Param(name='rnn_type', value='lstm',
                          desc="Choose rnn type, lstm or gru."))
         return params
-
-    @classmethod
-    def get_default_padding_callback(cls):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding()
 
     def build(self):
         """Instantiating layers."""

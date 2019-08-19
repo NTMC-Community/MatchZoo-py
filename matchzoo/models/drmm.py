@@ -41,9 +41,20 @@ class DRMM(BaseModel):
         return params
 
     @classmethod
-    def get_default_padding_callback(cls):
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_value: typing.Union[int, str] = 0,
+        pad_mode: str = 'pre'
+    ):
         """:return: Default padding callback."""
-        return callbacks.DRMMPadding()
+        return callbacks.DRMMPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_value=pad_value,
+            pad_mode=pad_mode
+        )
 
     def build(self):
         """Build model structure."""
