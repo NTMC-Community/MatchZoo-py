@@ -11,7 +11,7 @@ from matchzoo.engine.base_task import BaseTask
 
 def pack(
     df: pd.DataFrame,
-    task: typing.Union[str, BaseTask] = 'classification',
+    task: typing.Union[str, BaseTask] = 'ranking',
 ) -> 'matchzoo.DataPack':
     """
     Pack a :class:`DataPack` using `df`.
