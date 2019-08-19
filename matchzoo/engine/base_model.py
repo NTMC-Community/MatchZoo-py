@@ -15,6 +15,7 @@ from matchzoo.engine.base_preprocessor import BasePreprocessor
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.dataloader import callbacks
+from matchzoo import preprocessors
 from matchzoo import tasks
 
 
