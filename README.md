@@ -229,14 +229,20 @@ If you use MatchZoo in your research, please use the following BibTex entry.
         ASST PROF, ICT</p>​
       </td>
       <td>
-         <a href="https://github.com/Chriskuei"><img width="40" height="40" src="https://github.com/Chriskuei.png?s=40" alt="bwanglzu"></a><br>
+         <a href="https://github.com/Chriskuei"><img width="40" height="40" src="https://github.com/Chriskuei.png?s=40" alt="Chriskuei"></a><br>
          <a href="https://github.com/Chriskuei">Jiangui Chen</a> ​
         <p>Core Dev<br> PhD. ICT</p>​
       </td>
       <td>
-        ​ <a href="https://github.com/caiyinqiong"><img width="40" height="40" src="https://github.com/caiyinqiong.png?s=36" alt="uduse"></a><br>
+        ​ <a href="https://github.com/caiyinqiong"><img width="40" height="40" src="https://github.com/caiyinqiong.png?s=36" alt="caiyinqiong"></a><br>
          <a href="https://github.com/caiyinqiong">Yinqiong Cai</a>
          <p>Core Dev<br> M.S. ICT</p>​
+      </td>
+      <td>
+        ​ <a href="https://github.com/pl8787"><img width="40" height="40" src="https://github.com/pl8787.png?s=40" alt="pl8787"></a><br>
+        ​ <a href="https://github.com/pl8787">Liang Pang</a> ​
+        <p>Core Dev<br>
+        ASST PROF, ICT</p>​
       </td>
       <td>
         ​ <a href="https://github.com/lixinsu"><img width="40" height="40" src="https://github.com/lixinsu.png?s=40" alt="lixinsu"></a><br>
@@ -269,7 +275,7 @@ Please make sure to read the [Contributing Guide](./CONTRIBUTING.md) before crea
 
 Thank you to all the people who already contributed to MatchZoo!
 
-[Bo Wang](https://github.com/bwanglzu), [Zeyi Wang](https://github.com/uduse), [Liang Pang](https://github.com/pl8787), [Liu Yang](https://github.com/yangliuy), [Zizhen Wang](https://github.com/ZizhenWang), [Zhou Yang](https://github.com/zhouzhouyang520), [Jianpeng Hou](https://github.com/HouJP), [Lijuan Chen](https://github.com/githubclj), [Yukun Zheng](https://github.com/zhengyk11), [Niuguo Cheng](https://github.com/niuox), [Dai Zhuyun](https://github.com/AdeDZY), [Aneesh Joshi](https://github.com/aneesh-joshi), [Zeno Gantner](https://github.com/zenogantner), [Kai Huang](https://github.com/hkvision), [stanpcf](https://github.com/stanpcf), [ChangQF](https://github.com/ChangQF), [Mike Kellogg
+[Bo Wang](https://github.com/bwanglzu), [Zeyi Wang](https://github.com/uduse), [Liu Yang](https://github.com/yangliuy), [Zizhen Wang](https://github.com/ZizhenWang), [Zhou Yang](https://github.com/zhouzhouyang520), [Jianpeng Hou](https://github.com/HouJP), [Lijuan Chen](https://github.com/githubclj), [Yukun Zheng](https://github.com/zhengyk11), [Niuguo Cheng](https://github.com/niuox), [Dai Zhuyun](https://github.com/AdeDZY), [Aneesh Joshi](https://github.com/aneesh-joshi), [Zeno Gantner](https://github.com/zenogantner), [Kai Huang](https://github.com/hkvision), [stanpcf](https://github.com/stanpcf), [ChangQF](https://github.com/ChangQF), [Mike Kellogg
 ](https://github.com/wordreference)
 
 
