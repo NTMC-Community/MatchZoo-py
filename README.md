@@ -59,26 +59,12 @@ The goal of MatchZoo is to provide a high-quality codebase for deep text matchin
 
 ## Get Started in 60 Seconds
 
-To train a [Deep Semantic Structured Model](https://www.microsoft.com/en-us/research/project/dssm/), import matchzoo and prepare input data.
+To train a [Deep Semantic Structured Model](https://www.microsoft.com/en-us/research/project/dssm/), make use of MatchZoo customized loss functions and evaluation metrics to define a task:
 
 ```python
+import torch
 import matchzoo as mz
 
-train_pack = mz.datasets.wiki_qa.load_data('train', task='ranking')
-valid_pack = mz.datasets.wiki_qa.load_data('dev', task='ranking')
-```
-
-Preprocess your input data in three lines of code, keep track parameters to be passed into the model.
-
-```python
-preprocessor = mz.preprocessors.DSSMPreprocessor()
-train_processed = preprocessor.fit_transform(train_pack)
-valid_processed = preprocessor.transform(valid_pack)
-```
-
-Make use of MatchZoo customized loss functions and evaluation metrics:
-
-```python
 ranking_task = mz.tasks.Ranking(losses=mz.losses.RankCrossEntropyLoss(num_neg=4))
 ranking_task.metrics = [
     mz.metrics.NormalizedDiscountedCumulativeGain(k=3),
@@ -86,7 +72,22 @@ ranking_task.metrics = [
 ]
 ```
 
-Generate pair-wise training data on-the-fly.
+Prepare input data:
+
+```python
+train_pack = mz.datasets.wiki_qa.load_data('train', task=ranking_task)
+valid_pack = mz.datasets.wiki_qa.load_data('dev', task=ranking_task)
+```
+
+Preprocess your input data in three lines of code, keep track parameters to be passed into the model:
+
+```python
+preprocessor = mz.models.DSSM.get_default_preprocessor()
+train_processed = preprocessor.fit_transform(train_pack)
+valid_processed = preprocessor.transform(valid_pack)
+```
+
+Generate pair-wise training data on-the-fly:
 ```python
 trainset = mz.dataloader.Dataset(
     data_pack=train_processed,
@@ -100,7 +101,7 @@ validset = mz.dataloader.Dataset(
 )
 ```
 
-Define padding callback and generate data loader.
+Define padding callback and generate data loader:
 ```python
 padding_callback = mz.models.DSSM.get_default_padding_callback()
 
@@ -118,7 +119,7 @@ validloader = mz.dataloader.DataLoader(
 )
 ```
 
-Initialize the model, fine-tune the hyper-parameters.
+Initialize the model, fine-tune the hyper-parameters:
 
 ```python
 model = mz.models.DSSM()
@@ -128,7 +129,7 @@ model.guess_and_fill_missing_params()
 model.build()
 ```
 
-`Trainer` is used to control the training flow.
+`Trainer` is used to control the training flow:
 
 ```python
 optimizer = torch.optim.Adam(model.parameters())
