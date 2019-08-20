@@ -8,10 +8,14 @@ from matchzoo.datasets import embeddings
 from matchzoo.embedding import load_from_file
 
 
-def test_basic_padding():
-    data = mz.datasets.toy.load_data('test', task='ranking')[:5]
+@pytest.fixture(scope='module')
+def train_raw():
+    return mz.datasets.toy.load_data('test', task='ranking')[:5]
+
+
+def test_basic_padding(train_raw):
     preprocessor = preprocessors.BasicPreprocessor()
-    data_preprocessed = preprocessor.fit_transform(data, verbose=0)
+    data_preprocessed = preprocessor.fit_transform(train_raw, verbose=0)
     dataset = Dataset(data_preprocessed, mode='point')
 
     pre_fixed_padding = callbacks.BasicPadding(
@@ -31,10 +35,9 @@ def test_basic_padding():
         assert batch[0]['text_right'].shape == (5, max_right_len)
 
 
-def test_drmm_padding():
-    data = mz.datasets.toy.load_data('test', task='ranking')[:5]
+def test_drmm_padding(train_raw):
     preprocessor = preprocessors.BasicPreprocessor()
-    data_preprocessed = preprocessor.fit_transform(data, verbose=0)
+    data_preprocessed = preprocessor.fit_transform(train_raw, verbose=0)
 
     embedding_matrix = load_from_file(embeddings.EMBED_10_GLOVE, mode='glove')
     term_index = preprocessor.context['vocab_unit'].state['term_index']
@@ -63,10 +66,9 @@ def test_drmm_padding():
         assert batch[0]['match_histogram'].shape == (5, max_left_len, 30)
 
 
-def test_cdssm_padding():
-    data = mz.datasets.toy.load_data('test', task='ranking')[:5]
+def test_cdssm_padding(train_raw):
     preprocessor = preprocessors.CDSSMPreprocessor()
-    data_preprocessed = preprocessor.fit_transform(data, verbose=0)
+    data_preprocessed = preprocessor.fit_transform(train_raw, verbose=0)
     dataset = Dataset(data_preprocessed, mode='point')
 
     pre_fixed_padding = callbacks.CDSSMPadding(
@@ -88,10 +90,9 @@ def test_cdssm_padding():
         assert batch[0]['text_right'].shape == (5, max_right_len, vocab_size)
 
 
-def test_bert_padding():
-    data = mz.datasets.toy.load_data('test', task='ranking')[:5]
+def test_bert_padding(train_raw):
     preprocessor = preprocessors.BertPreprocessor()
-    data_preprocessed = preprocessor.transform(data, verbose=0)
+    data_preprocessed = preprocessor.transform(train_raw, verbose=0)
     dataset = Dataset(data_preprocessed, mode='point')
 
     pre_fixed_padding = callbacks.BertPadding(
