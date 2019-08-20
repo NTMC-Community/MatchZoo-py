@@ -1,5 +1,5 @@
 <div align='center'>
-<img src="https://github.com/NTMC-Community/MatchZoo-py/blob/master/artworks/matchzoo-logo.png?raw=true" width = "400"  alt="logo" align="center" />
+<img src="./artworks/matchzoo-logo.png" width = "400"  alt="logo" align="center" />
 </div>
 
 # MatchZoo-py [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=MatchZoo-py:%20deep%20learning%20for%20semantic%20matching&url=https://github.com/NTMC-Community/MatchZoo-py)
