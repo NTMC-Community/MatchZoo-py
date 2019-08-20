@@ -7,9 +7,9 @@ Welcome to MatchZoo's documentation!
 ====================================
 
 
-.. image:: https://travis-ci.org/faneshion/MatchZoo.svg?branch=master
+.. image:: https://travis-ci.org/NTMC-Community/MatchZoo-py.svg?branch=master
    :alt: ci
-   :target: https://travis-ci.org/faneshion/MatchZoo/
+   :target: https://travis-ci.org/NTMC-Community/MatchZoo-py/
 
 
 .. image:: ../../artworks/matchzoo-logo.png
