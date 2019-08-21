@@ -19,6 +19,7 @@ with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 install_requires = [
     'torch >= 1.2.0',
+    'pytorch-transformers >= 1.1.0',
     'nltk >= 3.4.3',
     'numpy >= 1.16.4',
     'tqdm >= 4.32.2',
