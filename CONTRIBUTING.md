@@ -39,7 +39,7 @@ Anyone interested in MatchZoo may review your code.  One of the MatchZoo core de
 For every pull request, we aim to promptly either merge it or say why it's not yet ready; if you go a few days without a reply, please feel
 free to ping the thread by adding a new comment.
 
-For a list of MatchZoo core developers, see [Readme](https://github.com/NTMC-Community/MatchZoo-py/blob/master/README.md).
+For a list of MatchZoo core developers, see [README](https://github.com/NTMC-Community/MatchZoo-py/blob/master/README.md).
 
 Contributing Flow
 ------------------

@@ -69,7 +69,7 @@ class Trainer:
         clip_norm: typing.Union[float, int] = None,
         patience: typing.Optional[int] = None,
         key: typing.Any = None,
-        data_parallel: bool = True,
+        data_parallel: bool = False,
         checkpoint: typing.Union[str, Path] = None,
         save_dir: typing.Union[str, Path] = None,
         save_all: bool = False,
