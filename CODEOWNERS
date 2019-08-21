@@ -1,0 +1,58 @@
+# Watchers and contributors to MatchZoo repo directories/packages/files
+# Please see documentation of use of CODEOWNERS file at
+# https://help.github.com/articles/about-codeowners/ and
+# https://github.com/blog/2392-introducing-code-owners
+#
+# Anybody can add themselves or a team as additional watcher or contributor 
+# to get notified about changes in a specific package.
+# See https://help.github.com/articles/about-teams how to setup teams.
+
+#  Define individuals or teams that are responsible for code in a repository.
+
+# global owner.
+*       @faneshion
+*       @Chriskuei
+
+# third-party & project configuration
+.codecov.yml             @Chriskuei
+.coveragerc              @Chriskuei
+.flake8                  @Chriskuei
+.gitignore      	     @faneshion
+.travis.yml     	     @Chriskuei
+CONTRIBUTING.MD 	     @Chriskuei
+Makefile        	     @faneshion @Chriskuei
+pytest.ini               @Chriskuei
+README.md       	     @faneshion @Chriskuei
+readthedocs.yml 	     @wqh17101
+requirements.txt         @faneshion @Chriskuei
+setup.py                 @faneshion @Chriskuei
+
+# artworks
+/artworks/               @faneshion
+
+# tutorials
+/tutorials/              @Chriskuei @faneshion
+
+# docs
+/docs/                   @wqh17101
+
+# tests
+/tests/                  @Chriskuei @faneshion
+
+# matchzoo
+
+/matchzoo/auto/          @Chriskuei
+/matchzoo/data_pack/     @faneshion @caiyinqiong
+/matchzoo/dataloader/    @caiyinqiong @Chriskuei 
+/matchzoo/datasets/      @caiyinqiong
+/matchzoo/embedding/     @caiyinqiong 
+/matchzoo/engine/        @faneshion @Chriskuei
+/matchzoo/losses/        @faneshion @Chriskuei
+/matchzoo/metrics/       @faneshion @Chriskuei
+/matchzoo/models/        @Chriskuei @faneshion 
+/matchzoo/modules/       @Chriskuei
+/matchzoo/preprocessors/ @caiyinqiong @faneshion
+/matchzoo/tasks/         @Chriskuei
+/matchzoo/trainers/      @Chriskuei
+/matchzoo/utils/         @Chriskuei @caiyinqiong
+/matchzoo/*              @faneshion @Chriskuei
