@@ -26,3 +26,4 @@ notebooks/wikiqa/.ipynb_checkpoints/*
 .cache
 .tmpdir
 htmlcov/
+docs/_build
