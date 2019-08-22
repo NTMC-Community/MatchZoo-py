@@ -24,7 +24,7 @@ class MVLSTM(BaseModel):
         >>> model.params['mlp_num_units'] = 20
         >>> model.params['mlp_num_fan_out'] = 10
         >>> model.params['mlp_activation_func'] = 'relu'
-        >>> model.params['dropout_rate'] = 0.5
+        >>> model.params['dropout_rate'] = 0.0
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
 
@@ -40,12 +40,18 @@ class MVLSTM(BaseModel):
         params.add(Param(name='hidden_size', value=32,
                          desc="Integer, the hidden size in the "
                               "bi-directional LSTM layer."))
-        params.add(Param(name='dropout_rate', value=0.0,
-                         desc="Float, the dropout rate."))
+        params.add(Param(name='num_layers', value=1,
+                         desc="Integer, number of recurrent layers."))
         params.add(Param(
             'top_k', value=10,
             hyper_space=hyper_spaces.quniform(low=2, high=100),
             desc="Size of top-k pooling layer."
+        ))
+        params.add(Param(
+            'dropout_rate', 0.0,
+            hyper_space=hyper_spaces.quniform(
+                low=0.0, high=0.8, q=0.01),
+            desc="Float, the dropout rate."
         ))
         return params
 
@@ -78,6 +84,7 @@ class MVLSTM(BaseModel):
         self.left_bilstm = nn.LSTM(
             input_size=self._params['embedding_output_dim'],
             hidden_size=self._params['hidden_size'],
+            num_layers=self._params['num_layers'],
             batch_first=True,
             dropout=self._params['dropout_rate'],
             bidirectional=True
@@ -85,6 +92,7 @@ class MVLSTM(BaseModel):
         self.right_bilstm = nn.LSTM(
             input_size=self._params['embedding_output_dim'],
             hidden_size=self._params['hidden_size'],
+            num_layers=self._params['num_layers'],
             batch_first=True,
             dropout=self._params['dropout_rate'],
             bidirectional=True
