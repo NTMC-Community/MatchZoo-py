@@ -42,15 +42,16 @@ extras_requires = {
 
 
 setup(
-    name="MatchZoo",
+    name="matchzoo-py",
     version=__version__,
-    author="MatchZoo Authors",
+    author="MatchZoo-py Authors",
     author_email="fanyixing@ict.ac.cn",
     description=(short_description),
     license="Apache 2.0",
     keywords="text matching models",
     url="https://github.com/NTMC-Community/MatchZoo-py",
     packages=find_packages(),
+    include_package_data=True,
     long_description=long_description,
     long_description_content_type='text/markdown',
     classifiers=[

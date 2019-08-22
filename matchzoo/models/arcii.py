@@ -18,15 +18,15 @@ class ArcII(BaseModel):
     ArcII Model.
 
     Examples:
-    >>> model = ArcII()
-    >>> model.params['embedding_output_dim'] = 300
-    >>> model.params['kernel_1d_count'] = 32
-    >>> model.params['kernel_1d_size'] = 3
-    >>> model.params['kernel_2d_count'] = [16, 32]
-    >>> model.params['kernel_2d_size'] = [[3, 3], [3, 3]]
-    >>> model.params['pool_2d_size'] = [[2, 2], [2, 2]]
-    >>> model.guess_and_fill_missing_params(verbose=0)
-    >>> model.build()
+        >>> model = ArcII()
+        >>> model.params['embedding_output_dim'] = 300
+        >>> model.params['kernel_1d_count'] = 32
+        >>> model.params['kernel_1d_size'] = 3
+        >>> model.params['kernel_2d_count'] = [16, 32]
+        >>> model.params['kernel_2d_size'] = [[3, 3], [3, 3]]
+        >>> model.params['pool_2d_size'] = [[2, 2], [2, 2]]
+        >>> model.guess_and_fill_missing_params(verbose=0)
+        >>> model.build()
 
     """
 

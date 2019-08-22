@@ -13,7 +13,7 @@ def load_data(
     return_classes: bool = False
 ) -> typing.Union[matchzoo.DataPack, typing.Tuple[matchzoo.DataPack, list]]:
     """
-    Load WikiQA data.
+    Load toy data.
 
     :param stage: One of `train`, `dev`, and `test`.
     :param task: Could be one of `ranking`, `classification` or a
