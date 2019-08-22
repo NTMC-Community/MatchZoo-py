@@ -10,12 +10,13 @@
 > MatchZoo 是一个通用的文本匹配工具包，它旨在方便大家快速的实现、比较、以及分享最新的深度文本匹配模型。
 
 [![Python 3.6](https://img.shields.io/badge/python-3.6%20%7C%203.7-blue.svg)](https://www.python.org/downloads/release/python-360/)
-[![Gitter](https://badges.gitter.im/NTMC-Community/community.svg)](https://gitter.im/NTMC-Community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Pypi Downloads](https://img.shields.io/pypi/dm/matchzoo-py.svg?label=pypi)](https://pypi.org/project/MatchZoo-py/)
 [![Documentation Status](https://readthedocs.org/projects/matchzoo-py/badge/?version=latest)](https://matchzoo-py.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/NTMC-Community/MatchZoo-py.svg?branch=master)](https://travis-ci.org/NTMC-Community/MatchZoo-py)
 [![codecov](https://codecov.io/gh/NTMC-Community/MatchZoo-py/branch/master/graph/badge.svg)](https://codecov.io/gh/NTMC-Community/MatchZoo-py)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Requirements Status](https://requires.io/github/NTMC-Community/MatchZoo-py/requirements.svg?branch=master)](https://requires.io/github/NTMC-Community/MatchZoo-py/requirements/?branch=master)
+[![Gitter](https://badges.gitter.im/NTMC-Community/community.svg)](https://gitter.im/NTMC-Community/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 ---
 
 The goal of MatchZoo is to provide a high-quality codebase for deep text matching research, such as document retrieval, question answering, conversational response ranking, and paraphrase identification. With the unified data processing pipeline, simplified model configuration and automatic hyper-parameters tunning features equipped, MatchZoo is flexible and easy to use.
