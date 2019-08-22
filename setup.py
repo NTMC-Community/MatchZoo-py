@@ -51,6 +51,7 @@ setup(
     keywords="text matching models",
     url="https://github.com/NTMC-Community/MatchZoo-py",
     packages=find_packages(),
+    include_package_data=True,
     long_description=long_description,
     long_description_content_type='text/markdown',
     classifiers=[

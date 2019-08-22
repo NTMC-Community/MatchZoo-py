@@ -156,7 +156,7 @@ If you're interested in the cutting-edge research progress, please take a look a
 
 ## Install
 
-MatchZoo is dependent on [PyTorch](https://pytorch.org). Two ways to install MatchZoo-py:
+MatchZoo-py is dependent on [PyTorch](https://pytorch.org). Two ways to install MatchZoo-py:
 
 **Install MatchZoo-py from Pypi:**
 
