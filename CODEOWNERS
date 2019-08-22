@@ -17,21 +17,21 @@
 .codecov.yml             @Chriskuei
 .coveragerc              @Chriskuei
 .flake8                  @Chriskuei
-.gitignore      	     @faneshion
-.travis.yml     	     @Chriskuei
-CONTRIBUTING.MD 	     @Chriskuei
-Makefile        	     @faneshion @Chriskuei
+.gitignore               @Chriskuei
+.travis.yml              @Chriskuei
+CONTRIBUTING.MD          @Chriskuei
+Makefile                 @Chriskuei
 pytest.ini               @Chriskuei
-README.md       	     @faneshion @Chriskuei
-readthedocs.yml 	     @wqh17101
-requirements.txt         @faneshion @Chriskuei
-setup.py                 @faneshion @Chriskuei
+README.md                @faneshion @Chriskuei
+readthedocs.yml          @wqh17101
+requirements.txt         @Chriskuei @faneshion
+setup.py                 @Chriskuei @faneshion
 
 # artworks
 /artworks/               @faneshion
 
 # tutorials
-/tutorials/              @Chriskuei @faneshion
+/tutorials/              @Chriskuei @faneshion @caiyinqiong
 
 # docs
 /docs/                   @wqh17101
@@ -42,15 +42,15 @@ setup.py                 @faneshion @Chriskuei
 # matchzoo
 
 /matchzoo/auto/          @Chriskuei
-/matchzoo/data_pack/     @faneshion @caiyinqiong
+/matchzoo/data_pack/     @caiyinqiong @faneshion
 /matchzoo/dataloader/    @caiyinqiong @Chriskuei 
 /matchzoo/datasets/      @caiyinqiong
 /matchzoo/embedding/     @caiyinqiong 
 /matchzoo/engine/        @faneshion @Chriskuei
 /matchzoo/losses/        @faneshion @Chriskuei
 /matchzoo/metrics/       @faneshion @Chriskuei
-/matchzoo/models/        @Chriskuei @faneshion 
-/matchzoo/modules/       @Chriskuei
+/matchzoo/models/        @Chriskuei @faneshion @caiyinqiong
+/matchzoo/modules/       @Chriskuei @caiyinqiong
 /matchzoo/preprocessors/ @caiyinqiong @faneshion
 /matchzoo/tasks/         @Chriskuei
 /matchzoo/trainers/      @Chriskuei
