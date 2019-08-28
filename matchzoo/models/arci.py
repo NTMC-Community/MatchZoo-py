@@ -80,15 +80,17 @@ class ArcI(BaseModel):
         cls,
         fixed_length_left: int = 10,
         fixed_length_right: int = 100,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False
     ):
         """:return: Default padding callback."""
         return callbacks.BasicPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram)
 
     def build(self):
         """

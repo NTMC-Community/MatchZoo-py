@@ -1,6 +1,7 @@
 """Basic Preprocessor."""
 
 from tqdm import tqdm
+import typing
 
 from . import units
 from matchzoo import DataPack
@@ -63,7 +64,8 @@ class BasicPreprocessor(BasePreprocessor):
                  filter_mode: str = 'df',
                  filter_low_freq: float = 1,
                  filter_high_freq: float = float('inf'),
-                 remove_stop_words: bool = False):
+                 remove_stop_words: bool = False,
+                 ngram_size: typing.Optional[int] = None):
         """Initialization."""
         super().__init__()
         self._truncated_mode = truncated_mode
@@ -83,6 +85,11 @@ class BasicPreprocessor(BasePreprocessor):
         self._units = self._default_units()
         if remove_stop_words:
             self._units.append(units.stop_removal.StopRemoval())
+        self._ngram_size = ngram_size
+        if ngram_size:
+            self._context['ngram_process_unit'] = units.NgramLetter(
+                ngram=ngram_size, reduce_dim=True
+            )
 
     def fit(self, data_pack: DataPack, verbose: int = 1):
         """
@@ -109,6 +116,17 @@ class BasicPreprocessor(BasePreprocessor):
         vocab_size = len(vocab_unit.state['term_index'])
         self._context['vocab_size'] = vocab_size
         self._context['embedding_input_dim'] = vocab_size
+
+        if self._ngram_size:
+            data_pack = data_pack.apply_on_text(
+                self._context['ngram_process_unit'].transform,
+                mode='both',
+                verbose=verbose
+            )
+            ngram_unit = build_vocab_unit(data_pack, verbose=verbose)
+            self._context['ngram_vocab_unit'] = ngram_unit
+            self._context['ngram_vocab_size'] = len(
+                ngram_unit.state['term_index'])
         return self
 
     def transform(self, data_pack: DataPack, verbose: int = 1) -> DataPack:

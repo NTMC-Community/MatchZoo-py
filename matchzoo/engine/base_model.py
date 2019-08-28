@@ -182,7 +182,17 @@ class BaseModel(nn.Module, abc.ABC):
                 print(f"Parameter \"{name}\" set to {default_val}.")
 
     @classmethod
-    def get_default_preprocessor(cls) -> BasePreprocessor:
+    def get_default_preprocessor(
+        cls,
+        truncated_mode: str = 'pre',
+        truncated_length_left: int = 30,
+        truncated_length_right: int = 30,
+        filter_mode: str = 'df',
+        filter_low_freq: float = 1,
+        filter_high_freq: float = float('inf'),
+        remove_stop_words: bool = False,
+        ngram_size: typing.Optional[int] = None,
+    ) -> BasePreprocessor:
         """
         Model default preprocessor.
 
@@ -191,15 +201,28 @@ class BaseModel(nn.Module, abc.ABC):
 
         :return: Default preprocessor.
         """
-        return preprocessors.BasicPreprocessor()
+        return preprocessors.BasicPreprocessor(
+            truncated_mode=truncated_mode,
+            truncated_length_left=truncated_length_left,
+            truncated_length_right=truncated_length_right,
+            filter_mode=filter_mode,
+            filter_low_freq=filter_low_freq,
+            filter_high_freq=filter_high_freq,
+            remove_stop_words=remove_stop_words,
+            ngram_size=ngram_size
+        )
 
     @classmethod
     def get_default_padding_callback(
         cls,
         fixed_length_left: int = None,
         fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
     ) -> BaseCallback:
         """
         Model default padding callback.
@@ -212,8 +235,13 @@ class BaseModel(nn.Module, abc.ABC):
         return callbacks.BasicPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
+            )
 
     @property
     def params(self) -> ParamTable:
