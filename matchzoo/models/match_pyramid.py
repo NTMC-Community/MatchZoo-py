@@ -51,21 +51,6 @@ class MatchPyramid(BaseModel):
         ))
         return params
 
-    @classmethod
-    def get_default_padding_callback(
-        cls,
-        fixed_length_left: int = 10,
-        fixed_length_right: int = 100,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
-    ):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding(
-            fixed_length_left=fixed_length_left,
-            fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
-
     def build(self):
         """
         Build model structure.
@@ -131,14 +116,14 @@ class MatchPyramid(BaseModel):
         embed_cross = self.matching(embed_left, embed_right).unsqueeze(dim=1)
 
         # Convolution
-        # shape = [B, F2, L, R]
+        # shape = [B, F, L, R]
         conv = self.conv2d(embed_cross)
 
         # Dynamic Pooling
-        # shape = [B, F2, P1, P2]
+        # shape = [B, F, P1, P2]
         embed_pool = self.dpool_layer(conv)
 
-        # shape = [B, F2 * P1 * P2]
+        # shape = [B, F * P1 * P2]
         embed_flat = self.dropout(torch.flatten(embed_pool, start_dim=1))
 
         # shape = [B, *]
