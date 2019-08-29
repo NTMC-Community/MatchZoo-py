@@ -185,8 +185,8 @@ class BaseModel(nn.Module, abc.ABC):
     def get_default_preprocessor(
         cls,
         truncated_mode: str = 'pre',
-        truncated_length_left: int = 30,
-        truncated_length_right: int = 30,
+        truncated_length_left: typing.Optional[int] = None,
+        truncated_length_right: typing.Optional[int] = None,
         filter_mode: str = 'df',
         filter_low_freq: float = 1,
         filter_high_freq: float = float('inf'),

@@ -55,26 +55,6 @@ class CDSSM(BaseModel):
                          desc="The dropout rate."))
         return params
 
-    @classmethod
-    def get_default_preprocessor(cls):
-        """:return: Default preprocessor."""
-        return preprocessors.CDSSMPreprocessor()
-
-    @classmethod
-    def get_default_padding_callback(
-        cls,
-        fixed_length_left: int = None,
-        fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
-    ):
-        """:return: Default padding callback."""
-        return callbacks.CDSSMPadding(
-            fixed_length_left=fixed_length_left,
-            fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
-
     def _create_base_network(self) -> nn.Module:
         """
         Apply conv and maxpooling operation towards to each letter-ngram.
@@ -117,7 +97,7 @@ class CDSSM(BaseModel):
     def forward(self, inputs):
         """Forward."""
         # Process left & right input.
-        input_left, input_right = inputs['text_left'], inputs['text_right']
+        input_left, input_right = inputs['ngram_left'], inputs['ngram_right']
         input_left = input_left.transpose(1, 2)
         input_right = input_right.transpose(1, 2)
         input_left = self.net_left(input_left)

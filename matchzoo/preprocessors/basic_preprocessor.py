@@ -59,8 +59,8 @@ class BasicPreprocessor(BasePreprocessor):
 
     def __init__(self,
                  truncated_mode: str = 'pre',
-                 truncated_length_left: int = 30,
-                 truncated_length_right: int = 30,
+                 truncated_length_left: int = None,
+                 truncated_length_right: int = None,
                  filter_mode: str = 'df',
                  filter_low_freq: float = 1,
                  filter_high_freq: float = float('inf'),
@@ -71,12 +71,14 @@ class BasicPreprocessor(BasePreprocessor):
         self._truncated_mode = truncated_mode
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
-        self._left_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_left, self._truncated_mode
-        )
-        self._right_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_right, self._truncated_mode
-        )
+        if self._truncated_length_left:
+            self._left_truncatedlength_unit = units.TruncatedLength(
+                self._truncated_length_left, self._truncated_mode
+            )
+        if self._truncated_length_right:
+            self._right_truncatedlength_unit = units.TruncatedLength(
+                self._truncated_length_right, self._truncated_mode
+            )
         self._filter_unit = units.FrequencyFilter(
             low=filter_low_freq,
             high=filter_high_freq,
@@ -146,11 +148,12 @@ class BasicPreprocessor(BasePreprocessor):
                                 mode='right', inplace=True, verbose=verbose)
         data_pack.apply_on_text(self._context['vocab_unit'].transform,
                                 mode='both', inplace=True, verbose=verbose)
-
-        data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
-                                mode='left', inplace=True, verbose=verbose)
-        data_pack.apply_on_text(self._right_truncatedlength_unit.transform,
-                                mode='right', inplace=True, verbose=verbose)
+        if self._truncated_length_left:
+            data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
+                                    mode='left', inplace=True, verbose=verbose)
+        if self._truncated_length_right:
+            data_pack.apply_on_text(self._right_truncatedlength_unit.transform,
+                                    mode='right', inplace=True, verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)
 
         return data_pack

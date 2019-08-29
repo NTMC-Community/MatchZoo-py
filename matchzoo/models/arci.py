@@ -75,23 +75,6 @@ class ArcI(BaseModel):
         ))
         return params
 
-    @classmethod
-    def get_default_padding_callback(
-        cls,
-        fixed_length_left: int = 10,
-        fixed_length_right: int = 100,
-        pad_word_value: typing.Union[int, str] = 0,
-        pad_word_mode: str = 'pre',
-        with_ngram: bool = False
-    ):
-        """:return: Default padding callback."""
-        return callbacks.BasicPadding(
-            fixed_length_left=fixed_length_left,
-            fixed_length_right=fixed_length_right,
-            pad_word_value=pad_word_value,
-            pad_word_mode=pad_word_mode,
-            with_ngram=with_ngram)
-
     def build(self):
         """
         Build model structure.
