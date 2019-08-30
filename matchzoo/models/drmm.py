@@ -52,9 +52,8 @@ class DRMM(BaseModel):
         return callbacks.DRMMPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
-            pad_word_value=pad_value,
-            pad_word_mode=pad_mode,
-            with_ngram=False
+            pad_value=pad_value,
+            pad_mode=pad_mode
         )
 
     def build(self):

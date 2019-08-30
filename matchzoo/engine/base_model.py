@@ -241,7 +241,7 @@ class BaseModel(nn.Module, abc.ABC):
             fixed_ngram_length=fixed_ngram_length,
             pad_ngram_value=pad_ngram_value,
             pad_ngram_mode=pad_ngram_mode
-            )
+        )
 
     @property
     def params(self) -> ParamTable:

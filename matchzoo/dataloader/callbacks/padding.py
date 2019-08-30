@@ -24,7 +24,7 @@ def _padding_2D(input, output, mode: str = 'pre'):
     elif mode == 'pre':
         for i in range(batch_size):
             start_pos = min(len(input[i]), pad_length)
-            if len(input[i]) > 0:
+            if start_pos > 0:
                 output[i][-start_pos:] = input[i][-start_pos:]
     else:
         raise ValueError('{} is not a vaild pad mode.'.format(mode))
@@ -209,59 +209,6 @@ class DRMMPadding(BaseCallback):
             x[key] = padded_value
 
 
-class CDSSMPadding(BaseCallback):
-    """
-    Pad data for cdssm preprocessor.
-
-    :param fixed_length_left: Integer. If set, `text_left` will be padded
-        to this length.
-    :param fixed_length_right: Integer. If set, `text_right` will be padded
-        to this length.
-    :param pad_value: the value to fill text.
-    :param pad_mode: String, `pre` or `post`:
-        pad either before or after each sequence.
-    """
-
-    def __init__(
-        self,
-        fixed_length_left: int = None,
-        fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre',
-    ):
-        """Init."""
-        self._fixed_length_left = fixed_length_left
-        self._fixed_length_right = fixed_length_right
-        self._pad_value = pad_value
-        self._pad_mode = pad_mode
-
-    def on_batch_unpacked(self, x: dict, y: np.ndarray):
-        """Pad `x['text_left']` and `x['text_right]`."""
-        batch_size = len(x['id_left'])
-        pad_length_left = max(x['length_left'])
-        pad_length_right = max(x['length_right'])
-        vocab_size = len(x['text_left'][0][0])
-
-        if self._fixed_length_left is not None:
-            pad_length_left = self._fixed_length_left
-        if self._fixed_length_right is not None:
-            pad_length_right = self._fixed_length_right
-
-        for key, value in x.items():
-            if key == 'text_left':
-                padded_value = np.full(
-                    [batch_size, pad_length_left, vocab_size],
-                    fill_value=0, dtype=value.dtype)
-                _padding_3D(value, padded_value, self._pad_mode)
-            elif key == 'text_right':
-                padded_value = np.full(
-                    [batch_size, pad_length_right, vocab_size],
-                    fill_value=0, dtype=value.dtype)
-                _padding_3D(value, padded_value, self._pad_mode)
-            else:
-                continue
-            x[key] = padded_value
-
 class BertPadding(BaseCallback):
     """
     Pad data for bert preprocessor.
@@ -285,8 +232,8 @@ class BertPadding(BaseCallback):
         """Init."""
         self._padding = BasicPadding(fixed_length_left=fixed_length_left,
                                      fixed_length_right=fixed_length_right,
-                                     pad_value=pad_value,
-                                     pad_mode=pad_mode)
+                                     pad_word_value=pad_value,
+                                     pad_word_mode=pad_mode)
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """Pad `x['text_left']` and `x['text_right]`."""

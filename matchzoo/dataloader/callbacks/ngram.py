@@ -10,10 +10,9 @@ class Ngram(BaseCallback):
 
     :param preprocessor: The fitted :class:`BasePreprocessor` object, which
          contains the n-gram units information.
-    :param mode: It can be one of 'index', 'onehot', or 'sum'.
+    :param mode: It can be one of 'index', 'onehot', 'sum' or 'arrgegate'.
 
     Example:
-
         >>> import matchzoo as mz
         >>> from matchzoo.dataloader.callbacks import Ngram
         >>> data = mz.datasets.toy.load_data()
@@ -23,8 +22,7 @@ class Ngram(BaseCallback):
         >>> dataset = mz.dataloader.Dataset(
         ...     data, callbacks=[callback])
         >>> _ = dataset[0]
-        <class 'matchzoo.data_pack.data_pack.DataPack'>
-        <class 'dict'> <class 'numpy.ndarray'>
+
     """
 
     def __init__(
@@ -33,6 +31,7 @@ class Ngram(BaseCallback):
         mode: str = 'index'
     ):
         """Init."""
+        self._mode = mode
         self._word_to_ngram = _build_word_ngram_map(
             preprocessor.context['ngram_process_unit'],
             preprocessor.context['ngram_vocab_unit'],
@@ -41,7 +40,7 @@ class Ngram(BaseCallback):
         )
 
     def on_batch_unpacked(self, x, y):
-        """Insert `match_histogram` to `x`."""
+        """Insert `ngram_left` and `ngram_right` to `x`."""
         batch_size = len(x['text_left'])
         x['ngram_left'] = [[] for i in range(batch_size)]
         x['ngram_right'] = [[] for i in range(batch_size)]
@@ -51,6 +50,13 @@ class Ngram(BaseCallback):
         for idx, row in enumerate(x['text_right']):
             for term in row:
                 x['ngram_right'][idx].append(self._word_to_ngram[term])
+        if self._mode == 'arrgegate':
+            x['ngram_left'] = [list(np.sum(row, axis=0))
+                               for row in x['ngram_left']]
+            x['ngram_right'] = [list(np.sum(row, axis=0))
+                                for row in x['ngram_right']]
+            x['text_left'] = x['ngram_left']
+            x['text_right'] = x['ngram_right']
 
 
 def _build_word_ngram_map(
@@ -72,10 +78,13 @@ def _build_word_ngram_map(
     word_to_ngram = {}
     ngram_size = len(ngram_vocab_unit.state['index_term'])
     for idx, word in index_term.items():
-        if idx == 0 or idx == 1:
+        if idx == 0:
             continue
-        ngrams = ngram_process_unit.transform([word])
-        word_ngram = ngram_vocab_unit.transform(ngrams)
+        elif idx == 1:  # OOV
+            word_ngram = [1]
+        else:
+            ngrams = ngram_process_unit.transform([word])
+            word_ngram = ngram_vocab_unit.transform(ngrams)
         num_ngrams = len(word_ngram)
         if mode == 'index':
             word_to_ngram[idx] = word_ngram
@@ -83,13 +92,13 @@ def _build_word_ngram_map(
             onehot = np.zeros((num_ngrams, ngram_size))
             onehot[np.arange(num_ngrams), word_ngram] = 1
             word_to_ngram[idx] = onehot
-        elif mode == 'sum':
+        elif mode == 'sum' or mode == 'arrgegate':
             onehot = np.zeros((num_ngrams, ngram_size))
             onehot[np.arange(num_ngrams), word_ngram] = 1
             sum_vector = np.sum(onehot, axis=0)
             word_to_ngram[idx] = sum_vector
         else:
             raise ValueError(f'mode error, it should be one of `index`, '
-                             f'`onehot`, or `sum`.'
+                             f'`onehot`, `sum` or `arrgegate`.'
                              )
     return word_to_ngram

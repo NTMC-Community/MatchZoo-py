@@ -153,7 +153,8 @@ class BasicPreprocessor(BasePreprocessor):
                                     mode='left', inplace=True, verbose=verbose)
         if self._truncated_length_right:
             data_pack.apply_on_text(self._right_truncatedlength_unit.transform,
-                                    mode='right', inplace=True, verbose=verbose)
+                                    mode='right', inplace=True,
+                                    verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)
 
         return data_pack

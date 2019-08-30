@@ -60,7 +60,7 @@ class ArcII(BaseModel):
             desc="The dropout rate."
         ))
         return params
-    
+
     @classmethod
     def get_default_padding_callback(
         cls,
@@ -90,7 +90,7 @@ class ArcII(BaseModel):
             fixed_ngram_length=fixed_ngram_length,
             pad_ngram_value=pad_ngram_value,
             pad_ngram_mode=pad_ngram_mode
-            )
+        )
 
     def build(self):
         """

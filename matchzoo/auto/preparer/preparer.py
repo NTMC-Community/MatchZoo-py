@@ -100,9 +100,6 @@ class Preparer(object):
         if not preprocessor:
             preprocessor = model_class.get_default_preprocessor()
 
-        if issubclass(model_class, (mz.models.DSSM, mz.models.CDSSM)):
-            preprocessor.with_word_hashing = False
-
         preprocessor.fit(data_pack, verbose=0)
 
         model, embedding_matrix = self._build_model(
@@ -172,18 +169,15 @@ class Preparer(object):
                 num_neg=self._config['num_neg']
             ))
 
-        if isinstance(model, (mz.models.DSSM, mz.models.CDSSM)):
-            term_index = preprocessor.context['vocab_unit'].state['term_index']
-            hashing_unit = mz.preprocessors.units.WordHashing(term_index)
-            hashing_callback = mz.dataloader.callbacks.LambdaCallback(
-                on_batch_data_pack=lambda data_pack:
-                data_pack.apply_on_text(
-                    func=hashing_unit.transform,
-                    inplace=True,
-                    verbose=0
-                )
-            )
-            builder_kwargs['callbacks'].append(hashing_callback)
+        if isinstance(model, mz.models.CDSSM):
+            triletter_callback = mz.dataloader.callbacks.Ngram(
+                preprocessor, mode='sum')
+            builder_kwargs['callbacks'].append(triletter_callback)
+
+        if isinstance(model, mz.models.DSSM):
+            triletter_callback = mz.dataloader.callbacks.Ngram(
+                preprocessor, mode='arrgegate')
+            builder_kwargs['callbacks'].append(triletter_callback)
 
         if isinstance(model, mz.models.DRMM):
             histo_callback = mz.dataloader.callbacks.Histogram(

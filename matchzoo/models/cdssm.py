@@ -9,8 +9,10 @@ from matchzoo import preprocessors
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
+from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.dataloader import callbacks
 from matchzoo.utils import TensorType, parse_activation
+from matchzoo.engine.base_preprocessor import BasePreprocessor
 
 
 class CDSSM(BaseModel):
@@ -40,7 +42,7 @@ class CDSSM(BaseModel):
         # set :attr:`with_multi_layer_perceptron` to False to support
         # user-defined variable dense layer units
         params = super().get_default_params(with_multi_layer_perceptron=True)
-        params.add(Param(name='vocab_size', value=379,
+        params.add(Param(name='vocab_size', value=419,
                          desc="Size of vocabulary."))
         params.add(Param(name='filters', value=3,
                          desc="Number of filters in the 1D convolution "
@@ -54,6 +56,68 @@ class CDSSM(BaseModel):
         params.add(Param(name='dropout_rate', value=0.3,
                          desc="The dropout rate."))
         return params
+
+    @classmethod
+    def get_default_preprocessor(
+        cls,
+        truncated_mode: str = 'pre',
+        truncated_length_left: typing.Optional[int] = None,
+        truncated_length_right: typing.Optional[int] = None,
+        filter_mode: str = 'df',
+        filter_low_freq: float = 1,
+        filter_high_freq: float = float('inf'),
+        remove_stop_words: bool = False,
+        ngram_size: typing.Optional[int] = 3,
+    ) -> BasePreprocessor:
+        """
+        Model default preprocessor.
+
+        The preprocessor's transform should produce a correctly shaped data
+        pack that can be used for training.
+
+        :return: Default preprocessor.
+        """
+        return preprocessors.BasicPreprocessor(
+            truncated_mode=truncated_mode,
+            truncated_length_left=truncated_length_left,
+            truncated_length_right=truncated_length_right,
+            filter_mode=filter_mode,
+            filter_low_freq=filter_low_freq,
+            filter_high_freq=filter_high_freq,
+            remove_stop_words=remove_stop_words,
+            ngram_size=ngram_size
+        )
+
+    @classmethod
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = None,
+        fixed_length_right: int = None,
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = True,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
+    ) -> BaseCallback:
+        """
+        Model default padding callback.
+
+        The padding callback's on_batch_unpacked would pad a batch of data to
+        a fixed length.
+
+        :return: Default padding callback.
+        """
+        return callbacks.BasicPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
+        )
 
     def _create_base_network(self) -> nn.Module:
         """

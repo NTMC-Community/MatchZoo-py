@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 from matchzoo.engine.param_table import ParamTable
+from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
@@ -74,6 +75,37 @@ class ArcI(BaseModel):
             desc="The dropout rate."
         ))
         return params
+
+    @classmethod
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = 10,
+        fixed_length_right: int = 100,
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
+    ) -> BaseCallback:
+        """
+        Model default padding callback.
+
+        The padding callback's on_batch_unpacked would pad a batch of data to
+        a fixed length.
+
+        :return: Default padding callback.
+        """
+        return callbacks.BasicPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
+        )
 
     def build(self):
         """
