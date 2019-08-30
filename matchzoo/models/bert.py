@@ -33,9 +33,12 @@ class Bert(BaseModel):
         return params
 
     @classmethod
-    def get_default_preprocessor(cls) -> BasePreprocessor:
+    def get_default_preprocessor(
+        cls,
+        mode: str = 'bert-base-uncased'
+    ) -> BasePreprocessor:
         """:return: Default preprocessor."""
-        return preprocessors.BertPreprocessor()
+        return preprocessors.BertPreprocessor(mode=mode)
 
     @classmethod
     def get_default_padding_callback(

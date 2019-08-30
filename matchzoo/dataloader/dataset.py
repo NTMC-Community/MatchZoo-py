@@ -26,7 +26,7 @@ class Dataset(data.Dataset):
     Examples:
         >>> import matchzoo as mz
         >>> data_pack = mz.datasets.toy.load_data(stage='train')
-        >>> preprocessor = mz.preprocessors.CDSSMPreprocessor()
+        >>> preprocessor = mz.preprocessors.BasicPreprocessor()
         >>> data_processed = preprocessor.fit_transform(data_pack)
         >>> dataset_point = mz.dataloader.Dataset(data_processed, mode='point')
         >>> len(dataset_point)

@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from matchzoo.engine.param_table import ParamTable
+from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
@@ -51,9 +52,13 @@ class DRMMTKS(BaseModel):
         cls,
         fixed_length_left: int = 10,
         fixed_length_right: int = 100,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
-    ):
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
+    ) -> BaseCallback:
         """
         Model default padding callback.
 
@@ -65,8 +70,13 @@ class DRMMTKS(BaseModel):
         return callbacks.BasicPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
+        )
 
     def build(self):
         """Build model structure."""
