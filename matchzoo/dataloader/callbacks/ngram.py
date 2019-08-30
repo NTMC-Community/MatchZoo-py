@@ -10,7 +10,7 @@ class Ngram(BaseCallback):
 
     :param preprocessor: The fitted :class:`BasePreprocessor` object, which
          contains the n-gram units information.
-    :param mode: It can be one of 'index', 'onehot', 'sum' or 'arrgegate'.
+    :param mode: It can be one of 'index', 'onehot', 'sum' or 'aggregate'.
 
     Example:
         >>> import matchzoo as mz
@@ -50,7 +50,7 @@ class Ngram(BaseCallback):
         for idx, row in enumerate(x['text_right']):
             for term in row:
                 x['ngram_right'][idx].append(self._word_to_ngram[term])
-        if self._mode == 'arrgegate':
+        if self._mode == 'aggregate':
             x['ngram_left'] = [list(np.sum(row, axis=0))
                                for row in x['ngram_left']]
             x['ngram_right'] = [list(np.sum(row, axis=0))
@@ -71,7 +71,7 @@ def _build_word_ngram_map(
     :param ngram_process_unit: The fitted :class:`NgramLetter` object.
     :param ngram_vocab_unit: The fitted :class:`Vocabulary` object.
     :param index_term: The index to term mapping dict.
-    :param mode:  It be one of 'index', 'onehot', or 'sum'.
+    :param mode:  It be one of 'index', 'onehot', 'sum' or 'aggregate'.
 
     :return: the word to ngram vector mapping.
     """
@@ -92,13 +92,13 @@ def _build_word_ngram_map(
             onehot = np.zeros((num_ngrams, ngram_size))
             onehot[np.arange(num_ngrams), word_ngram] = 1
             word_to_ngram[idx] = onehot
-        elif mode == 'sum' or mode == 'arrgegate':
+        elif mode == 'sum' or mode == 'aggregate':
             onehot = np.zeros((num_ngrams, ngram_size))
             onehot[np.arange(num_ngrams), word_ngram] = 1
             sum_vector = np.sum(onehot, axis=0)
             word_to_ngram[idx] = sum_vector
         else:
             raise ValueError(f'mode error, it should be one of `index`, '
-                             f'`onehot`, `sum` or `arrgegate`.'
+                             f'`onehot`, `sum` or `aggregate`.'
                              )
     return word_to_ngram

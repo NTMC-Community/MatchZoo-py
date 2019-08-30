@@ -176,7 +176,7 @@ class Preparer(object):
 
         if isinstance(model, mz.models.DSSM):
             triletter_callback = mz.dataloader.callbacks.Ngram(
-                preprocessor, mode='arrgegate')
+                preprocessor, mode='aggregate')
             builder_kwargs['callbacks'].append(triletter_callback)
 
         if isinstance(model, mz.models.DRMM):
