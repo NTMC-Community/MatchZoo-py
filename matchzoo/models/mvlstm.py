@@ -55,28 +55,6 @@ class MVLSTM(BaseModel):
         ))
         return params
 
-    @classmethod
-    def get_default_padding_callback(
-        cls,
-        fixed_length_left: int = 10,
-        fixed_length_right: int = 40,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
-    ):
-        """
-        Model default padding callback.
-
-        The padding callback's on_batch_unpacked would pad a batch of data to
-        a fixed length.
-
-        :return: Default padding callback.
-        """
-        return callbacks.BasicPadding(
-            fixed_length_left=fixed_length_left,
-            fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
-
     def build(self):
         """Build model structure."""
         self.embedding = self._make_default_embedding_layer()
