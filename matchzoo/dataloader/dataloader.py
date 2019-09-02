@@ -42,10 +42,10 @@ class DataLoader(object):
     Examples:
         >>> import matchzoo as mz
         >>> data_pack = mz.datasets.toy.load_data(stage='train')
-        >>> preprocessor = mz.preprocessors.CDSSMPreprocessor()
+        >>> preprocessor = mz.preprocessors.BasicPreprocessor()
         >>> data_processed = preprocessor.fit_transform(data_pack)
         >>> dataset = mz.dataloader.Dataset(data_processed, mode='point')
-        >>> padding_callback = mz.dataloader.callbacks.CDSSMPadding()
+        >>> padding_callback = mz.dataloader.callbacks.BasicPadding()
         >>> dataloader = mz.dataloader.DataLoader(
         ...     dataset, stage='train', callback=padding_callback)
         >>> len(dataloader)
