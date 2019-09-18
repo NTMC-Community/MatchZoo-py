@@ -258,7 +258,6 @@ class DataPack(object):
         :param inplace: `True` to modify inplace, `False` to return a modified
             copy. (default: `False`)
         """
-
         empty_left_id = self._left[
             self._left['length_left'] == 0].index.tolist()
         empty_right_id = self._right[
