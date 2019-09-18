@@ -251,6 +251,29 @@ class DataPack(object):
         return wrapper
 
     @_optional_inplace
+    def drop_empty(self):
+        """
+        Process empty data by removing corresponding rows.
+
+        :param inplace: `True` to modify inplace, `False` to return a modified
+            copy. (default: `False`)
+        """
+
+        empty_left_id = self._left[
+            self._left['length_left'] == 0].index.tolist()
+        empty_right_id = self._right[
+            self._right['length_right'] == 0].index.tolist()
+        empty_id = self._relation[
+            self._relation['id_left'].isin(empty_left_id) | self._relation[
+                'id_right'].isin(empty_right_id)
+        ].index.tolist()
+
+        self._left = self._left.drop(empty_left_id)
+        self._right = self._right.drop(empty_right_id)
+        self._relation = self._relation.drop(empty_id)
+        self._relation.reset_index(drop=True, inplace=True)
+
+    @_optional_inplace
     def shuffle(self):
         """
         Shuffle the data pack by shuffling the relation column.
