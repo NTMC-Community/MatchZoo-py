@@ -11,6 +11,7 @@ from .matchlstm import MatchLSTM
 from .arci import ArcI
 from .arcii import ArcII
 from .bert import Bert
+from .mvlstm import MVLSTM
 from .match_pyramid import MatchPyramid
 
 
