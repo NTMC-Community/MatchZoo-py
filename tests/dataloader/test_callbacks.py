@@ -29,8 +29,8 @@ def test_basic_padding(train_raw):
     post_padding = callbacks.BasicPadding(pad_word_mode='post', with_ngram=False)
     dataloader = DataLoader(dataset, batch_size=5, callback=post_padding)
     for batch in dataloader:
-        max_left_len = max(batch[0]['length_left'].numpy())
-        max_right_len = max(batch[0]['length_right'].numpy())
+        max_left_len = max(batch[0]['length_left'].detach().cpu().numpy())
+        max_right_len = max(batch[0]['length_right'].detach().cpu().numpy())
         assert batch[0]['text_left'].shape == (5, max_left_len)
         assert batch[0]['text_right'].shape == (5, max_right_len)
 
@@ -59,8 +59,8 @@ def test_drmm_padding(train_raw):
     post_padding = callbacks.DRMMPadding(pad_mode='post')
     dataloader = DataLoader(dataset, batch_size=5, callback=post_padding)
     for batch in dataloader:
-        max_left_len = max(batch[0]['length_left'].numpy())
-        max_right_len = max(batch[0]['length_right'].numpy())
+        max_left_len = max(batch[0]['length_left'].detach().cpu().numpy())
+        max_right_len = max(batch[0]['length_right'].detach().cpu().numpy())
         assert batch[0]['text_left'].shape == (5, max_left_len)
         assert batch[0]['text_right'].shape == (5, max_right_len)
         assert batch[0]['match_histogram'].shape == (5, max_left_len, 30)
@@ -82,7 +82,7 @@ def test_bert_padding(train_raw):
     post_padding = callbacks.BertPadding(pad_mode='post')
     dataloader = DataLoader(dataset, batch_size=5, callback=post_padding)
     for batch in dataloader:
-        max_left_len = max(batch[0]['length_left'].numpy())
-        max_right_len = max(batch[0]['length_right'].numpy())
+        max_left_len = max(batch[0]['length_left'].detach().cpu().numpy())
+        max_right_len = max(batch[0]['length_right'].detach().cpu().numpy())
         assert batch[0]['text_left'].shape == (5, max_left_len + 1)
         assert batch[0]['text_right'].shape == (5, max_right_len + 2)
