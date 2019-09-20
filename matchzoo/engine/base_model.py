@@ -104,6 +104,10 @@ class BaseModel(nn.Module, abc.ABC):
             name='task',
             desc="Decides model output shape, loss, and metrics."
         ))
+        params.add(Param(
+            name='out_activation_func', value=None,
+            desc="Activation function used in output layer."
+        ))
         if with_embedding:
             params.add(Param(
                 name='with_embedding', value=True,
@@ -314,8 +318,7 @@ class BaseModel(nn.Module, abc.ABC):
 
     def _make_output_layer(
         self,
-        in_features: int = 0,
-        activation: typing.Union[str, nn.Module] = None
+        in_features: int = 0
     ) -> nn.Module:
         """:return: a correctly shaped torch module for model output."""
         task = self._params['task']
@@ -326,10 +329,10 @@ class BaseModel(nn.Module, abc.ABC):
         else:
             raise ValueError(f"{task} is not a valid task type. "
                              f"Must be in `Ranking` and `Classification`.")
-        if activation:
+        if self._params['out_activation_func']:
             return nn.Sequential(
                 nn.Linear(in_features, out_features),
-                parse_activation(activation)
+                parse_activation(self._params['out_activation_func'])
             )
         else:
             return nn.Linear(in_features, out_features)

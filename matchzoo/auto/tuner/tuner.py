@@ -288,7 +288,7 @@ class Tuner(object):
             raise TypeError("Only accepts a `ParamTable` instance.")
         if not params.hyper_space:
             raise ValueError("Parameter hyper-space empty.")
-        if not params.completed():
+        if not params.completed(exclude=['out_activation_func']):
             raise ValueError("Parameters not complete.")
 
     @classmethod

@@ -115,19 +115,27 @@ class ParamTable(object):
         """:return: A iterator that iterates over all parameter instances."""
         yield from self._params.values()
 
-    def completed(self) -> bool:
+    def completed(self, exclude: typing.Optional[list] = None) -> bool:
         """
+        Check if all params are filled.
+
+        :param exclude: List of names of parameters that was excluded
+            from being computed.
+
         :return: `True` if all params are filled, `False` otherwise.
 
         Example:
 
             >>> import matchzoo
             >>> model = matchzoo.models.DenseBaseline()
-            >>> model.params.completed()
-            False
+            >>> model.params.completed(
+            ...     exclude=['task', 'out_activation_func', 'embedding',
+            ...              'embedding_input_dim', 'embedding_output_dim']
+            ... )
+            True
 
         """
-        return all(param for param in self)
+        return all(param for param in self if param.name not in exclude)
 
     def keys(self) -> collections.abc.KeysView:
         """:return: Parameter table keys."""
