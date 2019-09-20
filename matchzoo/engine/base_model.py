@@ -320,21 +320,19 @@ class BaseModel(nn.Module, abc.ABC):
         """:return: a correctly shaped torch module for model output."""
         task = self._params['task']
         if isinstance(task, tasks.Classification):
-            return nn.Sequential(
-                nn.Linear(in_features, task.num_classes),
-                nn.Softmax(dim=-1)
-            )
+            out_features = task.num_classes
         elif isinstance(task, tasks.Ranking):
-            if activation:
-                return nn.Sequential(
-                    nn.Linear(in_features, 1),
-                    parse_activation(activation)
-                )
-            else:
-                return nn.Linear(in_features, 1)
+            out_features = 1
         else:
             raise ValueError(f"{task} is not a valid task type. "
                              f"Must be in `Ranking` and `Classification`.")
+        if activation:
+            return nn.Sequential(
+                nn.Linear(in_features, out_features),
+                parse_activation(activation)
+            )
+        else:
+            return nn.Linear(in_features, out_features)
 
     def _make_perceptron_layer(
         self,
