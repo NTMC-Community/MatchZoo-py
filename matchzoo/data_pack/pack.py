@@ -49,6 +49,8 @@ def pack(
         raise ValueError(
             'Input data frame must have `text_left` and `text_right`.')
 
+    df = df.dropna(axis=0, how='any').reset_index(drop=True)
+
     # Gather IDs
     if 'id_left' not in df:
         id_left = _gen_ids(df, 'text_left', 'L-')
