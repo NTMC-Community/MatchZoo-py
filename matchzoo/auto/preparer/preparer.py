@@ -50,7 +50,7 @@ class Preparer(object):
         >>> train_raw = mz.datasets.toy.load_data('train', 'ranking')
         >>> model, prpr, dsb, dlb = preparer.prepare(model_class,
         ...                                          train_raw)
-        >>> model.params.completed()
+        >>> model.params.completed(exclude=['out_activation_func'])
         True
 
     """

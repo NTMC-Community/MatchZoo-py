@@ -104,6 +104,10 @@ class BaseModel(nn.Module, abc.ABC):
             name='task',
             desc="Decides model output shape, loss, and metrics."
         ))
+        params.add(Param(
+            name='out_activation_func', value=None,
+            desc="Activation function used in output layer."
+        ))
         if with_embedding:
             params.add(Param(
                 name='with_embedding', value=True,
@@ -314,27 +318,24 @@ class BaseModel(nn.Module, abc.ABC):
 
     def _make_output_layer(
         self,
-        in_features: int = 0,
-        activation: typing.Union[str, nn.Module] = None
+        in_features: int = 0
     ) -> nn.Module:
         """:return: a correctly shaped torch module for model output."""
         task = self._params['task']
         if isinstance(task, tasks.Classification):
-            return nn.Sequential(
-                nn.Linear(in_features, task.num_classes),
-                nn.Softmax(dim=-1)
-            )
+            out_features = task.num_classes
         elif isinstance(task, tasks.Ranking):
-            if activation:
-                return nn.Sequential(
-                    nn.Linear(in_features, 1),
-                    parse_activation(activation)
-                )
-            else:
-                return nn.Linear(in_features, 1)
+            out_features = 1
         else:
             raise ValueError(f"{task} is not a valid task type. "
                              f"Must be in `Ranking` and `Classification`.")
+        if self._params['out_activation_func']:
+            return nn.Sequential(
+                nn.Linear(in_features, out_features),
+                parse_activation(self._params['out_activation_func'])
+            )
+        else:
+            return nn.Linear(in_features, out_features)
 
     def _make_perceptron_layer(
         self,

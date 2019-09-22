@@ -20,4 +20,4 @@ def test_base_model_concrete_instantiation():
     assert model.params
     model.guess_and_fill_missing_params()
     model.build()
-    assert model.params.completed()
+    assert model.params.completed(exclude=['out_activation_func'])
