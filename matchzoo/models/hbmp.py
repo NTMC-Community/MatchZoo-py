@@ -1,6 +1,7 @@
 """An implementation of HBMP Model."""
 import typing
 
+import copy
 import torch
 import torch.nn as nn
 
@@ -59,19 +60,16 @@ class HBMP(BaseModel):
         """
         self.embedding = self._make_default_embedding_layer()
 
-        encoder = nn.LSTM(
+        encoder_layer = nn.LSTM(
             input_size=self._params['embedding_output_dim'],
             hidden_size=self._params['lstm_hidden_size'],
             num_layers=self._params['num_layers'],
             dropout=self._params['dropout_rate'],
             batch_first=True,
             bidirectional=True)
-        self.encoder_left = nn.ModuleList(
-            [encoder] * self._params['lstm_num'])
-        self.encoder_right = nn.ModuleList(
-            [encoder] * self._params['lstm_num'])
-
-        self.dropout = nn.Dropout(p=self._params['dropout_rate'])
+        self.encoder = nn.ModuleList(
+            [copy.deepcopy(encoder_layer)
+             for _ in range(self._params['lstm_num'])])
         self.max_pool = nn.AdaptiveMaxPool1d(1)
 
         self.mlp = self._make_multi_layer_perceptron_layer(
@@ -109,13 +107,13 @@ class HBMP(BaseModel):
 
         out_left = []
         h_left = c_left = torch.zeros(*state_shape, device=input_left.device)
-        for layer in self.encoder_left:
+        for layer in self.encoder:
             out, (h_left, c_left) = layer(embed_left, (h_left, c_left))
             out_left.append(self.max_pool(out.transpose(1, 2)).squeeze(2))
 
         out_right = []
         h_right = c_right = torch.zeros(*state_shape, device=input_left.device)
-        for layer in self.encoder_right:
+        for layer in self.encoder:
             out, (h_right, c_right) = layer(embed_right, (h_right, c_right))
             out_right.append(self.max_pool(out.transpose(1, 2)).squeeze(2))
 
