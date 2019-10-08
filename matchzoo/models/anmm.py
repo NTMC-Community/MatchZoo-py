@@ -51,7 +51,7 @@ class aNMM(BaseModel):
         """
         Build model structure.
 
-        MatchPyramid text matching as image recognition.
+        aNMM: Ranking Short Answer Texts with Attention-Based Neural Matching Model.
         """
         self.embedding = self._make_default_embedding_layer()
 
