@@ -24,7 +24,7 @@ def load_data(
     :param task: Could be one of `ranking`, `classification` or a
         :class:`matchzoo.engine.BaseTask` instance. (default: `classification`)
     :param target_label: If `ranking`, chose one of `entailment`,
-        `contradiction`, `neutral`, and `-` as the positive label.
+        `contradiction` and `neutral` as the positive label.
         (default: `entailment`)
     :param return_classes: `True` to return classes for classification task,
         `False` otherwise.
@@ -44,7 +44,7 @@ def load_data(
         return data_pack
     elif task == 'classification' or isinstance(
             task, matchzoo.tasks.Classification):
-        classes = ['entailment', 'contradiction', 'neutral', '-']
+        classes = ['entailment', 'contradiction', 'neutral']
         if return_classes:
             return data_pack, classes
         else:
@@ -72,14 +72,18 @@ def _read_data(path, task, target_label):
     })
     df = df.dropna(axis=0, how='any').reset_index(drop=True)
 
-    if task == 'ranking':
-        if target_label not in ['entailment', 'contradiction', 'neutral', '-']:
+    filter_id = df[df['label'] == '-'].index.tolist()
+    df.drop(filter_id, inplace=True)
+
+    if task == 'ranking' or isinstance(task, matchzoo.tasks.Ranking):
+        if target_label not in ['entailment', 'contradiction', 'neutral']:
             raise ValueError(f"{target_label} is not a valid target label."
-                             f"Must be one of `entailment`, `contradiction`, "
-                             f"`neutral` and `-`.")
+                             f"Must be one of `entailment`, `contradiction`"
+                             f" and `neutral`")
         df['label'] = (df['label'] == target_label)
-    elif task == 'classification':
-        classes = ['entailment', 'contradiction', 'neutral', '-']
+    elif task == 'classification' or isinstance(
+            task, matchzoo.tasks.Classification):
+        classes = ['entailment', 'contradiction', 'neutral']
         df['label'] = df['label'].apply(classes.index)
     else:
         raise ValueError(f"{task} is not a valid task."
