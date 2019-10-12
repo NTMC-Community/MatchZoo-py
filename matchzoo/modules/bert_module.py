@@ -26,5 +26,11 @@ class BertModule(nn.Module):
 
     def forward(self, x, y):
         """Forward."""
-        inputs = torch.cat((x, y), dim=-1)
-        return self.bert(inputs)
+        input_ids = torch.cat((x, y), dim=-1)
+        token_type_ids = torch.cat((
+            torch.zeros(x.shape[0], x.shape[1] + 1),
+            torch.ones(y.shape[0], y.shape[1] - 1)
+        ), dim=-1).long().to(x.device)
+        attention_mask = (input_ids != 0)
+        return self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
+                         attention_mask=attention_mask)
