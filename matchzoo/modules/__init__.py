@@ -6,3 +6,5 @@ from .stacked_brnn import StackedBRNN
 from .gaussian_kernel import GaussianKernel
 from .matching import Matching
 from .bert_module import BertModule
+from .matching_tensor import MatchingTensor
+from .spatial_gru import SpatialGRU
