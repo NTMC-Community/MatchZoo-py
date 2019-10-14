@@ -19,22 +19,21 @@ class Attention(nn.Module):
         >>> x = torch.randn(4, 5, 10)
         >>> x.shape
         torch.Size([4, 5, 10])
-        >>> attention(x).shape
+        >>> mask = torch.BoolTensor(4, 5)
+        >>> attention(x, mask).shape
         torch.Size([4, 5])
 
     """
 
-    def __init__(self, input_size: int = 100, mask: int = 0):
+    def __init__(self, input_size: int = 100):
         """Attention constructor."""
         super().__init__()
         self.linear = nn.Linear(input_size, 1, bias=False)
-        self.mask = mask
 
-    def forward(self, x):
+    def forward(self, x, mask):
         """Perform attention on the input."""
         x = self.linear(x).squeeze(dim=-1)
-        mask = (x != self.mask)
-        x = x.masked_fill(mask == self.mask, -float('inf'))
+        x = x.masked_fill(mask, -float('inf'))
         return F.softmax(x, dim=-1)
 
 
