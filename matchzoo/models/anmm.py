@@ -5,6 +5,7 @@ import typing
 import numpy as np
 import torch
 import torch.nn as nn
+
 from matchzoo.dataloader import callbacks
 from matchzoo.engine import hyper_spaces
 from matchzoo.engine.base_model import BaseModel
