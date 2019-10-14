@@ -29,7 +29,7 @@ class BertModule(nn.Module):
         input_ids = torch.cat((x, y), dim=-1)
         token_type_ids = torch.cat((
             torch.zeros_like(x),
-            torch.zeros_like(y)), dim=-1).long()
+            torch.ones_like(y)), dim=-1).long()
         attention_mask = (input_ids != 0)
         return self.bert(input_ids=input_ids, token_type_ids=token_type_ids,
                          attention_mask=attention_mask)
