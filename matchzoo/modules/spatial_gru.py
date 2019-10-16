@@ -6,6 +6,7 @@ from torch import nn
 import torch.nn.functional as F
 from matchzoo.utils import parse_activation
 
+
 class SpatialGRU(nn.Module):
     """
     Spatial GRU Module.
