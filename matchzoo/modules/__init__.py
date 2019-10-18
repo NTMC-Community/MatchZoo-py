@@ -6,3 +6,6 @@ from .stacked_brnn import StackedBRNN
 from .gaussian_kernel import GaussianKernel
 from .matching import Matching
 from .bert_module import BertModule
+from .character_embedding import CharacterEmbedding
+from .semantic_composite import SemanticComposite
+from .dense_net import DenseNet

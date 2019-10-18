@@ -4,6 +4,7 @@ import typing
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 
 class Matching(nn.Module):
@@ -35,7 +36,7 @@ class Matching(nn.Module):
 
     @classmethod
     def _validate_matching_type(cls, matching_type: str = 'dot'):
-        valid_matching_type = ['dot', 'mul', 'plus', 'minus', 'concat']
+        valid_matching_type = ['dot', 'exist', 'mul', 'plus', 'minus', 'concat']
         if matching_type not in valid_matching_type:
             raise ValueError(f"{matching_type} is not a valid matching type, "
                              f"{valid_matching_type} expected.")
@@ -49,6 +50,19 @@ class Matching(nn.Module):
                 x = F.normalize(x, p=2, dim=-1)
                 y = F.normalize(y, p=2, dim=-1)
             return torch.einsum('bld,brd->blr', x, y)
+        elif self._matching_type == 'exist':
+            x_mask = torch.tensor(np.equal(x.cpu().numpy(), 0), device=x.device)
+            y_mask = torch.tensor(np.equal(y.cpu().numpy(), 0), device=y.device)
+
+            x = x.unsqueeze(dim=2).repeat(1, 1, length_right)
+            y = y.unsqueeze(dim=1).repeat(1, length_left, 1)
+            matching_matrix = (x == y)
+            x = torch.sum(matching_matrix, dim=2, dtype=torch.float)
+            y = torch.sum(matching_matrix, dim=1, dtype=torch.float)
+
+            x = x.masked_fill(x_mask, 0)
+            y = y.masked_fill(y_mask, 0)
+            return x, y
         else:
             x = x.unsqueeze(dim=2).repeat(1, 1, length_right, 1)
             y = y.unsqueeze(dim=1).repeat(1, length_left, 1, 1)
