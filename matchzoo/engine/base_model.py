@@ -349,7 +349,7 @@ class BaseModel(nn.Module, abc.ABC):
         self,
         in_features: int = 0,
         out_features: int = 0,
-        activation: nn.Module = nn.ReLU
+        activation: nn.Module = nn.ReLU()
     ) -> nn.Module:
         """:return: a perceptron layer."""
         return nn.Sequential(
