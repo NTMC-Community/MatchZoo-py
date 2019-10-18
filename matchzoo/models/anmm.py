@@ -1,8 +1,6 @@
 """An implementation of aNMM Model."""
-import math
 import typing
 
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -11,7 +9,7 @@ from matchzoo.engine import hyper_spaces
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.param import Param
 from matchzoo.engine.param_table import ParamTable
-from matchzoo.modules import Matching
+from matchzoo.modules import Attention, Matching
 from matchzoo.utils import parse_activation
 
 
@@ -83,7 +81,7 @@ class aNMM(BaseModel):
         self.hidden_layers = nn.Sequential(*hidden_layers)
 
         # Query Attention
-        self.q_attention = nn.Linear(self._params['embedding_output_dim'], 1, bias=False)
+        self.q_attention = Attention(self._params['embedding_output_dim'])
 
         self.dropout = nn.Dropout(p=self._params['dropout_rate'])
 
@@ -110,10 +108,8 @@ class aNMM(BaseModel):
         embed_left = self.embedding(input_left.long())
         embed_right = self.embedding(input_right.long())
 
-        # left input and right input mask matrix
-        # shape = [B, L]
+        # right input mask matrix
         # shape = [B, R]
-        left_mask = (input_left == self._params['mask_value'])
         right_mask = (input_right == self._params['mask_value'])
 
         # Compute QA Matching matrix
@@ -130,17 +126,18 @@ class aNMM(BaseModel):
 
         bin_indexes = torch.floor((qa_matching_detach + 1.) / 2 * (BI - 1.)).long()
         bin_indexes = bin_indexes.view(B * L, -1)
-        # Broadcast Manually
+
         index_offset = torch.arange(start=0, end=(B * L * BI), step=BI,
                                     device=device).long().unsqueeze(-1)
         bin_indexes += index_offset
         bin_indexes = bin_indexes.view(-1)
+
+        # shape = [B, L, BI]
         bin_qa_matching = torch.zeros(B * L * BI, device=device)
         bin_qa_matching.index_add_(0, bin_indexes, qa_matching_matrix)
         bin_qa_matching = bin_qa_matching.view(B, L, -1)
 
         # apply dropout
-        # shape = [B, L, BI]
         bin_qa_matching = self.dropout(bin_qa_matching)
 
         # MLP hidden layers
@@ -149,11 +146,8 @@ class aNMM(BaseModel):
 
         # query attention
         # shape = [B, L, 1]
-        q_attention = self.q_attention(embed_left)
-        q_attention.masked_fill_(left_mask.unsqueeze(-1), float(-math.inf))
-        q_attention = torch.softmax(q_attention, dim=1)
+        q_attention = self.q_attention(embed_left).unsqueeze(-1)
 
-        # score
         # shape = [B, 1]
         score = torch.sum(hiddens * q_attention, dim=1)
         # shape = [B, *]
