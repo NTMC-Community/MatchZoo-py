@@ -19,8 +19,11 @@ class DataLoader(object):
 
     :param dataset: The Dataset object to load data from.
     :param batch_size: Batch_size. (default: 32)
-    :param device: An instance of `torch.device` specifying which device
-        the Variables are going to be created on.
+    :param device: The desired device of returned tensor. Default:
+        if None, uses the current device for the default tensor type
+        (see torch.set_default_tensor_type()). device will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA
+        tensor types. If list, the first item will be used.
     :param stage: One of "train", "dev", and "test". (default: "train")
     :param resample: Whether to resample data between epochs. only effective
         when `mode` of dataset is "pair". (default: `True`)
@@ -57,7 +60,7 @@ class DataLoader(object):
         self,
         dataset: data.Dataset,
         batch_size: int = 32,
-        device: typing.Optional[torch.device] = None,
+        device: typing.Union[torch.device, list, None] = None,
         stage='train',
         resample: bool = True,
         shuffle: bool = False,
@@ -77,9 +80,11 @@ class DataLoader(object):
             raise ValueError(f"parameters `shuffle` and `sort` conflict, "
                              f"should not both be `True`.")
 
-        if device is None or not isinstance(device, torch.device):
+        if isinstance(device, list) and len(device):
+            device = device[0]
+        elif not isinstance(device, torch.device):
             device = torch.device(
-                "cuda:0" if torch.cuda.is_available() else "cpu")
+                "cuda" if torch.cuda.is_available() else "cpu")
 
         self._dataset = dataset
         self._batch_size = batch_size

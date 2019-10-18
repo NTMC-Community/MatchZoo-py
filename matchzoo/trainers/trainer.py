@@ -32,7 +32,7 @@ class Trainer:
         if None, uses the current device for the default tensor type
         (see torch.set_default_tensor_type()). device will be the CPU
         for CPU tensor types and the current CUDA device for CUDA
-        tensor types.
+        tensor types. If list, the first item will be used.
     :param start_epoch: Int. Number of starting epoch.
     :param epochs: The maximum number of epochs for training.
         Defaults to 10.
@@ -61,7 +61,7 @@ class Trainer:
         optimizer: optim.Optimizer,
         trainloader: DataLoader,
         validloader: DataLoader,
-        device: typing.Optional[torch.device] = None,
+        device: typing.Union[torch.device, list, None] = None,
         start_epoch: int = 1,
         epochs: int = 10,
         validate_interval: typing.Optional[int] = None,
@@ -135,18 +135,18 @@ class Trainer:
     def _load_model(
         self,
         model: BaseModel,
-        device: typing.Optional[torch.device],
-        data_parallel: bool = True
+        device: typing.Union[torch.device, list, None] = None,
+        data_parallel: bool = False
     ):
         """
         Load model.
 
         :param model: :class:`BaseModel` instance.
-        :param device: the desired device of returned tensor.
-            Default: if None, uses the current device for the
-            default tensor type (see torch.set_default_tensor_type()).
-            device will be the CPU for CPU tensor types and the
-            current CUDA device for CUDA tensor types.
+        :param device: The desired device of returned tensor. Default:
+            if None, uses the current device for the default tensor type
+            (see torch.set_default_tensor_type()). device will be the CPU
+            for CPU tensor types and the current CUDA device for CUDA
+            tensor types. If list, the first item will be used.
         :param data_parallel: bool. Whether support data parallel.
         """
         if not isinstance(model, BaseModel):
@@ -154,19 +154,25 @@ class Trainer:
                 'model should be a `BaseModel` instance.'
                 f' But got {type(model)}.'
             )
-        if device is None or not isinstance(device, torch.device):
-            device = torch.device(
-                'cuda:0' if torch.cuda.is_available() else 'cpu'
-            )
-        self._device = device
+
+        self._data_parallel = data_parallel
+        if isinstance(device, list) and len(device):
+            if self._data_parallel:
+                self._model = torch.nn.DataParallel(model, device_ids=device)
+            self._device = device[0]
+        else:
+            if not isinstance(device, torch.device):
+                device = torch.device(
+                    "cuda" if torch.cuda.is_available() else "cpu")
+            self._device = device
+            multi_cuda = 'cuda' in str(self._device) and torch.cuda.device_count() > 1
+            self._data_parallel = self._data_parallel and multi_cuda
+            if self._data_parallel:
+                self._model = torch.nn.DataParallel(model)
+
         self._task = model.params['task']
-        self._model = model.to(self._device)
-        self._data_parallel = (
-            data_parallel and (
-                'cuda' in str(self._device)) and (
-                    torch.cuda.device_count() > 1))
-        if self._data_parallel:
-            self._model = torch.nn.DataParallel(self._model)
+        if not self._data_parallel:
+            self._model = model.to(self._device)
 
     def _load_path(
         self,
