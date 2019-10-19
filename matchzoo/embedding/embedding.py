@@ -50,8 +50,7 @@ class Embedding(object):
     def build_matrix(
         self,
         term_index: typing.Union[
-            dict, mz.preprocessors.units.Vocabulary.TermIndex],
-        initializer=lambda: np.random.uniform(-0.2, 0.2)
+            dict, mz.preprocessors.units.Vocabulary.TermIndex]
     ) -> np.ndarray:
         """
         Build a matrix using `term_index`.
@@ -70,7 +69,7 @@ class Embedding(object):
             if term in valid_keys:
                 matrix[index] = self._data[term]
             else:
-                matrix[index] = initializer()
+                matrix[index] = np.random.uniform(-0.2, 0.2, size=self._output_dim)
 
         return matrix
 

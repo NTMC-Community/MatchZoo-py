@@ -52,9 +52,9 @@ class ESIM(BaseModel):
         rnn_mapping = {'lstm': nn.LSTM, 'gru': nn.GRU}
         self.embedding = self._make_default_embedding_layer()
         self.rnn_dropout = RNNDropout(p=self._params['dropout'])
+        lstm_size = self._params['hidden_size']
         if self._params['concat_lstm']:
-            lstm_layer = self._params['lstm_layer']
-            lstm_size = self._params['hidden_size'] / lstm_layer
+            lstm_size /= self._params['lstm_layer']
         self.input_encoding = StackedBRNN(
             self._params['embedding_output_dim'],
             int(lstm_size / 2),
