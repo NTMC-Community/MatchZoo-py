@@ -2,12 +2,13 @@
 import typing
 
 import torch
-from torch import nn
-from torch.nn import functional as F
+import torch.nn as nn
+import torch.nn.functional as F
 
 from matchzoo.engine.param_table import ParamTable
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
+from matchzoo.engine import hyper_spaces
 from matchzoo.modules import MatchingTensor
 from matchzoo.modules import SpatialGRU
 
@@ -40,8 +41,12 @@ class MatchSRNN(BaseModel):
                          desc="Number of SpatialGRU units"))
         params.add(Param(name='direction', value='lt',
                          desc="Direction of SpatialGRU scanning"))
-        params.add(Param(name='dropout', value=0.2,
-                         desc="The dropout rate."))
+        params.add(Param(
+            'dropout', 0.2,
+            hyper_space=hyper_spaces.quniform(
+                low=0.0, high=0.8, q=0.01),
+            desc="The dropout rate."
+        ))
         return params
 
     def build(self):
@@ -50,11 +55,9 @@ class MatchSRNN(BaseModel):
         self.embedding = self._make_default_embedding_layer()
         self.dropout = nn.Dropout(p=self._params['dropout'])
 
-        self.matching_tensor_network = MatchingTensor([
+        self.matching_tensor_network = MatchingTensor(
             self._params['embedding_output_dim'],
-            self._params['embedding_output_dim']],
-            channels=self._params["channels"]
-        )
+            channels=self._params["channels"])
 
         self.spatial_gru_network = SpatialGRU(
             units=self._params['units'],
@@ -72,12 +75,12 @@ class MatchSRNN(BaseModel):
         #   R = `input_right` sequence length
         #   C = number of channels
 
-        # Left input and right input.
+        # Left input and right input
         # query = [B, L]
         # doc = [B, R]
         query, doc = inputs["text_left"].long(), inputs["text_right"].long()
 
-        # Process left and right input.
+        # Process left and right input
         # query = [B, L, D]
         # doc = [B, R, D]
         query = self.embedding(query)
@@ -90,7 +93,7 @@ class MatchSRNN(BaseModel):
 
         # Get matching tensor
         # matching_tensor = [B, C, L, R]
-        matching_tensor = self.matching_tensor_network([query, doc])
+        matching_tensor = self.matching_tensor_network(query, doc)
 
         # Apply spatial GRU to the word level interaction tensor
         # h_ij = [B, U]

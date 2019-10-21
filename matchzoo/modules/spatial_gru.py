@@ -2,24 +2,20 @@
 import typing
 
 import torch
-from torch import nn
+import torch.nn as nn
 import torch.nn.functional as F
-from matchzoo.utils import parse_activation
 
 
 class SpatialGRU(nn.Module):
     """
     Spatial GRU Module.
 
-    :param channels: Number of word interaction tensor channels
+    :param channels: Number of word interaction tensor channels.
     :param units: Number of SpatialGRU units.
     :param activation: Activation function to use. Default:
-        hyperbolic tangent (`tanh`). If you pass `None`, no
-        activation is applied (ie. "linear" activation: `a(x) = x`).
+        hyperbolic tangent (nn.Tanh).
     :param recurrent_activation: Activation function to use for
-        the recurrent step. Default: sigmoid (`sigmoid`).
-        If you pass `None`, no activation is applied (ie. "linear"
-        activation: `a(x) = x`)
+        the recurrent step. Default: sigmoid (nn.Sigmoid).
     :param direction: Scanning direction. `lt` (i.e., left top)
         indicates the scanning from left top to right bottom, and
         `rb` (i.e., right bottom) indicates the scanning from
@@ -28,7 +24,7 @@ class SpatialGRU(nn.Module):
     Examples:
         >>> import matchzoo as mz
         >>> channels, units= 4, 10
-        >>> spatial_gru = mz.modules.SpatialGRU(channels,units)
+        >>> spatial_gru = mz.modules.SpatialGRU(channels, units)
 
     """
 
@@ -36,56 +32,39 @@ class SpatialGRU(nn.Module):
         self,
         channels: int = 4,
         units: int = 10,
-        activation: str = 'tanh',
-        recurrent_activation: str = 'sigmoid',
+        activation: nn.Module = nn.Tanh,
+        recurrent_activation: nn.Module = nn.Sigmoid,
         direction: str = 'lt'
     ):
         """:class:`SpatialGRU` constructor."""
         super().__init__()
         self._units = units
-        self._activation = parse_activation(activation)
-        self._recurrent_activation = parse_activation(recurrent_activation)
+        self._activation = activation
+        self._recurrent_activation = recurrent_activation
         self._direction = direction
         self._channels = channels
 
-        kernel_initializer = 'glorot_uniform'
-        recurrent_initializer = 'orthogonal'
+        if self._direction not in ('lt', 'rb'):
+            raise ValueError(f"Invalid direction. "
+                             f"`{self._direction}` received. "
+                             f"Must be in `lt`, `rb`.")
 
         self._input_dim = self._channels + 3 * self._units
 
-        self._wr = self._make_inited_parameter(
-            [self._input_dim, self._units * 3], kernel_initializer)
-        self._br = self._make_inited_parameter(
-            [self._units * 3, ], "zeros")
-        self._wz = self._make_inited_parameter(
-            [self._input_dim, self._units * 4], kernel_initializer)
-        self._w_ij = self._make_inited_parameter(
-            [self._channels, self._units], recurrent_initializer)
-        self._bz = self._make_inited_parameter(
-            [self._units * 4, ], "zeros")
-        self._b_ij = self._make_inited_parameter(
-            [self._units, ], "zeros")
-        self._U = self._make_inited_parameter(
-            [self._units * 3, self._units], recurrent_initializer)
+        self._wr = nn.Linear(self._input_dim, self._units * 3)
+        self._wz = nn.Linear(self._input_dim, self._units * 4)
+        self._w_ij = nn.Linear(self._channels, self._units)
+        self._U = nn.Linear(self._units * 3, self._units, bias=False)
+        
+        self.reset_parameters()
 
-    @classmethod
-    def _make_inited_parameter(self, shape, initializer):
-        """Create and initiate Parameters."""
-        W = nn.Parameter(torch.zeros(shape, dtype=torch.float32))
-        if initializer == "glorot_uniform":
-            return nn.init.xavier_uniform_(W)
-        elif initializer == "zeros":
-            return W
-        else:
-            return nn.init.orthogonal_(W)
+    def reset_parameters(self):
+        nn.init.xavier_normal_(self._wr.weight)
+        nn.init.xavier_normal_(self._wz.weight)
+        nn.init.orthogonal_(self._w_ij.weight)
+        nn.init.orthogonal_(self._U.weight)
 
-    @classmethod
-    def _time_distributed_dense(cls, w, x, b):
-        x = torch.matmul(x, w)
-        x = x + b
-        return x
-
-    def softmax_by_row(self, z: typing.Any) -> tuple:
+    def softmax_by_row(self, z: torch.tensor) -> tuple:
         """Conduct softmax on each dimension across the four gates."""
 
         # z_transform: [B, 4, U]
@@ -96,20 +75,20 @@ class SpatialGRU(nn.Module):
 
     def calculate_recurrent_unit(
         self,
-        inputs: typing.Any,
-        states: typing.Any,
+        inputs: torch.tensor,
+        states: list,
         i: int,
         j: int
     ):
         """
         Calculate recurrent unit.
 
-        :param inputs: A TensorArray which contains interaction
+        :param inputs: A tensor which contains interaction
             between left text and right text.
-        :param states: A TensorArray which stores the hidden state
+        :param states: An array of tensors which stores the hidden state
             of every step.
-        :param i: Recurrent row index
-        :param j: Recurrent column index
+        :param i: Recurrent row index.
+        :param j: Recurrent column index.
 
         """
 
@@ -129,12 +108,11 @@ class SpatialGRU(nn.Module):
 
         # Calculate reset gate
         # r = [B, 3*U]
-        r = self._recurrent_activation(
-            self._time_distributed_dense(self._wr, q, self._br))
+        r = self._recurrent_activation()(self._wr(q))
 
         # Calculate updating gate
         # z: [B, 4*U]
-        z = self._time_distributed_dense(self._wz, q, self._bz)
+        z = self._wz(q)
 
         # Perform softmax
         # zi, zl, zt, zd: [B, U]
@@ -142,9 +120,9 @@ class SpatialGRU(nn.Module):
 
         # Get h_ij_
         # h_ij_ = [B, U]
-        h_ij_l = self._time_distributed_dense(self._w_ij, s_ij, self._b_ij)
-        h_ij_r = torch.matmul(r * (torch.cat([h_left, h_top, h_diag], 1)), self._U)
-        h_ij_ = self._activation(h_ij_l + h_ij_r)
+        h_ij_l = self._w_ij(s_ij)
+        h_ij_r = self._U(r * (torch.cat([h_left, h_top, h_diag], 1)))
+        h_ij_ = self._activation()(h_ij_l + h_ij_r)
 
         # Calculate h_ij
         # h_ij = [B, U]
@@ -159,28 +137,23 @@ class SpatialGRU(nn.Module):
         :param inputs: input tensors.
         """
 
-        batch_size, channels, left_maxlen, right_maxlen = inputs.shape
+        batch_size, channels, left_length, right_length = inputs.shape
 
         # inputs = [L, R, B, C]
         inputs = inputs.permute([2, 3, 0, 1])
         if self._direction == 'rb':
             # inputs = [R, L, B, C]
             inputs = torch.flip(inputs, [0, 1])
-        elif self._direction != 'lt':
-            raise ValueError(f"Invalid direction. "
-                             f"`{self._direction}` received. "
-                             f"Must be in `lt`, `rb`.")
 
-        # states = [L, R, B, U]
+        # states = [L+1, R+1, B, U]
         states = [
             [torch.zeros([batch_size, self._units]).type_as(inputs)
-             for j in range(right_maxlen + 1)] for i in range(left_maxlen + 1)
+             for j in range(right_length + 1)] for i in range(left_length + 1)
         ]
 
         # Calculate h_ij
         # h_ij = [B, U]
-        for i in range(left_maxlen):
-            for j in range(right_maxlen):
-                h_ij = self.calculate_recurrent_unit(inputs, states, i, j)
-                states[i + 1][j + 1] = h_ij
-        return h_ij
+        for i in range(left_length):
+            for j in range(right_length):
+                states[i + 1][j + 1] = self.calculate_recurrent_unit(inputs, states, i, j)
+        return states[left_length][right_length]
