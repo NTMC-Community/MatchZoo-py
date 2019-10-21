@@ -97,18 +97,18 @@ class aNMM(BaseModel):
         #   R = `input_right` sequence length
         #   BI = number of bins
 
-        # Left input and right input.
+        # Left input and right input
         # shape = [B, L]
         # shape = [B, R]
         input_left, input_right = inputs['text_left'], inputs['text_right']
 
-        # Process left and right input.
+        # Process left and right input
         # shape = [B, L, D]
         # shape = [B, R, D]
         embed_left = self.embedding(input_left.long())
         embed_right = self.embedding(input_right.long())
 
-        # right input mask matrix
+        # Right input mask matrix
         # shape = [B, R]
         right_mask = (input_right == self._params['mask_value'])
 
@@ -137,14 +137,14 @@ class aNMM(BaseModel):
         bin_qa_matching.index_add_(0, bin_indexes, qa_matching_matrix)
         bin_qa_matching = bin_qa_matching.view(B, L, -1)
 
-        # apply dropout
+        # Apply dropout
         bin_qa_matching = self.dropout(bin_qa_matching)
 
         # MLP hidden layers
         # shape = [B, L, 1]
         hiddens = self.hidden_layers(bin_qa_matching)
 
-        # query attention
+        # Query attention
         # shape = [B, L, 1]
         q_attention = self.q_attention(embed_left).unsqueeze(-1)
 
