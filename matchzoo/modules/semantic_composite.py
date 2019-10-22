@@ -28,11 +28,11 @@ class SemanticComposite(nn.Module):
 
     def __init__(self, in_features, dropout_rate: float = 0.0):
         """Init."""
-        super(SemanticComposite, self).__init__()
+        super().__init__()
         self.att_linear = nn.Linear(3 * in_features, 1, False)
-        self.linear1 = nn.Linear(2 * in_features, in_features, True)
-        self.linear2 = nn.Linear(2 * in_features, in_features, True)
-        self.linear3 = nn.Linear(2 * in_features, in_features, True)
+        self.z_gate = nn.Linear(2 * in_features, in_features, True)
+        self.r_gate = nn.Linear(2 * in_features, in_features, True)
+        self.f_gate = nn.Linear(2 * in_features, in_features, True)
 
         self.dropout = nn.Dropout(p=dropout_rate)
 
@@ -53,9 +53,9 @@ class SemanticComposite(nn.Module):
         # Semantic composite fuse gate.
         x_attn_concat = self.dropout(torch.cat([x, attn], dim=-1))
         x_attn_concat = torch.cat([x, attn], dim=-1)
-        z = torch.tanh(self.linear1(x_attn_concat))
-        r = torch.sigmoid(self.linear2(x_attn_concat))
-        f = torch.sigmoid(self.linear3(x_attn_concat))
+        z = torch.tanh(self.z_gate(x_attn_concat))
+        r = torch.sigmoid(self.r_gate(x_attn_concat))
+        f = torch.sigmoid(self.f_gate(x_attn_concat))
         encoding = r * x + f * z
 
         return encoding

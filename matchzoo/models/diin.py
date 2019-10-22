@@ -3,7 +3,6 @@ import typing
 
 import torch
 import torch.nn as nn
-import numpy as np
 
 from matchzoo import preprocessors
 from matchzoo.engine.param_table import ParamTable
@@ -13,10 +12,7 @@ from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
 from matchzoo.dataloader import callbacks
-from matchzoo.modules import CharacterEmbedding
-from matchzoo.modules import SemanticComposite
-from matchzoo.modules import Matching
-from matchzoo.modules import DenseNet
+from matchzoo.modules import CharacterEmbedding, SemanticComposite, Matching, DenseNet
 
 
 class DIIN(BaseModel):
@@ -27,6 +23,7 @@ class DIIN(BaseModel):
         >>> model = DIIN()
         >>> model.params['embedding_input_dim'] = 10000
         >>> model.params['embedding_output_dim'] = 300
+        >>> model.params['mask_value'] = 0
         >>> model.params['char_embedding_input_dim'] = 100
         >>> model.params['char_embedding_output_dim'] = 8
         >>> model.params['char_conv_filters'] = 100
@@ -50,6 +47,8 @@ class DIIN(BaseModel):
         params = super().get_default_params(
             with_embedding=True
         )
+        params.add(Param(name='mask_value', value=0,
+                         desc="The value to be masked from inputs."))
         params.add(Param(name='char_embedding_input_dim', value=100,
                          desc="The input dimension of character embedding layer."))
         params.add(Param(name='char_embedding_output_dim', value=8,
@@ -155,7 +154,7 @@ class DIIN(BaseModel):
             char_conv_filters=self._params['char_conv_filters'],
             char_conv_kernel_size=self._params['char_conv_kernel_size']
         )
-        self.exact_maching = Matching(matching_type='exist')
+        self.exact_maching = Matching(matching_type='exact')
         all_embed_dim = self._params['embedding_output_dim'] \
             + self._params['char_conv_filters'] + 1
 
@@ -203,6 +202,8 @@ class DIIN(BaseModel):
         # shape = [B, L]
         # shape = [B, R]
         input_word_left, input_word_right = inputs['text_left'], inputs['text_right']
+        mask_word_left = (input_word_left == self._params['mask_value'])
+        mask_word_right = (input_word_right == self._params['mask_value'])
 
         # shape = [B, L, C]
         # shape = [B, R, C]
@@ -222,6 +223,8 @@ class DIIN(BaseModel):
         # shape = [B, R, 1]
         exact_match_left, exact_match_right = self.exact_maching(
             input_word_left, input_word_right)
+        exact_match_left = exact_match_left.masked_fill(mask_word_left, 0)
+        exact_match_right = exact_match_right.masked_fill(mask_word_right, 0)
         exact_match_left = torch.unsqueeze(exact_match_left, dim=-1)
         exact_match_right = torch.unsqueeze(exact_match_right, dim=-1)
 

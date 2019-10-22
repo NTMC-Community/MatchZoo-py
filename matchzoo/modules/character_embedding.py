@@ -33,7 +33,7 @@ class CharacterEmbedding(nn.Module):
         char_conv_kernel_size: int = 5
     ):
         """Init."""
-        super(CharacterEmbedding, self).__init__()
+        super().__init__()
         self.char_embedding = nn.Embedding(
             num_embeddings=char_embedding_input_dim,
             embedding_dim=char_embedding_output_dim
@@ -48,10 +48,7 @@ class CharacterEmbedding(nn.Module):
         """Forward."""
         embed_x = self.char_embedding(x)
 
-        batch_size = embed_x.shape[0]
-        seq_len = embed_x.shape[1]
-        word_len = embed_x.shape[2]
-        embed_dim = embed_x.shape[3]
+        batch_size, seq_len, word_len, embed_dim = embed_x.shape
 
         embed_x = embed_x.contiguous().view(-1, word_len, embed_dim)
 

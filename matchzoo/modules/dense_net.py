@@ -16,7 +16,7 @@ class DenseBlock(nn.Module):
         layers_per_dense_block: int = 3
     ):
         """Init."""
-        super(DenseBlock, self).__init__()
+        super().__init__()
         dense_block = []
         for _ in range(layers_per_dense_block):
             conv_block = self._make_conv_block(in_channels, growth_rate, kernel_size)
@@ -77,7 +77,7 @@ class DenseNet(nn.Module):
         pool_kernel_size: tuple = (2, 2),
     ):
         """Init."""
-        super(DenseNet, self).__init__()
+        super().__init__()
         dense_blocks = []
         transition_blocks = []
         for _ in range(nb_dense_blocks):
@@ -94,7 +94,12 @@ class DenseNet(nn.Module):
         self._dense_blocks = nn.ModuleList(dense_blocks)
         self._transition_blocks = nn.ModuleList(transition_blocks)
 
-        self.out_channels = in_channels
+        self._out_channels = in_channels
+
+    @property
+    def out_channels(self) -> int:
+        """`out_channels` getter."""
+        return self._out_channels
 
     def forward(self, x):
         """Forward."""
