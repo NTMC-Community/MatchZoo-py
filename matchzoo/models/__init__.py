@@ -14,6 +14,7 @@ from .bert import Bert
 from .mvlstm import MVLSTM
 from .match_pyramid import MatchPyramid
 from .hbmp import HBMP
+from .duet import DUET
 
 
 def list_available() -> list:
