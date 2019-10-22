@@ -14,6 +14,7 @@ from .bert import Bert
 from .mvlstm import MVLSTM
 from .match_pyramid import MatchPyramid
 from .hbmp import HBMP
+from .diin import DIIN
 
 
 def list_available() -> list:
