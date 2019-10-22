@@ -29,10 +29,8 @@ class Trainer:
     :param validloader: A :class`DataLoader` instance. The dataloader
         is used for validating the model.
     :param device: The desired device of returned tensor. Default:
-        if None, uses the current device for the default tensor type
-        (see torch.set_default_tensor_type()). device will be the CPU
-        for CPU tensor types and the current CUDA device for CUDA
-        tensor types. If list, the first item will be used.
+        if None, use the current device. If list, the first item
+        will be used.
     :param start_epoch: Int. Number of starting epoch.
     :param epochs: The maximum number of epochs for training.
         Defaults to 10.
@@ -143,10 +141,8 @@ class Trainer:
 
         :param model: :class:`BaseModel` instance.
         :param device: The desired device of returned tensor. Default:
-            if None, uses the current device for the default tensor type
-            (see torch.set_default_tensor_type()). device will be the CPU
-            for CPU tensor types and the current CUDA device for CUDA
-            tensor types. If list, the first item will be used.
+            if None, use the current device. If list, the first item
+            will be used.
         :param data_parallel: bool. Whether support data parallel.
         """
         if not isinstance(model, BaseModel):
