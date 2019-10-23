@@ -108,8 +108,10 @@ class aNMM(BaseModel):
         embed_left = self.embedding(input_left.long())
         embed_right = self.embedding(input_right.long())
 
-        # Right input mask matrix
+        # Left and right input mask matrix
+        # shape = [B, L]
         # shape = [B, R]
+        left_mask = (input_left == self._params['mask_value'])
         right_mask = (input_right == self._params['mask_value'])
 
         # Compute QA Matching matrix
@@ -146,7 +148,7 @@ class aNMM(BaseModel):
 
         # Query attention
         # shape = [B, L, 1]
-        q_attention = self.q_attention(embed_left).unsqueeze(-1)
+        q_attention = self.q_attention(embed_left, left_mask).unsqueeze(-1)
 
         # shape = [B, 1]
         score = torch.sum(hiddens * q_attention, dim=1)
