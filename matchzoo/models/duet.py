@@ -10,6 +10,7 @@ from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine import hyper_spaces
 from matchzoo.modules import Attention
+from matchzoo.utils import parse_activation
 from matchzoo import preprocessors
 
 
@@ -24,10 +25,14 @@ class DUET(BaseModel):
         >>> model.params['lm_filters'] = 300
         >>> model.params['mlp_num_layers'] = 2
         >>> model.params['mlp_num_units'] = 300
+        >>> model.params['mlp_num_fan_out'] = 300
         >>> model.params['mlp_activation_func'] = 'relu'
         >>> model.params['vocab_size'] = 2000
-        >>> model.params['dm_filters'] = 32
+        >>> model.params['dm_filters'] = 300
+        >>> model.params['dm_conv_activation_func'] = 'relu'
         >>> model.params['dm_kernel_size'] = 3
+        >>> model.params['dm_left_pool_size'] = 8
+        >>> model.params['dm_left_pool_size'] = 8
         >>> model.params['dropout_rate'] = 0.5
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
@@ -59,6 +64,9 @@ class DUET(BaseModel):
         params.add(Param(name='dm_kernel_size', value=3,
                          desc="Kernel size of 1D convolution layer in "
                               "the distributed model."))
+        params.add(Param(name='dm_conv_activation_func', value='relu',
+                         desc="Activation functions of the convolution layer "
+                              "in the distributed model."))
         params.add(Param(name='dm_left_pool_size', value=8,
                          desc="Kernel size of 1D convolution layer in "
                               "the distributed model."))
@@ -122,6 +130,9 @@ class DUET(BaseModel):
             out_features=1
         )
 
+        self.dm_conv_activation_func = parse_activation(
+                self._params['dm_conv_activation_func']
+        )
         self.dm_conv_left = nn.Conv1d(self._params['vocab_size'],
                                       self._params['dm_filters'],
                                       self._params['dm_kernel_size']
@@ -180,6 +191,9 @@ class DUET(BaseModel):
         # shape = [B, ngram_size, R]
         query_ngram, doc_ngram = inputs['ngram_left'], inputs['ngram_right']
 
+        query_ngram = F.normalize(query_ngram, p=2, dim=2)
+        doc_ngram = F.normalize(doc_ngram, p=2, dim=2)
+
         # shape = [B, R, L]
         matching_xor =  self._xor_match([doc_word, query_word])
         mask_xor = torch.einsum('bi, bj->bij', mask_doc, mask_query)
@@ -193,15 +207,14 @@ class DUET(BaseModel):
         lm_res = self.lm_linear(lm_res)
 
         # Process distributed model
-        '''
         dm_left = self.dm_conv_left(query_ngram.permute(0, 2, 1))
-        dm_left = F.max_pool2d(F.relu(dm_left),
+        dm_left = F.max_pool2d(self.dm_conv_activation_func(dm_left),
                 (1, self._params['dm_left_pool_size']))
         dm_left = dm_left.view(-1, self._params['dm_filters'])
         dm_left = self.dm_mlp_left(dm_left)
 
         dm_right = self.dm_conv1_right(doc_ngram.permute(0, 2, 1))
-        dm_right = F.max_pool2d(F.relu(dm_right),
+        dm_right = F.max_pool2d(self.dm_conv_activation_func(dm_right),
                 (1, self._params['dm_right_pool_size']))
         dm_right = self.dm_conv2_right(dm_right)
 
@@ -212,8 +225,6 @@ class DUET(BaseModel):
         dm_res = self.dm_linear(dm_res)
 
         x = lm_res + dm_res
-        '''
-        x = lm_res
 
         out = self.out(x.unsqueeze(dim=-1))
         return out
