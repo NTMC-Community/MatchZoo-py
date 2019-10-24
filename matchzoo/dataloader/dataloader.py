@@ -21,7 +21,7 @@ class DataLoader(object):
     :param batch_size: Batch_size. (default: 32)
     :param device: The desired device of returned tensor. Default: if None,
         use the current device. If `torch.device` or int, use device specified
-        by user.If list, the first item will be used.
+        by user. If list, the first item will be used.
     :param stage: One of "train", "dev", and "test". (default: "train")
     :param resample: Whether to resample data between epochs. only effective
         when `mode` of dataset is "pair". (default: `True`)
