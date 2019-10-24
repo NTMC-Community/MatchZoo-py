@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from matchzoo.utils import parse_activation
+
 
 class SpatialGRU(nn.Module):
     """
@@ -12,10 +14,17 @@ class SpatialGRU(nn.Module):
 
     :param channels: Number of word interaction tensor channels.
     :param units: Number of SpatialGRU units.
-    :param activation: Activation function to use. Default:
-        hyperbolic tangent (nn.Tanh).
+    :param activation: Activation function to use, one of:
+            - String: name of an activation
+            - Torch Modele subclass
+            - Torch Module instance
+            Default: hyperbolic tangent (`tanh`).
     :param recurrent_activation: Activation function to use for
-        the recurrent step. Default: sigmoid (nn.Sigmoid).
+        the recurrent step, one of:
+            - String: name of an activation
+            - Torch Modele subclass
+            - Torch Module instance
+            Default: sigmoid activation (`sigmoid`).
     :param direction: Scanning direction. `lt` (i.e., left top)
         indicates the scanning from left top to right bottom, and
         `rb` (i.e., right bottom) indicates the scanning from
@@ -32,15 +41,15 @@ class SpatialGRU(nn.Module):
         self,
         channels: int = 4,
         units: int = 10,
-        activation: nn.Module = nn.Tanh,
-        recurrent_activation: nn.Module = nn.Sigmoid,
+        activation: typing.Union[str, typing.Type[nn.Module], nn.Module] = 'tanh',
+        recurrent_activation: typing.Union[str, typing.Type[nn.Module], nn.Module] ='sigmoid',
         direction: str = 'lt'
     ):
         """:class:`SpatialGRU` constructor."""
         super().__init__()
         self._units = units
-        self._activation = activation
-        self._recurrent_activation = recurrent_activation
+        self._activation = parse_activation(activation)
+        self._recurrent_activation = parse_activation(recurrent_activation)
         self._direction = direction
         self._channels = channels
 
@@ -108,7 +117,7 @@ class SpatialGRU(nn.Module):
 
         # Calculate reset gate
         # r = [B, 3*U]
-        r = self._recurrent_activation()(self._wr(q))
+        r = self._recurrent_activation(self._wr(q))
 
         # Calculate updating gate
         # z: [B, 4*U]
@@ -122,7 +131,7 @@ class SpatialGRU(nn.Module):
         # h_ij_ = [B, U]
         h_ij_l = self._w_ij(s_ij)
         h_ij_r = self._U(r * (torch.cat([h_left, h_top, h_diag], 1)))
-        h_ij_ = self._activation()(h_ij_l + h_ij_r)
+        h_ij_ = self._activation(h_ij_l + h_ij_r)
 
         # Calculate h_ij
         # h_ij = [B, U]

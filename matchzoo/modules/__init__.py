@@ -7,4 +7,7 @@ from .gaussian_kernel import GaussianKernel
 from .matching import Matching
 from .bert_module import BertModule
 from .matching_tensor import MatchingTensor
+from .character_embedding import CharacterEmbedding
+from .semantic_composite import SemanticComposite
+from .dense_net import DenseNet
 from .spatial_gru import SpatialGRU

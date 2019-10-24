@@ -55,11 +55,11 @@ class MatchSRNN(BaseModel):
         self.embedding = self._make_default_embedding_layer()
         self.dropout = nn.Dropout(p=self._params['dropout'])
 
-        self.matching_tensor_network = MatchingTensor(
+        self.matching_tensor = MatchingTensor(
             self._params['embedding_output_dim'],
             channels=self._params["channels"])
 
-        self.spatial_gru_network = SpatialGRU(
+        self.spatial_gru = SpatialGRU(
             units=self._params['units'],
             direction=self._params['direction'])
 
@@ -93,11 +93,11 @@ class MatchSRNN(BaseModel):
 
         # Get matching tensor
         # matching_tensor = [B, C, L, R]
-        matching_tensor = self.matching_tensor_network(query, doc)
+        matching_tensor = self.matching_tensor(query, doc)
 
         # Apply spatial GRU to the word level interaction tensor
         # h_ij = [B, U]
-        h_ij = self.spatial_gru_network(matching_tensor)
+        h_ij = self.spatial_gru(matching_tensor)
 
         # h_ij = [B, U]
         h_ij = self.dropout(h_ij)

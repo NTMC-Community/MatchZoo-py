@@ -45,7 +45,9 @@ class MatchingTensor(nn.Module):
         self._normalize = normalize
         self._init_diag = init_diag
         
-        self.interaction_matrix = torch.empty(self._channels, self._matching_dim, self._matching_dim)
+        self.interaction_matrix = torch.empty(
+            self._channels, self._matching_dim, self._matching_dim
+        )
         if self._init_diag:
             self.interaction_matrix = self.interaction_matrix.uniform_(-0.05, 0.05)
             for channel_index in range(self._channels):
