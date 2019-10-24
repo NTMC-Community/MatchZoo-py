@@ -29,10 +29,8 @@ class Trainer:
     :param validloader: A :class`DataLoader` instance. The dataloader
         is used for validating the model.
     :param device: The desired device of returned tensor. Default:
-        if None, uses the current device for the default tensor type
-        (see torch.set_default_tensor_type()). device will be the CPU
-        for CPU tensor types and the current CUDA device for CUDA
-        tensor types.
+        if None, use the current device. If `torch.device` or int,
+        use device specified by user. If list, use data parallel.
     :param start_epoch: Int. Number of starting epoch.
     :param epochs: The maximum number of epochs for training.
         Defaults to 10.
@@ -43,7 +41,6 @@ class Trainer:
     :param patience: Number fo events to wait if no improvement and
         then stop the training.
     :param key: Key of metric to be compared.
-    :param data_parallel: Bool. Whether support data parallel.
     :param checkpoint: A checkpoint from which to continue training.
         If None, training starts from scratch. Defaults to None.
         Should be a file-like object (has to implement read, readline,
@@ -61,7 +58,7 @@ class Trainer:
         optimizer: optim.Optimizer,
         trainloader: DataLoader,
         validloader: DataLoader,
-        device: typing.Optional[torch.device] = None,
+        device: typing.Union[torch.device, int, list, None] = None,
         start_epoch: int = 1,
         epochs: int = 10,
         validate_interval: typing.Optional[int] = None,
@@ -69,7 +66,6 @@ class Trainer:
         clip_norm: typing.Union[float, int] = None,
         patience: typing.Optional[int] = None,
         key: typing.Any = None,
-        data_parallel: bool = False,
         checkpoint: typing.Union[str, Path] = None,
         save_dir: typing.Union[str, Path] = None,
         save_all: bool = False,
@@ -77,7 +73,7 @@ class Trainer:
         **kwargs
     ):
         """Base Trainer constructor."""
-        self._load_model(model, device, data_parallel)
+        self._load_model(model, device)
         self._load_dataloader(
             trainloader, validloader, validate_interval
         )
@@ -135,38 +131,37 @@ class Trainer:
     def _load_model(
         self,
         model: BaseModel,
-        device: typing.Optional[torch.device],
-        data_parallel: bool = True
+        device: typing.Union[torch.device, int, list, None] = None
     ):
         """
         Load model.
 
         :param model: :class:`BaseModel` instance.
-        :param device: the desired device of returned tensor.
-            Default: if None, uses the current device for the
-            default tensor type (see torch.set_default_tensor_type()).
-            device will be the CPU for CPU tensor types and the
-            current CUDA device for CUDA tensor types.
-        :param data_parallel: bool. Whether support data parallel.
+        :param device: The desired device of returned tensor. Default:
+            if None, use the current device. If `torch.device` or int,
+            use device specified by user. If list, use data parallel.
         """
         if not isinstance(model, BaseModel):
             raise ValueError(
                 'model should be a `BaseModel` instance.'
                 f' But got {type(model)}.'
             )
-        if device is None or not isinstance(device, torch.device):
-            device = torch.device(
-                'cuda:0' if torch.cuda.is_available() else 'cpu'
-            )
-        self._device = device
+
         self._task = model.params['task']
-        self._model = model.to(self._device)
-        self._data_parallel = (
-            data_parallel and (
-                'cuda' in str(self._device)) and (
-                    torch.cuda.device_count() > 1))
-        if self._data_parallel:
-            self._model = torch.nn.DataParallel(self._model)
+        self._data_parallel = False
+        self._model = model
+
+        if isinstance(device, list) and len(device):
+            self._data_parallel = True
+            self._model = torch.nn.DataParallel(self._model, device_ids=device)
+            self._device = device[0]
+        else:
+            if not (isinstance(device, torch.device) or isinstance(device, int)):
+                device = torch.device(
+                    "cuda" if torch.cuda.is_available() else "cpu")
+            self._device = device
+
+        self._model.to(self._device)
 
     def _load_path(
         self,

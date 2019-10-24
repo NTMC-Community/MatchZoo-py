@@ -35,7 +35,7 @@ class Matching(nn.Module):
 
     @classmethod
     def _validate_matching_type(cls, matching_type: str = 'dot'):
-        valid_matching_type = ['dot', 'mul', 'plus', 'minus', 'concat']
+        valid_matching_type = ['dot', 'exact', 'mul', 'plus', 'minus', 'concat']
         if matching_type not in valid_matching_type:
             raise ValueError(f"{matching_type} is not a valid matching type, "
                              f"{valid_matching_type} expected.")
@@ -49,6 +49,13 @@ class Matching(nn.Module):
                 x = F.normalize(x, p=2, dim=-1)
                 y = F.normalize(y, p=2, dim=-1)
             return torch.einsum('bld,brd->blr', x, y)
+        elif self._matching_type == 'exact':
+            x = x.unsqueeze(dim=2).repeat(1, 1, length_right)
+            y = y.unsqueeze(dim=1).repeat(1, length_left, 1)
+            matching_matrix = (x == y)
+            x = torch.sum(matching_matrix, dim=2, dtype=torch.float)
+            y = torch.sum(matching_matrix, dim=1, dtype=torch.float)
+            return x, y
         else:
             x = x.unsqueeze(dim=2).repeat(1, 1, length_right, 1)
             y = y.unsqueeze(dim=1).repeat(1, length_left, 1, 1)
