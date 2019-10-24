@@ -20,7 +20,8 @@ class DataLoader(object):
     :param dataset: The Dataset object to load data from.
     :param batch_size: Batch_size. (default: 32)
     :param device: The desired device of returned tensor. Default: if None,
-        use the current device. If list, the first item will be used.
+        use the current device. If `torch.device` or int, use device specified
+        by user.If list, the first item will be used.
     :param stage: One of "train", "dev", and "test". (default: "train")
     :param resample: Whether to resample data between epochs. only effective
         when `mode` of dataset is "pair". (default: `True`)
@@ -57,7 +58,7 @@ class DataLoader(object):
         self,
         dataset: data.Dataset,
         batch_size: int = 32,
-        device: typing.Union[torch.device, list, None] = None,
+        device: typing.Union[torch.device, int, list, None] = None,
         stage='train',
         resample: bool = True,
         shuffle: bool = False,
@@ -79,7 +80,7 @@ class DataLoader(object):
 
         if isinstance(device, list) and len(device):
             device = device[0]
-        elif not isinstance(device, torch.device):
+        elif not (isinstance(device, torch.device) or isinstance(device, int)):
             device = torch.device(
                 "cuda" if torch.cuda.is_available() else "cpu")
 
