@@ -127,6 +127,12 @@ class BaseModel(nn.Module, abc.ABC):
                 desc='Should be set manually.'
             ))
             params.add(Param(
+                name='padding_idx', value=0,
+                desc='If given, pads the output with the embedding vector at'
+                     'padding_idx (initialized to zeros) whenever it encounters'
+                     'the index.'
+            ))
+            params.add(Param(
                 name='embedding_freeze', value=False,
                 desc='`True` to freeze embedding layer training, '
                      '`False` to enable embedding parameters.'
@@ -308,12 +314,14 @@ class BaseModel(nn.Module, abc.ABC):
             )
             return nn.Embedding.from_pretrained(
                 embeddings=torch.Tensor(self._params['embedding']),
-                freeze=self._params['embedding_freeze']
+                freeze=self._params['embedding_freeze'],
+                padding_idx=self._params['padding_idx']
             )
         else:
             return nn.Embedding(
                 num_embeddings=self._params['embedding_input_dim'],
-                embedding_dim=self._params['embedding_output_dim']
+                embedding_dim=self._params['embedding_output_dim'],
+                padding_idx=self._params['padding_idx']
             )
 
     def _make_output_layer(
@@ -341,7 +349,7 @@ class BaseModel(nn.Module, abc.ABC):
         self,
         in_features: int = 0,
         out_features: int = 0,
-        activation: nn.Module = nn.ReLU
+        activation: nn.Module = nn.ReLU()
     ) -> nn.Module:
         """:return: a perceptron layer."""
         return nn.Sequential(

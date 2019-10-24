@@ -82,8 +82,7 @@ class DRMMTKS(BaseModel):
         """Build model structure."""
         self.embedding = self._make_default_embedding_layer()
         self.attention = Attention(
-            input_size=self._params['embedding_output_dim'],
-            mask=self._params['mask_value']
+            input_size=self._params['embedding_output_dim']
         )
         self.mlp = self._make_multi_layer_perceptron_layer(
             self._params['top_k']
@@ -104,6 +103,9 @@ class DRMMTKS(BaseModel):
         # shape = [B, L]
         # shape = [B, R]
         query, doc = inputs['text_left'], inputs['text_right']
+
+        # shape = [B, L]
+        mask_query = (query == self._params['mask_value'])
 
         # Process left input.
         # shape = [B, L, D]
@@ -127,7 +129,7 @@ class DRMMTKS(BaseModel):
             sorted=True
         )[0]
         # shape = [B, L]
-        attention_probs = self.attention(embed_query)
+        attention_probs = self.attention(embed_query, mask_query)
 
         # shape = [B, L]
         dense_output = self.mlp(matching_topk).squeeze(dim=-1)

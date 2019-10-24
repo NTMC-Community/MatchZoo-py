@@ -239,6 +239,5 @@ class BertPadding(BaseCallback):
         """Pad `x['text_left']` and `x['text_right]`."""
         self._padding.on_batch_unpacked(x, y)
         x['text_left'] = np.insert(x['text_left'], 0, 101, axis=1)
-        x['text_right'] = np.insert(x['text_right'], 0, 102, axis=1)
-        SEP = [[102]] * len(x['text_right'])
-        x['text_right'] = np.append(x['text_right'], SEP, axis=1)
+        x['text_left'] = np.insert(x['text_left'], x['text_left'][0].size, 102, axis=1)
+        x['text_right'] = np.insert(x['text_right'], x['text_right'][0].size, 102, axis=1)

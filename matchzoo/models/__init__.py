@@ -13,6 +13,7 @@ from .arcii import ArcII
 from .bert import Bert
 from .mvlstm import MVLSTM
 from .match_pyramid import MatchPyramid
+from .anmm import aNMM
 from .hbmp import HBMP
 from .diin import DIIN
 from .match_srnn import MatchSRNN
