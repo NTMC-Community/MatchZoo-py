@@ -179,6 +179,11 @@ class Preparer(object):
                 preprocessor, mode='aggregate')
             builder_kwargs['callbacks'].append(triletter_callback)
 
+        if isinstance(model, mz.models.DUET):
+            triletter_callback = mz.dataloader.callbacks.Ngram(
+                preprocessor, mode='sum')
+            builder_kwargs['callbacks'].append(triletter_callback)
+
         if isinstance(model, mz.models.DRMM):
             histo_callback = mz.dataloader.callbacks.Histogram(
                 embedding_matrix=embedding_matrix,

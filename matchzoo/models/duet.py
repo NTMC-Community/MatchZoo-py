@@ -31,8 +31,7 @@ class DUET(BaseModel):
         >>> model.params['dm_filters'] = 300
         >>> model.params['dm_conv_activation_func'] = 'relu'
         >>> model.params['dm_kernel_size'] = 3
-        >>> model.params['dm_left_pool_size'] = 8
-        >>> model.params['dm_left_pool_size'] = 8
+        >>> model.params['dm_right_pool_size'] = 8
         >>> model.params['dropout_rate'] = 0.5
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
@@ -67,9 +66,6 @@ class DUET(BaseModel):
         params.add(Param(name='dm_conv_activation_func', value='relu',
                          desc="Activation functions of the convolution layer "
                               "in the distributed model."))
-        params.add(Param(name='dm_left_pool_size', value=8,
-                         desc="Kernel size of 1D convolution layer in "
-                              "the distributed model."))
         params.add(Param(name='dm_right_pool_size', value=100,
                          desc="Kernel size of 1D convolution layer in "
                               "the distributed model."))
@@ -104,15 +100,11 @@ class DUET(BaseModel):
         )
 
     @classmethod
-    def _xor_match(cls, x):
+    def _xor_match(cls, x, y):
         """Xor match of two inputs."""
-        t1 = x[0]
-        t2 = x[1]
-        t1_shape = list(t1.shape)
-        t2_shape = list(t2.shape)
-        t1_expand = torch.unsqueeze(t1, 2).repeat(1, 1, t2_shape[1])
-        t2_expand = torch.unsqueeze(t2, 1).repeat(1, t1_shape[1], 1)
-        out = torch.eq(t1_expand, t2_expand).float()
+        x_expand = torch.unsqueeze(x, 2).repeat(1, 1, y.shape[1])
+        y_expand = torch.unsqueeze(y, 1).repeat(1, x.shape[1], 1)
+        out = torch.eq(x_expand, y_expand).float()
         return out
 
     def build(self):
@@ -149,24 +141,18 @@ class DUET(BaseModel):
                                         self._params['dm_filters'],
                                         1
                                         )
-        dm_mp_size = ((self._params['right_length'] - 2) //
-                self._params['dm_right_pool_size']) * self._params['dm_filters']
+        dm_mp_size = ((self._params['right_length'] -
+            self._params['dm_kernel_size'] + 1) //
+            self._params['dm_right_pool_size']) * self._params['dm_filters']
         self.dm_mlp = self._make_multi_layer_perceptron_layer(dm_mp_size)
         self.dm_linear = self._make_perceptron_layer(
-            in_features=self._params['dm_filters'],
+            in_features=self._params['mlp_num_fan_out'],
             out_features=1
         )
 
         self.dropout = nn.Dropout(self._params['dropout_rate'])
 
         self.out = self._make_output_layer(1)
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]  # all dimensions except the batch dimension
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features
 
     def forward(self, inputs):
         """Forward."""
@@ -182,10 +168,8 @@ class DUET(BaseModel):
         query_word, doc_word = inputs['text_left'], inputs['text_right']
 
         # shape = [B, L]
-        mask_query = (query_word == self._params['mask_value'])
-        mask_query = 1. - mask_query.float()
-        mask_doc = (doc_word == self._params['mask_value'])
-        mask_doc = 1. - mask_doc.float()
+        mask_query = (query_word != self._params['mask_value']).float()
+        mask_doc = (doc_word != self._params['mask_value']).float()
 
         # shape = [B, ngram_size, L]
         # shape = [B, ngram_size, R]
@@ -195,22 +179,21 @@ class DUET(BaseModel):
         doc_ngram = F.normalize(doc_ngram, p=2, dim=2)
 
         # shape = [B, R, L]
-        matching_xor =  self._xor_match([doc_word, query_word])
+        matching_xor =  self._xor_match(doc_word, query_word)
         mask_xor = torch.einsum('bi, bj->bij', mask_doc, mask_query)
         xor_res = torch.einsum('bij, bij->bij', matching_xor, mask_xor)
 
         # Process local model
         lm_res = self.lm_conv1d(xor_res)
-        lm_res = lm_res.view(-1, self.num_flat_features(lm_res))
+        lm_res = lm_res.flatten(start_dim=1, end_dim=-1)
         lm_res = self.lm_mlp(lm_res)
         lm_res = self.dropout(lm_res)
         lm_res = self.lm_linear(lm_res)
 
         # Process distributed model
         dm_left = self.dm_conv_left(query_ngram.permute(0, 2, 1))
-        dm_left = F.max_pool2d(self.dm_conv_activation_func(dm_left),
-                (1, self._params['dm_left_pool_size']))
-        dm_left = dm_left.view(-1, self._params['dm_filters'])
+        dm_left = self.dm_conv_activation_func(dm_left)
+        dm_left = torch.max(dm_left, dim=-1)[0]
         dm_left = self.dm_mlp_left(dm_left)
 
         dm_right = self.dm_conv1_right(doc_ngram.permute(0, 2, 1))
@@ -219,7 +202,7 @@ class DUET(BaseModel):
         dm_right = self.dm_conv2_right(dm_right)
 
         dm_res = torch.einsum('bl,blk->blk', dm_left, dm_right)
-        dm_res = dm_res.view(-1, self.num_flat_features(dm_res))
+        dm_res = dm_res.flatten(start_dim=1, end_dim=-1)
         dm_res = self.dm_mlp(dm_res)
         dm_res = self.dropout(dm_res)
         dm_res = self.dm_linear(dm_res)
