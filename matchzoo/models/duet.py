@@ -5,13 +5,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from matchzoo.engine.param_table import ParamTable
+from matchzoo import preprocessors
+from matchzoo.engine import hyper_spaces
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
-from matchzoo.engine import hyper_spaces
+from matchzoo.engine.param_table import ParamTable
+from matchzoo.engine.base_callback import BaseCallback
+from matchzoo.dataloader import callbacks
 from matchzoo.modules import Attention
 from matchzoo.utils import parse_activation
-from matchzoo import preprocessors
 
 
 class DUET(BaseModel):
@@ -21,7 +23,7 @@ class DUET(BaseModel):
     Examples:
         >>> model = DUET()
         >>> model.params['left_length'] = 10
-        >>> model.params['right_length'] = 100
+        >>> model.params['right_length'] = 40
         >>> model.params['lm_filters'] = 300
         >>> model.params['mlp_num_layers'] = 2
         >>> model.params['mlp_num_units'] = 300
@@ -47,9 +49,9 @@ class DUET(BaseModel):
         )
         params.add(Param(name='mask_value', value=0,
                          desc="The value to be masked from inputs."))
-        params.add(Param(name='left_length', value=5,
+        params.add(Param(name='left_length', value=10,
                          desc='Length of left input.'))
-        params.add(Param(name='right_length', value=20,
+        params.add(Param(name='right_length', value=40,
                          desc='Length of right input.'))
         params.add(Param(name='lm_filters', value=300,
                          desc="Filter size of 1D convolution layer in "
@@ -79,8 +81,8 @@ class DUET(BaseModel):
     def get_default_preprocessor(
         cls,
         truncated_mode: str = 'pre',
-        truncated_length_left: int = 30,
-        truncated_length_right: int = 30,
+        truncated_length_left: int = 10,
+        truncated_length_right: int = 40,
         filter_mode: str = 'df',
         filter_low_freq: float = 1,
         filter_high_freq: float = float('inf'),
@@ -97,6 +99,37 @@ class DUET(BaseModel):
             filter_high_freq=filter_high_freq,
             remove_stop_words=remove_stop_words,
             ngram_size=ngram_size
+        )
+
+    @classmethod
+    def get_default_padding_callback(
+        cls,
+        fixed_length_left: int = 10,
+        fixed_length_right: int = 40,
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = True,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
+    ) -> BaseCallback:
+        """
+        Model default padding callback.
+
+        The padding callback's on_batch_unpacked would pad a batch of data to
+        a fixed length.
+
+        :return: Default padding callback.
+        """
+        return callbacks.BasicPadding(
+            fixed_length_left=fixed_length_left,
+            fixed_length_right=fixed_length_right,
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
         )
 
     @classmethod
