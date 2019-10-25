@@ -248,5 +248,5 @@ class DUET(BaseModel):
 
         x = lm_res + dm_res
 
-        out = self.out(x.unsqueeze(dim=-1))
+        out = self.out(x)
         return out
