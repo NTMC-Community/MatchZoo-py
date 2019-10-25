@@ -188,8 +188,13 @@ python setup.py install
 - [ConvKNRM](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/conv_knrm.py): this model is an implementation of <a href="http://www.cs.cmu.edu/~zhuyund/papers/WSDM_2018_Dai.pdf">Convolutional neural networks for soft-matching n-grams in ad-hoc search</a>
 - [ESIM](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/esim.py): this model is an implementation of <a href="https://arxiv.org/abs/1609.06038">Enhanced LSTM for Natural Language Inference</a>
 - [BiMPM](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/bimpm.py): this model is an implementation of <a href="https://arxiv.org/abs/1702.03814">Bilateral Multi-Perspective Matching for Natural Language Sentences</a>
-
-- Models under development: <a href="https://arxiv.org/abs/1602.06359">MatchPyramid</a>, <a href="https://arxiv.org/abs/1604.04378">Match-SRNN</a>, <a href="https://arxiv.org/abs/1710.05649">DeepRank</a>, <a href="https://arxiv.org/abs/1801.01641">aNMM</a> .... 
+- [MatchPyramid](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/match_pyramid.py): this model is an implementation of <a href="https://arxiv.org/abs/1602.06359">Text Matching as Image Recognition</a>
+- [Match-SRNN](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/match_srnn.py): this model is an implementation of <a href="https://arxiv.org/abs/1604.04378">Match-SRNN: Modeling the Recursive Matching Structure with Spatial RNN</a>
+- [aNMM](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/anmm.py): this model is an implementation of <a href="https://arxiv.org/abs/1801.01641">aNMM: Ranking Short Answer Texts with Attention-Based Neural Matching Model</a>
+- [MV-LSTM](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/mvlstm.py): this model is an implementation of <a href="https://arxiv.org/pdf/1511.08277.pdf">A Deep Architecture for Semantic Matching with Multiple Positional Sentence Representations</a>
+- [DIIN](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/diin.py): this model is an implementation of <a href="https://arxiv.org/pdf/1709.04348.pdf">Natural Lanuguage Inference Over Interaction Space</a>
+- [HBMP](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/hbmp.py): this model is an implementation of <a href="https://arxiv.org/pdf/1808.08762.pdf">Sentence Embeddings in NLI with Iterative Refinement Encoders</a>
+- [BERT](https://github.com/NTMC-Community/MatchZoo-py/tree/master/matchzoo/models/bert.py): this model is an implementation of <a href="https://arxiv.org/abs/1810.04805">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</a>
 
 
 ## Citation
@@ -250,6 +255,20 @@ If you use MatchZoo in your research, please use the following BibTex entry.
         ​ <a href="https://github.com/lixinsu">Lixin Su</a>
         <p>Dev<br>
         PhD. ICT</p>​
+      </td>
+    </tr>
+    <tr align="center">
+      <td>
+        ​ <a href="https://github.com/ChrisRBXiong"><img width="40" height="40" src="https://github.com/ChrisRBXiong.png?s=40" alt="ChrisRBXiong"></a><br>
+        ​ <a href="https://github.com/ChrisRBXiong">Ribing Xiong</a> ​
+        <p>Core Dev<br>
+        M.S. ICT</p>​
+      </td>
+      <td>
+        ​ <a href="https://github.com/dyuyang"><img width="40" height="40" src="https://github.com/dyuyang.png?s=40" alt="dyuyang"></a><br>
+        ​ <a href="https://github.com/dyuyang">Yuyang Ding</a> ​
+        <p>Core Dev<br>
+        M.S. ICT</p>​
       </td>
       <td>
         ​ <a href="https://github.com/rgtjf"><img width="40" height="40" src="https://github.com/rgtjf.png?s=36" alt="rgtjf"></a><br>

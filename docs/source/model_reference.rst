@@ -69,7 +69,7 @@ Model Hyper Parameters
    4  mlp_num_layers               Number of layers of the multiple layer percetron.                                          3                                    quantitative uniform distribution in  [1, 6), with a step size of 1
    5  mlp_num_fan_out              Number of units of the layer that connects the multiple layer percetron and the output.    64                                   quantitative uniform distribution in  [4, 128), with a step size of 4
    6  mlp_activation_func          Activation function used in the multiple layer perceptron.                                 relu
-   7  vocab_size                   Size of vocabulary.                                                                        379
+   7  vocab_size                   Size of vocabulary.                                                                        419
 ====  ===========================  =========================================================================================  ===================================  =====================================================================
 
 CDSSM
@@ -108,7 +108,7 @@ Model Hyper Parameters
    4  mlp_num_layers               Number of layers of the multiple layer percetron.                                          3                                      quantitative uniform distribution in  [1, 6), with a step size of 1
    5  mlp_num_fan_out              Number of units of the layer that connects the multiple layer percetron and the output.    64                                     quantitative uniform distribution in  [4, 128), with a step size of 4
    6  mlp_activation_func          Activation function used in the multiple layer perceptron.                                 relu
-   7  vocab_size                   Size of vocabulary.                                                                        379
+   7  vocab_size                   Size of vocabulary.                                                                        419
    8  filters                      Number of filters in the 1D convolution layer.                                             3
    9  kernel_size                  Number of kernel size in the 1D convolution layer.                                         3
   10  conv_activation_func         Activation function in the convolution layer.                                              relu
@@ -497,4 +497,48 @@ Model Hyper Parameters
    2  mode          Pretrained Bert model.                                                                     bert-base-uncased
    3  dropout_rate  The dropout rate.                                                                          0.0                                  quantitative uniform distribution in  [0.0, 0.8), with a step size of 0.01
 ====  ============  =========================================================================================  ===================================  ==========================================================================
+
+MVLSTM
+######
+
+Model Documentation
+*******************
+
+MVLSTM Model.
+
+Examples:
+    >>> model = MVLSTM()
+    >>> model.params['hidden_size'] = 32
+    >>> model.params['top_k'] = 50
+    >>> model.params['mlp_num_layers'] = 2
+    >>> model.params['mlp_num_units'] = 20
+    >>> model.params['mlp_num_fan_out'] = 10
+    >>> model.params['mlp_activation_func'] = 'relu'
+    >>> model.params['dropout_rate'] = 0.0
+    >>> model.guess_and_fill_missing_params(verbose=0)
+    >>> model.build()
+
+Model Hyper Parameters
+**********************
+
+====  ===========================  =========================================================================================  =======================================  ==========================================================================
+  ..  Name                         Description                                                                                Default Value                            Default Hyper-Space
+====  ===========================  =========================================================================================  =======================================  ==========================================================================
+   0  model_class                  Model class. Used internally for save/load. Changing this may cause unexpected behaviors.  <class 'matchzoo.models.mvlstm.MVLSTM'>
+   1  task                         Decides model output shape, loss, and metrics.
+   2  with_embedding               A flag used help `auto` module. Shouldn't be changed.                                      True
+   3  embedding                    FloatTensor containing weights for the Embedding.
+   4  embedding_input_dim          Usually equals vocab size + 1. Should be set manually.
+   5  embedding_output_dim         Should be set manually.
+   6  embedding_freeze             `True` to freeze embedding layer training, `False` to enable embedding parameters.         False
+   7  with_multi_layer_perceptron  A flag of whether a multiple layer perceptron is used. Shouldn't be changed.               True
+   8  mlp_num_units                Number of units in first `mlp_num_layers` layers.                                          128                                      quantitative uniform distribution in  [8, 256), with a step size of 8
+   9  mlp_num_layers               Number of layers of the multiple layer percetron.                                          3                                        quantitative uniform distribution in  [1, 6), with a step size of 1
+  10  mlp_num_fan_out              Number of units of the layer that connects the multiple layer percetron and the output.    64                                       quantitative uniform distribution in  [4, 128), with a step size of 4
+  11  mlp_activation_func          Activation function used in the multiple layer perceptron.                                 relu
+  12  hidden_size                  Integer, the hidden size in the bi-directional LSTM layer.                                 32
+  13  num_layers                   Integer, number of recurrent layers.                                                       1
+  14  top_k                        Size of top-k pooling layer.                                                               10                                       quantitative uniform distribution in  [2, 100), with a step size of 1
+  15  dropout_rate                 Float, the dropout rate.                                                                   0.0                                      quantitative uniform distribution in  [0.0, 0.8), with a step size of 0.01
+====  ===========================  =========================================================================================  =======================================  ==========================================================================
 
