@@ -303,7 +303,7 @@ class Trainer:
         else:
             for metric in self._task.metrics:
                 result[metric] = self._eval_metric_on_data_frame(
-                    metric, id_left, y_true, y_pred.squeeze())
+                    metric, id_left, y_true, y_pred.squeeze(axis=-1))
         return result
 
     @classmethod
