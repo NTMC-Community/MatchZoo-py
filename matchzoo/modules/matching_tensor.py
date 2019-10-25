@@ -32,9 +32,9 @@ class MatchingTensor(nn.Module):
     """
 
     def __init__(
-        self, 
-        matching_dim: int, 
-        channels: int = 4, 
+        self,
+        matching_dim: int,
+        channels: int = 4,
         normalize: bool = True,
         init_diag: bool = True
     ):
@@ -44,7 +44,7 @@ class MatchingTensor(nn.Module):
         self._channels = channels
         self._normalize = normalize
         self._init_diag = init_diag
-        
+
         self.interaction_matrix = torch.empty(
             self._channels, self._matching_dim, self._matching_dim
         )

@@ -42,7 +42,8 @@ class SpatialGRU(nn.Module):
         channels: int = 4,
         units: int = 10,
         activation: typing.Union[str, typing.Type[nn.Module], nn.Module] = 'tanh',
-        recurrent_activation: typing.Union[str, typing.Type[nn.Module], nn.Module] ='sigmoid',
+        recurrent_activation: typing.Union[
+            str, typing.Type[nn.Module], nn.Module] = 'sigmoid',
         direction: str = 'lt'
     ):
         """:class:`SpatialGRU` constructor."""
@@ -64,10 +65,11 @@ class SpatialGRU(nn.Module):
         self._wz = nn.Linear(self._input_dim, self._units * 4)
         self._w_ij = nn.Linear(self._channels, self._units)
         self._U = nn.Linear(self._units * 3, self._units, bias=False)
-        
+
         self.reset_parameters()
 
     def reset_parameters(self):
+        """Initialize parameters."""
         nn.init.xavier_normal_(self._wr.weight)
         nn.init.xavier_normal_(self._wz.weight)
         nn.init.orthogonal_(self._w_ij.weight)
