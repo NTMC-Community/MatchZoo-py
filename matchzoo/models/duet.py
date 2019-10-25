@@ -56,7 +56,7 @@ class DUET(BaseModel):
         params.add(Param(name='lm_filters', value=300,
                          desc="Filter size of 1D convolution layer in "
                               "the local model."))
-        params.add(Param(name='vocab_size', value=2000,
+        params.add(Param(name='vocab_size', value=419,
                          desc="Vocabulary size of the tri-letters used in "
                               "the distributed model."))
         params.add(Param(name='dm_filters', value=300,
