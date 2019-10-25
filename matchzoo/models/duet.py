@@ -66,7 +66,7 @@ class DUET(BaseModel):
         params.add(Param(name='dm_conv_activation_func', value='relu',
                          desc="Activation functions of the convolution layer "
                               "in the distributed model."))
-        params.add(Param(name='dm_right_pool_size', value=100,
+        params.add(Param(name='dm_right_pool_size', value=8,
                          desc="Kernel size of 1D convolution layer in "
                               "the distributed model."))
         params.add(Param(
@@ -123,27 +123,31 @@ class DUET(BaseModel):
         )
 
         self.dm_conv_activation_func = parse_activation(
-                self._params['dm_conv_activation_func']
+            self._params['dm_conv_activation_func']
         )
-        self.dm_conv_left = nn.Conv1d(self._params['vocab_size'],
-                                      self._params['dm_filters'],
-                                      self._params['dm_kernel_size']
-                                      )
+        self.dm_conv_left = nn.Conv1d(
+            self._params['vocab_size'],
+            self._params['dm_filters'],
+            self._params['dm_kernel_size']
+        )
         self.dm_mlp_left = self._make_perceptron_layer(
             in_features=self._params['dm_filters'],
             out_features=self._params['dm_filters']
         )
-        self.dm_conv1_right = nn.Conv1d(self._params['vocab_size'],
-                                        self._params['dm_filters'],
-                                        self._params['dm_kernel_size']
-                                        )
-        self.dm_conv2_right = nn.Conv1d(self._params['dm_filters'],
-                                        self._params['dm_filters'],
-                                        1
-                                        )
-        dm_mp_size = ((self._params['right_length'] -
-            self._params['dm_kernel_size'] + 1) //
-            self._params['dm_right_pool_size']) * self._params['dm_filters']
+        self.dm_conv1_right = nn.Conv1d(
+            self._params['vocab_size'],
+            self._params['dm_filters'],
+            self._params['dm_kernel_size']
+        )
+        self.dm_conv2_right = nn.Conv1d(
+            self._params['dm_filters'],
+            self._params['dm_filters'],
+            1
+        )
+        dm_mp_size = (
+            (self._params['right_length'] - self._params['dm_kernel_size'] + 1) // (
+                self._params['dm_right_pool_size']) * self._params['dm_filters']
+        )
         self.dm_mlp = self._make_multi_layer_perceptron_layer(dm_mp_size)
         self.dm_linear = self._make_perceptron_layer(
             in_features=self._params['mlp_num_fan_out'],
@@ -179,7 +183,7 @@ class DUET(BaseModel):
         doc_ngram = F.normalize(doc_ngram, p=2, dim=2)
 
         # shape = [B, R, L]
-        matching_xor =  self._xor_match(doc_word, query_word)
+        matching_xor = self._xor_match(doc_word, query_word)
         mask_xor = torch.einsum('bi, bj->bij', mask_doc, mask_query)
         xor_res = torch.einsum('bij, bij->bij', matching_xor, mask_xor)
 
@@ -197,8 +201,10 @@ class DUET(BaseModel):
         dm_left = self.dm_mlp_left(dm_left)
 
         dm_right = self.dm_conv1_right(doc_ngram.permute(0, 2, 1))
-        dm_right = F.max_pool2d(self.dm_conv_activation_func(dm_right),
-                (1, self._params['dm_right_pool_size']))
+        dm_right = F.max_pool2d(
+            self.dm_conv_activation_func(dm_right),
+            (1, self._params['dm_right_pool_size'])
+        )
         dm_right = self.dm_conv2_right(dm_right)
 
         dm_res = torch.einsum('bl,blk->blk', dm_left, dm_right)
