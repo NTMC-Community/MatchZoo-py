@@ -127,7 +127,6 @@ Initialize the model, fine-tune the hyper-parameters:
 ```python
 model = mz.models.ArcI()
 model.params['task'] = ranking_task
-model.params['vocab_size'] = preprocessor.context['vocab_size']
 model.guess_and_fill_missing_params()
 model.build()
 ```
