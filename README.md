@@ -85,7 +85,7 @@ valid_pack = mz.datasets.wiki_qa.load_data('dev', task=ranking_task)
 Preprocess your input data in three lines of code, keep track parameters to be passed into the model:
 
 ```python
-preprocessor = mz.models.DSSM.get_default_preprocessor()
+preprocessor = mz.models.ArcI.get_default_preprocessor()
 train_processed = preprocessor.fit_transform(train_pack)
 valid_processed = preprocessor.transform(valid_pack)
 ```
@@ -106,7 +106,7 @@ validset = mz.dataloader.Dataset(
 
 Define padding callback and generate data loader:
 ```python
-padding_callback = mz.models.DSSM.get_default_padding_callback()
+padding_callback = mz.models.ArcI.get_default_padding_callback()
 
 trainloader = mz.dataloader.DataLoader(
     dataset=trainset,
@@ -125,7 +125,7 @@ validloader = mz.dataloader.DataLoader(
 Initialize the model, fine-tune the hyper-parameters:
 
 ```python
-model = mz.models.DSSM()
+model = mz.models.ArcI()
 model.params['task'] = ranking_task
 model.params['vocab_size'] = preprocessor.context['vocab_size']
 model.guess_and_fill_missing_params()
@@ -260,14 +260,14 @@ If you use MatchZoo in your research, please use the following BibTex entry.
     <tr align="center">
       <td>
         ​ <a href="https://github.com/ChrisRBXiong"><img width="40" height="40" src="https://github.com/ChrisRBXiong.png?s=40" alt="ChrisRBXiong"></a><br>
-        ​ <a href="https://github.com/ChrisRBXiong">Ribing Xiong</a> ​
-        <p>Core Dev<br>
+        ​ <a href="https://github.com/ChrisRBXiong">Ruibin Xiong</a> ​
+        <p>Dev<br>
         M.S. ICT</p>​
       </td>
       <td>
         ​ <a href="https://github.com/dyuyang"><img width="40" height="40" src="https://github.com/dyuyang.png?s=40" alt="dyuyang"></a><br>
         ​ <a href="https://github.com/dyuyang">Yuyang Ding</a> ​
-        <p>Core Dev<br>
+        <p>Dev<br>
         M.S. ICT</p>​
       </td>
       <td>
