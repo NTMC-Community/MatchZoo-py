@@ -1,6 +1,7 @@
 """Basic Preprocessor."""
 
 from tqdm import tqdm
+import typing
 
 from . import units
 from matchzoo import DataPack
@@ -58,23 +59,26 @@ class BasicPreprocessor(BasePreprocessor):
 
     def __init__(self,
                  truncated_mode: str = 'pre',
-                 truncated_length_left: int = 30,
-                 truncated_length_right: int = 30,
+                 truncated_length_left: int = None,
+                 truncated_length_right: int = None,
                  filter_mode: str = 'df',
                  filter_low_freq: float = 1,
                  filter_high_freq: float = float('inf'),
-                 remove_stop_words: bool = False):
+                 remove_stop_words: bool = False,
+                 ngram_size: typing.Optional[int] = None):
         """Initialization."""
         super().__init__()
         self._truncated_mode = truncated_mode
         self._truncated_length_left = truncated_length_left
         self._truncated_length_right = truncated_length_right
-        self._left_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_left, self._truncated_mode
-        )
-        self._right_truncatedlength_unit = units.TruncatedLength(
-            self._truncated_length_right, self._truncated_mode
-        )
+        if self._truncated_length_left:
+            self._left_truncatedlength_unit = units.TruncatedLength(
+                self._truncated_length_left, self._truncated_mode
+            )
+        if self._truncated_length_right:
+            self._right_truncatedlength_unit = units.TruncatedLength(
+                self._truncated_length_right, self._truncated_mode
+            )
         self._filter_unit = units.FrequencyFilter(
             low=filter_low_freq,
             high=filter_high_freq,
@@ -83,6 +87,11 @@ class BasicPreprocessor(BasePreprocessor):
         self._units = self._default_units()
         if remove_stop_words:
             self._units.append(units.stop_removal.StopRemoval())
+        self._ngram_size = ngram_size
+        if ngram_size:
+            self._context['ngram_process_unit'] = units.NgramLetter(
+                ngram=ngram_size, reduce_dim=True
+            )
 
     def fit(self, data_pack: DataPack, verbose: int = 1):
         """
@@ -109,6 +118,17 @@ class BasicPreprocessor(BasePreprocessor):
         vocab_size = len(vocab_unit.state['term_index'])
         self._context['vocab_size'] = vocab_size
         self._context['embedding_input_dim'] = vocab_size
+
+        if self._ngram_size:
+            data_pack = data_pack.apply_on_text(
+                self._context['ngram_process_unit'].transform,
+                mode='both',
+                verbose=verbose
+            )
+            ngram_unit = build_vocab_unit(data_pack, verbose=verbose)
+            self._context['ngram_vocab_unit'] = ngram_unit
+            self._context['ngram_vocab_size'] = len(
+                ngram_unit.state['term_index'])
         return self
 
     def transform(self, data_pack: DataPack, verbose: int = 1) -> DataPack:
@@ -128,11 +148,14 @@ class BasicPreprocessor(BasePreprocessor):
                                 mode='right', inplace=True, verbose=verbose)
         data_pack.apply_on_text(self._context['vocab_unit'].transform,
                                 mode='both', inplace=True, verbose=verbose)
-
-        data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
-                                mode='left', inplace=True, verbose=verbose)
-        data_pack.apply_on_text(self._right_truncatedlength_unit.transform,
-                                mode='right', inplace=True, verbose=verbose)
+        if self._truncated_length_left:
+            data_pack.apply_on_text(self._left_truncatedlength_unit.transform,
+                                    mode='left', inplace=True, verbose=verbose)
+        if self._truncated_length_right:
+            data_pack.apply_on_text(self._right_truncatedlength_unit.transform,
+                                    mode='right', inplace=True,
+                                    verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)
 
+        data_pack.drop_empty(inplace=True)
         return data_pack

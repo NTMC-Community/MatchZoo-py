@@ -61,4 +61,5 @@ class NaivePreprocessor(BasePreprocessor):
         func = chain_transform(units_)
         data_pack.apply_on_text(func, inplace=True, verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)
+        data_pack.drop_empty(inplace=True)
         return data_pack

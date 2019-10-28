@@ -1,4 +1,9 @@
 [flake8]
+
+# Maximum number of characters on a single line.  Ideally, lines should be under 79 characters,
+# but we allow some leeway before calling it an error.
+max-line-length = 90
+
 ignore = 
     # D401 First line should be in imperative mood
     D401,

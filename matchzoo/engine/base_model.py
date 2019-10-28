@@ -104,6 +104,10 @@ class BaseModel(nn.Module, abc.ABC):
             name='task',
             desc="Decides model output shape, loss, and metrics."
         ))
+        params.add(Param(
+            name='out_activation_func', value=None,
+            desc="Activation function used in output layer."
+        ))
         if with_embedding:
             params.add(Param(
                 name='with_embedding', value=True,
@@ -121,6 +125,12 @@ class BaseModel(nn.Module, abc.ABC):
             params.add(Param(
                 name='embedding_output_dim',
                 desc='Should be set manually.'
+            ))
+            params.add(Param(
+                name='padding_idx', value=0,
+                desc='If given, pads the output with the embedding vector at'
+                     'padding_idx (initialized to zeros) whenever it encounters'
+                     'the index.'
             ))
             params.add(Param(
                 name='embedding_freeze', value=False,
@@ -182,7 +192,17 @@ class BaseModel(nn.Module, abc.ABC):
                 print(f"Parameter \"{name}\" set to {default_val}.")
 
     @classmethod
-    def get_default_preprocessor(cls) -> BasePreprocessor:
+    def get_default_preprocessor(
+        cls,
+        truncated_mode: str = 'pre',
+        truncated_length_left: typing.Optional[int] = None,
+        truncated_length_right: typing.Optional[int] = None,
+        filter_mode: str = 'df',
+        filter_low_freq: float = 1,
+        filter_high_freq: float = float('inf'),
+        remove_stop_words: bool = False,
+        ngram_size: typing.Optional[int] = None,
+    ) -> BasePreprocessor:
         """
         Model default preprocessor.
 
@@ -191,15 +211,28 @@ class BaseModel(nn.Module, abc.ABC):
 
         :return: Default preprocessor.
         """
-        return preprocessors.BasicPreprocessor()
+        return preprocessors.BasicPreprocessor(
+            truncated_mode=truncated_mode,
+            truncated_length_left=truncated_length_left,
+            truncated_length_right=truncated_length_right,
+            filter_mode=filter_mode,
+            filter_low_freq=filter_low_freq,
+            filter_high_freq=filter_high_freq,
+            remove_stop_words=remove_stop_words,
+            ngram_size=ngram_size
+        )
 
     @classmethod
     def get_default_padding_callback(
         cls,
         fixed_length_left: int = None,
         fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre'
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
     ) -> BaseCallback:
         """
         Model default padding callback.
@@ -212,8 +245,13 @@ class BaseModel(nn.Module, abc.ABC):
         return callbacks.BasicPadding(
             fixed_length_left=fixed_length_left,
             fixed_length_right=fixed_length_right,
-            pad_value=pad_value,
-            pad_mode=pad_mode)
+            pad_word_value=pad_word_value,
+            pad_word_mode=pad_word_mode,
+            with_ngram=with_ngram,
+            fixed_ngram_length=fixed_ngram_length,
+            pad_ngram_value=pad_ngram_value,
+            pad_ngram_mode=pad_ngram_mode
+        )
 
     @property
     def params(self) -> ParamTable:
@@ -276,43 +314,42 @@ class BaseModel(nn.Module, abc.ABC):
             )
             return nn.Embedding.from_pretrained(
                 embeddings=torch.Tensor(self._params['embedding']),
-                freeze=self._params['embedding_freeze']
+                freeze=self._params['embedding_freeze'],
+                padding_idx=self._params['padding_idx']
             )
         else:
             return nn.Embedding(
                 num_embeddings=self._params['embedding_input_dim'],
-                embedding_dim=self._params['embedding_output_dim']
+                embedding_dim=self._params['embedding_output_dim'],
+                padding_idx=self._params['padding_idx']
             )
 
     def _make_output_layer(
         self,
-        in_features: int = 0,
-        activation: typing.Union[str, nn.Module] = None
+        in_features: int = 0
     ) -> nn.Module:
         """:return: a correctly shaped torch module for model output."""
         task = self._params['task']
         if isinstance(task, tasks.Classification):
-            return nn.Sequential(
-                nn.Linear(in_features, task.num_classes),
-                nn.Softmax(dim=-1)
-            )
+            out_features = task.num_classes
         elif isinstance(task, tasks.Ranking):
-            if activation:
-                return nn.Sequential(
-                    nn.Linear(in_features, 1),
-                    parse_activation(activation)
-                )
-            else:
-                return nn.Linear(in_features, 1)
+            out_features = 1
         else:
             raise ValueError(f"{task} is not a valid task type. "
                              f"Must be in `Ranking` and `Classification`.")
+        if self._params['out_activation_func']:
+            return nn.Sequential(
+                nn.Linear(in_features, out_features),
+                parse_activation(self._params['out_activation_func'])
+            )
+        else:
+            return nn.Linear(in_features, out_features)
 
     def _make_perceptron_layer(
         self,
         in_features: int = 0,
         out_features: int = 0,
-        activation: nn.Module = nn.ReLU
+        activation: nn.Module = nn.ReLU()
     ) -> nn.Module:
         """:return: a perceptron layer."""
         return nn.Sequential(

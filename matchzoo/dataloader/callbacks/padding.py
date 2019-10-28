@@ -5,6 +5,61 @@ import numpy as np
 from matchzoo.engine.base_callback import BaseCallback
 
 
+def _padding_2D(input, output, mode: str = 'pre'):
+    """
+    Pad the input 2D-tensor to the output 2D-tensor.
+
+    :param input: The input 2D-tensor contains the origin values.
+    :param output: The output is a shapped 2D-tensor which have filled with pad
+     value.
+    :param mode: The padding model, which can be 'pre' or 'post'.
+    """
+    batch_size = min(output.shape[0], len(input))
+    pad_length = output.shape[1]
+    if mode == 'post':
+        for i in range(batch_size):
+            end_pos = min(len(input[i]), pad_length)
+            if end_pos > 0:
+                output[i][:end_pos] = input[i][:end_pos]
+    elif mode == 'pre':
+        for i in range(batch_size):
+            start_pos = min(len(input[i]), pad_length)
+            if start_pos > 0:
+                output[i][-start_pos:] = input[i][-start_pos:]
+    else:
+        raise ValueError('{} is not a vaild pad mode.'.format(mode))
+
+
+def _padding_3D(input, output, mode: str = 'pre'):
+    """
+    Pad the input 3D-tensor to the output 3D-tensor.
+
+    :param input: The input 3D-tensor contains the origin values.
+    :param output: The output is a shapped 3D-tensor which have filled with pad
+     value.
+    :param mode: The padding model, which can be 'pre' or 'post'.
+    """
+    batch_size = min(output.shape[0], len(input))
+    pad_1d_length = output.shape[1]
+    pad_2d_length = output.shape[2]
+    if mode == 'post':
+        for i in range(batch_size):
+            len_d1 = min(len(input[i]), pad_1d_length)
+            for j in range(len_d1):
+                end_pos = min(len(input[i][j]), pad_2d_length)
+                if end_pos > 0:
+                    output[i][j][:end_pos] = input[i][j][:end_pos]
+    elif mode == 'pre':
+        for i in range(batch_size):
+            len_d1 = min(len(input[i]), pad_1d_length)
+            for j in range(len_d1):
+                start_pos = min(len(input[i][j]), pad_2d_length)
+                if start_pos > 0:
+                    output[i][j][-start_pos:] = input[i][j][-start_pos:]
+    else:
+        raise ValueError('{} is not a vaild pad mode.'.format(mode))
+
+
 class BasicPadding(BaseCallback):
     """
     Pad data for basic preprocessor.
@@ -13,79 +68,82 @@ class BasicPadding(BaseCallback):
         to this length.
     :param fixed_length_right: Integer. If set, `text_right` will be padded
         to this length.
-    :param pad_value: the value to fill text.
-    :param pad_mode: String, `pre` or `post`:
+    :param pad_word_value: the value to fill text.
+    :param pad_word_mode: String, `pre` or `post`:
         pad either before or after each sequence.
+    :param with_ngram: Boolean. Whether to pad the n-grams.
+    :param fixed_ngram_length: Integer. If set, each word will be padded to
+        this length, or it will be set as the maximum length of words in
+        current batch.
+    :param pad_ngram_value: the value to fill empty n-grams.
+    :param pad_ngram_mode: String, `pre` or `post`: pad either before of after
+        each sequence.
     """
 
     def __init__(
         self,
         fixed_length_left: int = None,
         fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre',
+        pad_word_value: typing.Union[int, str] = 0,
+        pad_word_mode: str = 'pre',
+        with_ngram: bool = False,
+        fixed_ngram_length: int = None,
+        pad_ngram_value: typing.Union[int, str] = 0,
+        pad_ngram_mode: str = 'pre'
     ):
         """Init."""
         self._fixed_length_left = fixed_length_left
         self._fixed_length_right = fixed_length_right
-        self._pad_value = pad_value
-        self._pad_mode = pad_mode
+        self._pad_word_value = pad_word_value
+        self._pad_word_mode = pad_word_mode
+        self._with_ngram = with_ngram
+        self._fixed_ngram_length = fixed_ngram_length
+        self._pad_ngram_value = pad_ngram_value
+        self._pad_ngram_mode = pad_ngram_mode
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """Pad `x['text_left']` and `x['text_right]`."""
-        pad_length_left = 0
-        pad_length_right = 0
 
         batch_size = len(x['id_left'])
-        max_length_left = max(x['length_left'])
-        max_length_right = max(x['length_right'])
+        pad_length_left = max(x['length_left'])
+        pad_length_right = max(x['length_right'])
+        if self._with_ngram:
+            ngram_length_left = max([len(w)
+                                     for k in x['ngram_left'] for w in k])
+            ngram_length_right = max([len(w)
+                                      for k in x['ngram_right'] for w in k])
+            ngram_length = max(ngram_length_left, ngram_length_right)
+            if self._fixed_ngram_length:
+                ngram_length = self._fixed_ngram_length
 
-        if self._fixed_length_left is None:
-            pad_length_left = max_length_left
-        else:
+        if self._fixed_length_left is not None:
             pad_length_left = self._fixed_length_left
-        if self._fixed_length_right is None:
-            pad_length_right = max_length_right
-        else:
+        if self._fixed_length_right is not None:
             pad_length_right = self._fixed_length_right
 
         for key, value in x.items():
-            if key != 'text_left' and key != 'text_right':
-                continue
-            elif key == 'text_left':
+            if key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],
-                                       self._pad_value, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(len(value)):
-                        end_pos = min(len(value[i]), pad_length_left)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                elif self._pad_mode == 'pre':
-                    for i in range(len(value)):
-                        start_pos = min(len(value[i]), pad_length_left)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
-            else:  # key == 'text_right'
+                                       self._pad_word_value, dtype=value.dtype)
+                _padding_2D(value, padded_value, self._pad_word_mode)
+            elif key == 'text_right':
                 padded_value = np.full([batch_size, pad_length_right],
-                                       self._pad_value, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(len(value)):
-                        end_pos = min(len(value[i]), pad_length_right)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                elif self._pad_mode == 'pre':
-                    for i in range(len(value)):
-                        start_pos = min(len(value[i]), pad_length_right)
-                        if len(value[i]) > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
+                                       self._pad_word_value, dtype=value.dtype)
+                _padding_2D(value, padded_value, self._pad_word_mode)
+            elif key == 'ngram_left':
+                padded_value = np.full(
+                    [batch_size, pad_length_left, ngram_length],
+                    self._pad_ngram_value, dtype=value.dtype
+                )
+                _padding_3D(value, padded_value, self._pad_ngram_mode)
+            elif key == 'ngram_right':
+                padded_value = np.full(
+                    [batch_size, pad_length_right, ngram_length],
+                    self._pad_ngram_value, dtype=value.dtype
+                )
+                _padding_3D(value, padded_value, self._pad_ngram_mode)
+            else:
+                continue
             x[key] = padded_value
 
 
@@ -121,21 +179,14 @@ class DRMMPadding(BaseCallback):
 
         Pad `x['text_left']`, `x['text_right]` and `x['match_histogram']`.
         """
-        pad_length_left = 0
-        pad_length_right = 0
-
         batch_size = len(x['id_left'])
-        max_length_left = max(x['length_left'])
-        max_length_right = max(x['length_right'])
+        pad_length_left = max(x['length_left'])
+        pad_length_right = max(x['length_right'])
         bin_size = len(x['match_histogram'][0][0])
 
-        if self._fixed_length_left is None:
-            pad_length_left = max_length_left
-        else:
+        if self._fixed_length_left is not None:
             pad_length_left = self._fixed_length_left
-        if self._fixed_length_right is None:
-            pad_length_right = max_length_right
-        else:
+        if self._fixed_length_right is not None:
             pad_length_right = self._fixed_length_right
 
         for key, value in x.items():
@@ -145,158 +196,16 @@ class DRMMPadding(BaseCallback):
             elif key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],
                                        self._pad_value, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(len(value)):
-                        end_pos = min(len(value[i]), pad_length_left)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                elif self._pad_mode == 'pre':
-                    for i in range(len(value)):
-                        start_pos = min(len(value[i]), pad_length_left)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
+                _padding_2D(value, padded_value, self._pad_mode)
             elif key == 'text_right':
                 padded_value = np.full([batch_size, pad_length_right],
                                        self._pad_value, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(len(value)):
-                        end_pos = min(len(value[i]), pad_length_right)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                elif self._pad_mode == 'pre':
-                    for i in range(len(value)):
-                        start_pos = min(len(value[i]), pad_length_right)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
+                _padding_2D(value, padded_value, self._pad_mode)
             else:  # key == 'match_histogram'
                 padded_value = np.full(
                     [batch_size, pad_length_left, bin_size],
                     self._pad_value, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(len(value)):
-                        end_pos = min(len(value[i]), pad_length_left)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                elif self._pad_mode == 'pre':
-                    for i in range(len(value)):
-                        start_pos = min(len(value[i]), pad_length_left)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
-            x[key] = padded_value
-
-
-class CDSSMPadding(BaseCallback):
-    """
-    Pad data for cdssm preprocessor.
-
-    :param fixed_length_left: Integer. If set, `text_left` will be padded
-        to this length.
-    :param fixed_length_right: Integer. If set, `text_right` will be padded
-        to this length.
-    :param pad_value: the value to fill text.
-    :param pad_mode: String, `pre` or `post`:
-        pad either before or after each sequence.
-    """
-
-    def __init__(
-        self,
-        fixed_length_left: int = None,
-        fixed_length_right: int = None,
-        pad_value: typing.Union[int, str] = 0,
-        pad_mode: str = 'pre',
-    ):
-        """Init."""
-        self._fixed_length_left = fixed_length_left
-        self._fixed_length_right = fixed_length_right
-        self._pad_value = pad_value
-        self._pad_mode = pad_mode
-
-    def on_batch_unpacked(self, x: dict, y: np.ndarray):
-        """Pad `x['text_left']` and `x['text_right]`."""
-        pad_length_left = 0
-        pad_length_right = 0
-
-        batch_size = len(x['id_left'])
-        max_length_left = max(x['length_left'])
-        max_length_right = max(x['length_right'])
-        vocab_size = len(x['text_left'][0][0])
-
-        if self._fixed_length_left is None:
-            pad_length_left = max_length_left
-        else:
-            pad_length_left = self._fixed_length_left
-        if self._fixed_length_right is None:
-            pad_length_right = max_length_right
-        else:
-            pad_length_right = self._fixed_length_right
-
-        for key, value in x.items():
-            if key == 'text_left':
-                padded_value = np.full(
-                    [batch_size, pad_length_left, vocab_size],
-                    fill_value=0, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(batch_size):
-                        left_len = np.array(value[i]).shape[0]
-                        end_pos = min(left_len, pad_length_left)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                        if end_pos < pad_length_left:
-                            padded_value[i, end_pos:, self._pad_value] = \
-                                [1] * (pad_length_left - end_pos)
-                elif self._pad_mode == 'pre':
-                    for i in range(batch_size):
-                        left_len = np.array(value[i]).shape[0]
-                        start_pos = min(left_len, pad_length_left)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                        if start_pos < pad_length_left:
-                            padded_value[i, :-start_pos, self._pad_value] = \
-                                [1] * (pad_length_left - start_pos)
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
-            elif key == 'text_right':
-                padded_value = np.full(
-                    [batch_size, pad_length_right, vocab_size],
-                    fill_value=0, dtype=value.dtype)
-                if self._pad_mode == 'post':
-                    for i in range(batch_size):
-                        right_len = np.array(value[i]).shape[0]
-                        end_pos = min(right_len, pad_length_right)
-                        if end_pos > 0:
-                            padded_value[i][:end_pos] = value[i][:end_pos]
-                        if end_pos < pad_length_right:
-                            padded_value[i, end_pos:, self._pad_value] = \
-                                [1] * (pad_length_right - end_pos)
-                elif self._pad_mode == 'pre':
-                    for i in range(batch_size):
-                        right_len = np.array(value[i]).shape[0]
-                        start_pos = min(right_len, pad_length_right)
-                        if start_pos > 0:
-                            padded_value[i][-start_pos:] = \
-                                value[i][-start_pos:]
-                        if start_pos < pad_length_right:
-                            padded_value[i, :-start_pos, self._pad_value] = \
-                                [1] * (pad_length_right - start_pos)
-                else:
-                    raise ValueError('{} is not a vaild '
-                                     'pad mode.'.format(self._pad_mode))
-            else:
-                continue
+                _padding_3D(value, padded_value, self._pad_mode)
             x[key] = padded_value
 
 
@@ -323,13 +232,12 @@ class BertPadding(BaseCallback):
         """Init."""
         self._padding = BasicPadding(fixed_length_left=fixed_length_left,
                                      fixed_length_right=fixed_length_right,
-                                     pad_value=pad_value,
-                                     pad_mode=pad_mode)
+                                     pad_word_value=pad_value,
+                                     pad_word_mode=pad_mode)
 
     def on_batch_unpacked(self, x: dict, y: np.ndarray):
         """Pad `x['text_left']` and `x['text_right]`."""
         self._padding.on_batch_unpacked(x, y)
         x['text_left'] = np.insert(x['text_left'], 0, 101, axis=1)
-        x['text_right'] = np.insert(x['text_right'], 0, 102, axis=1)
-        SEP = [[102]] * len(x['text_right'])
-        x['text_right'] = np.append(x['text_right'], SEP, axis=1)
+        x['text_left'] = np.insert(x['text_left'], x['text_left'][0].size, 102, axis=1)
+        x['text_right'] = np.insert(x['text_right'], x['text_right'][0].size, 102, axis=1)

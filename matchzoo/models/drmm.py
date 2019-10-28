@@ -60,8 +60,7 @@ class DRMM(BaseModel):
         """Build model structure."""
         self.embedding = self._make_default_embedding_layer()
         self.attention = Attention(
-            input_size=self._params['embedding_output_dim'],
-            mask=self._params['mask_value']
+            input_size=self._params['embedding_output_dim']
         )
         self.mlp = self._make_multi_layer_perceptron_layer(
             self._params['hist_bin_size']
@@ -87,12 +86,15 @@ class DRMM(BaseModel):
 
         query, match_hist = inputs['text_left'], inputs['match_histogram']
 
+        # shape = [B, L]
+        mask_query = (query == self._params['mask_value'])
+
         # Process left input.
         # shape = [B, L, D]
-        query = self.embedding(query.long())
+        embed_query = self.embedding(query.long())
 
         # shape = [B, L]
-        attention_probs = self.attention(query)
+        attention_probs = self.attention(embed_query, mask_query)
 
         # shape = [B, L]
         dense_output = self.mlp(match_hist).squeeze(dim=-1)

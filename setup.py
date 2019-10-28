@@ -27,7 +27,7 @@ install_requires = [
     'pandas == 0.24.2',
     'networkx >= 2.3',
     'h5py >= 2.9.0',
-    'hyperopt >= 0.1.2'
+    'hyperopt == 0.1.2'
 ]
 
 extras_requires = {

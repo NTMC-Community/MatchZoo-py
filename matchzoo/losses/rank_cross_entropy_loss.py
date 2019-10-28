@@ -34,7 +34,10 @@ class RankCrossEntropyLoss(nn.Module):
             logits = torch.cat((logits, neg_logits), dim=-1)
             labels = torch.cat((labels, neg_labels), dim=-1)
         return -torch.mean(
-            torch.sum(labels * torch.log(F.softmax(logits, dim=-1)), dim=-1)
+            torch.sum(
+                labels * torch.log(F.softmax(logits, dim=-1) + torch.finfo(float).eps),
+                dim=-1
+            )
         )
 
     @property

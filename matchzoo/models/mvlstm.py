@@ -1,4 +1,4 @@
-"""An implementation of DRMMTKS Model."""
+"""An implementation of MVLSTM Model."""
 import typing
 
 import torch
@@ -6,25 +6,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from matchzoo.engine.param_table import ParamTable
-from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.engine.param import Param
 from matchzoo.engine.base_model import BaseModel
+from matchzoo.engine.base_callback import BaseCallback
 from matchzoo.engine import hyper_spaces
 from matchzoo.dataloader import callbacks
-from matchzoo.modules import Attention
 
 
-class DRMMTKS(BaseModel):
+class MVLSTM(BaseModel):
     """
-    DRMMTKS Model.
+    MVLSTM Model.
 
     Examples:
-        >>> model = DRMMTKS()
-        >>> model.params['top_k'] = 10
-        >>> model.params['mlp_num_layers'] = 1
-        >>> model.params['mlp_num_units'] = 5
-        >>> model.params['mlp_num_fan_out'] = 1
-        >>> model.params['mlp_activation_func'] = 'tanh'
+        >>> model = MVLSTM()
+        >>> model.params['hidden_size'] = 32
+        >>> model.params['top_k'] = 50
+        >>> model.params['mlp_num_layers'] = 2
+        >>> model.params['mlp_num_units'] = 20
+        >>> model.params['mlp_num_fan_out'] = 10
+        >>> model.params['mlp_activation_func'] = 'relu'
+        >>> model.params['dropout_rate'] = 0.0
         >>> model.guess_and_fill_missing_params(verbose=0)
         >>> model.build()
 
@@ -37,21 +38,29 @@ class DRMMTKS(BaseModel):
             with_embedding=True,
             with_multi_layer_perceptron=True
         )
-        params.add(Param(name='mask_value', value=0,
-                         desc="The value to be masked from inputs."))
+        params.add(Param(name='hidden_size', value=32,
+                         desc="Integer, the hidden size in the "
+                              "bi-directional LSTM layer."))
+        params.add(Param(name='num_layers', value=1,
+                         desc="Integer, number of recurrent layers."))
         params.add(Param(
             'top_k', value=10,
             hyper_space=hyper_spaces.quniform(low=2, high=100),
             desc="Size of top-k pooling layer."
         ))
-        params['mlp_num_fan_out'] = 1
+        params.add(Param(
+            'dropout_rate', 0.0,
+            hyper_space=hyper_spaces.quniform(
+                low=0.0, high=0.8, q=0.01),
+            desc="Float, the dropout rate."
+        ))
         return params
 
     @classmethod
     def get_default_padding_callback(
         cls,
         fixed_length_left: int = 10,
-        fixed_length_right: int = 100,
+        fixed_length_right: int = 40,
         pad_word_value: typing.Union[int, str] = 0,
         pad_word_mode: str = 'pre',
         with_ngram: bool = False,
@@ -81,13 +90,31 @@ class DRMMTKS(BaseModel):
     def build(self):
         """Build model structure."""
         self.embedding = self._make_default_embedding_layer()
-        self.attention = Attention(
-            input_size=self._params['embedding_output_dim']
+
+        self.left_bilstm = nn.LSTM(
+            input_size=self._params['embedding_output_dim'],
+            hidden_size=self._params['hidden_size'],
+            num_layers=self._params['num_layers'],
+            batch_first=True,
+            dropout=self._params['dropout_rate'],
+            bidirectional=True
         )
+        self.right_bilstm = nn.LSTM(
+            input_size=self._params['embedding_output_dim'],
+            hidden_size=self._params['hidden_size'],
+            num_layers=self._params['num_layers'],
+            batch_first=True,
+            dropout=self._params['dropout_rate'],
+            bidirectional=True
+        )
+
         self.mlp = self._make_multi_layer_perceptron_layer(
             self._params['top_k']
         )
-        self.out = self._make_output_layer(1)
+        self.dropout = nn.Dropout(p=self._params['dropout_rate'])
+        self.out = self._make_output_layer(
+            self._params['mlp_num_fan_out']
+        )
 
     def forward(self, inputs):
         """Forward."""
@@ -97,6 +124,7 @@ class DRMMTKS(BaseModel):
         #   D = embedding size
         #   L = `input_left` sequence length
         #   R = `input_right` sequence length
+        #   H = LSTM hidden size
         #   K = size of top-k
 
         # Left input and right input.
@@ -104,37 +132,38 @@ class DRMMTKS(BaseModel):
         # shape = [B, R]
         query, doc = inputs['text_left'], inputs['text_right']
 
-        # shape = [B, L]
-        mask_query = (query == self._params['mask_value'])
-
-        # Process left input.
+        # Process left and right input.
         # shape = [B, L, D]
-        embed_query = self.embedding(query.long())
         # shape = [B, R, D]
+        embed_query = self.embedding(query.long())
         embed_doc = self.embedding(doc.long())
 
-        # Matching histogram of top-k
+        # Bi-directional LSTM
+        # shape = [B, L, 2 * H]
+        # shape = [B, R, 2 * H]
+        rep_query, _ = self.left_bilstm(embed_query)
+        rep_doc, _ = self.right_bilstm(embed_doc)
+
+        # Top-k matching
         # shape = [B, L, R]
         matching_matrix = torch.einsum(
             'bld,brd->blr',
-            F.normalize(embed_query, p=2, dim=-1),
-            F.normalize(embed_doc, p=2, dim=-1)
+            F.normalize(rep_query, p=2, dim=-1),
+            F.normalize(rep_doc, p=2, dim=-1)
         )
-
-        # shape = [B, L, K]
+        # shape = [B, L * R]
+        matching_signals = torch.flatten(matching_matrix, start_dim=1)
+        # shape = [B, K]
         matching_topk = torch.topk(
-            matching_matrix,
+            matching_signals,
             k=self._params['top_k'],
             dim=-1,
             sorted=True
         )[0]
-        # shape = [B, L]
-        attention_probs = self.attention(embed_query, mask_query)
 
-        # shape = [B, L]
-        dense_output = self.mlp(matching_topk).squeeze(dim=-1)
+        # shape = [B, *]
+        dense_output = self.mlp(matching_topk)
 
-        x = torch.einsum('bl,bl->b', dense_output, attention_probs)
-
-        out = self.out(x.unsqueeze(dim=-1))
+        # shape = [B, *]
+        out = self.out(self.dropout(dense_output))
         return out

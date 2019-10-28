@@ -7,7 +7,7 @@
 # to get notified about changes in a specific package.
 # See https://help.github.com/articles/about-teams how to setup teams.
 
-#  Define individuals or teams that are responsible for code in a repository.
+# Define individuals or teams that are responsible for code in a repository.
 
 # global owner.
 *       @faneshion

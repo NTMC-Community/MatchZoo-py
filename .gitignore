@@ -27,3 +27,4 @@ notebooks/wikiqa/.ipynb_checkpoints/*
 .tmpdir
 htmlcov/
 docs/_build
+matchzoo_py.egg-info/
