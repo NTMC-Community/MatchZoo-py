@@ -59,7 +59,8 @@ class Vocabulary(StatefulUnit):
         self._context['term_index'][self._oov] = 1
         self._context['index_term'][0] = self._pad
         self._context['index_term'][1] = self._oov
-        terms = set(tokens)
+
+        terms = sorted(set(tokens))
         for index, term in enumerate(terms):
             self._context['term_index'][term] = index + 2
             self._context['index_term'][index + 2] = term
