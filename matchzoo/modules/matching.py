@@ -40,7 +40,7 @@ class Matching(nn.Module):
             raise ValueError(f"{matching_type} is not a valid matching type, "
                              f"{valid_matching_type} expected.")
 
-    def forward(self, x, y):
+    def forward(self, x, y, x_mask=None, y_mask=None):
         """Perform attention on the input."""
         length_left = x.shape[1]
         length_right = y.shape[1]
@@ -48,11 +48,20 @@ class Matching(nn.Module):
             if self._normalize:
                 x = F.normalize(x, p=2, dim=-1)
                 y = F.normalize(y, p=2, dim=-1)
-            return torch.einsum('bld,brd->blr', x, y)
+            matching_matrix = torch.einsum('bld,brd->blr', x, y)
+            if x_mask is not None:
+                matching_matrix.masked_fill_(x_mask.unsqueeze(-1), 0)
+            if y_mask is not None:
+                matching_matrix.masked_fill_(y_mask.unsqueeze(1), 0)
+            return matching_matrix
         elif self._matching_type == 'exact':
             x = x.unsqueeze(dim=2).repeat(1, 1, length_right)
             y = y.unsqueeze(dim=1).repeat(1, length_left, 1)
             matching_matrix = (x == y)
+            if x_mask is not None:
+                matching_matrix.masked_fill_(x_mask.unsqueeze(-1), 0)
+            if y_mask is not None:
+                matching_matrix.masked_fill_(y_mask.unsqueeze(1), 0)
             x = torch.sum(matching_matrix, dim=2, dtype=torch.float)
             y = torch.sum(matching_matrix, dim=1, dtype=torch.float)
             return x, y
@@ -60,10 +69,15 @@ class Matching(nn.Module):
             x = x.unsqueeze(dim=2).repeat(1, 1, length_right, 1)
             y = y.unsqueeze(dim=1).repeat(1, length_left, 1, 1)
             if self._matching_type == 'mul':
-                return x * y
+                matching_matrix = x * y
             elif self._matching_type == 'plus':
-                return x + y
+                matching_matrix = x + y
             elif self._matching_type == 'minus':
-                return x - y
+                matching_matrix = x - y
             elif self._matching_type == 'concat':
-                return torch.cat((x, y), dim=3)
+                matching_matrix = torch.cat((x, y), dim=3)
+            if x_mask is not None:
+                matching_matrix.masked_fill_(x_mask.unsqueeze(-1).unsqueeze(-1), 0)
+            if y_mask is not None:
+                matching_matrix.masked_fill_(y_mask.unsqueeze(1).unsqueeze(-1), 0)
+            return matching_matrix
