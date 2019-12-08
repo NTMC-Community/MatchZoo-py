@@ -3,7 +3,7 @@ pytorch-transformers >= 1.1.0
 tabulate >= 0.8.3
 nltk >= 3.4.3
 numpy >= 1.16.4
-tqdm >= 4.32.2
+tqdm == 4.32.2
 dill >= 0.2.9
 hyperopt == 0.1.2
 pandas == 0.24.2

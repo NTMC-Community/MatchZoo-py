@@ -37,3 +37,35 @@ class DataLoaderBuilder(object):
         return mz.dataloader.DataLoader(
             dataset, **{**self._kwargs, **kwargs}
         )
+
+
+class DataLoaderBuilderV2(DataLoaderBuilder):
+    """
+    DataLoader Bulider. In essense a wrapped partial function.
+
+    Example:
+        >>> import matchzoo as mz
+        >>> padding_callback = mz.dataloader.callbacks.BasicPadding()
+        >>> builder = mz.dataloader.DataLoaderBuilderV2(
+        ...     stage='train'
+        ... )
+        >>> data_pack = mz.datasets.toy.load_data()
+        >>> preprocessor = mz.preprocessors.BasicPreprocessor()
+        >>> data_processed = preprocessor.fit_transform(data_pack)
+        >>> dataset = mz.dataloader.DatasetV2(data_processed, mode='point')
+        >>> dataloder = builder.build(dataset)
+        >>> type(dataloder)
+        <class 'matchzoo.dataloader.dataloader.DataLoaderV2'>
+    """
+
+    def build(self, dataset, **kwargs) -> DataLoader:
+        """
+        Build a DataLoader.
+
+        :param dataset: Dataset to build upon.
+        :param kwargs: Additional keyword arguments to override the keyword
+            arguments passed in `__init__`.
+        """
+        return mz.dataloader.DataLoaderV2(
+            dataset, **{**self._kwargs, **kwargs}
+        )

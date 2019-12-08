@@ -1,11 +1,11 @@
 import typing
 
 import matchzoo as mz
-from .preparer import Preparer
-from matchzoo.engine.base_task import BaseTask
-from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.base_callback import BaseCallback
+from matchzoo.engine.base_model import BaseModel
 from matchzoo.engine.base_preprocessor import BasePreprocessor
+from matchzoo.engine.base_task import BaseTask
+from .preparer import Preparer
 
 
 def prepare(
@@ -16,6 +16,7 @@ def prepare(
     preprocessor: typing.Optional[BasePreprocessor] = None,
     embedding: typing.Optional['mz.Embedding'] = None,
     config: typing.Optional[dict] = None,
+    v2: bool = False
 ):
     """
     A simple shorthand for using :class:`matchzoo.Preparer`.
@@ -46,5 +47,6 @@ def prepare(
         data_pack=data_pack,
         callback=callback,
         preprocessor=preprocessor,
-        embedding=embedding
+        embedding=embedding,
+        v2=v2
     )

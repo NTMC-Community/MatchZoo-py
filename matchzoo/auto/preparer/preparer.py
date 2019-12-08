@@ -3,12 +3,12 @@ import typing
 import numpy as np
 
 import matchzoo as mz
-from matchzoo.engine.base_task import BaseTask
-from matchzoo.engine.base_model import BaseModel
-from matchzoo.engine.base_callback import BaseCallback
-from matchzoo.engine.base_preprocessor import BasePreprocessor
-from matchzoo.dataloader import DatasetBuilder
 from matchzoo.dataloader import DataLoaderBuilder
+from matchzoo.dataloader import DatasetBuilder
+from matchzoo.engine.base_callback import BaseCallback
+from matchzoo.engine.base_model import BaseModel
+from matchzoo.engine.base_preprocessor import BasePreprocessor
+from matchzoo.engine.base_task import BaseTask
 
 
 class Preparer(object):
@@ -75,6 +75,7 @@ class Preparer(object):
         callback: typing.Optional[BaseCallback] = None,
         preprocessor: typing.Optional[BasePreprocessor] = None,
         embedding: typing.Optional['mz.Embedding'] = None,
+            v2: bool = False
     ) -> typing.Tuple[
         BaseModel,
         BasePreprocessor,
@@ -111,7 +112,7 @@ class Preparer(object):
         dataset_builder = self._build_dataset_builder(
             model,
             embedding_matrix,
-            preprocessor
+            preprocessor,
         )
 
         dataloader_builder = self._build_dataloader_builder(
@@ -119,12 +120,30 @@ class Preparer(object):
             callback
         )
 
+        if v2:
+            dataloader_builder, dataset_builder = self._build_v2_builders(
+                dataloader_builder, dataset_builder)
+
         return (
             model,
             preprocessor,
             dataset_builder,
             dataloader_builder
         )
+
+    def _build_v2_builders(self, dataloader_builder, dataset_builder):
+        dataset_kwargs = dataset_builder._kwargs
+        dataloader_kwargs = dataloader_builder._kwargs
+        callback = dataloader_kwargs.pop("callback")
+        kwargs = {**dataset_kwargs, **dataloader_kwargs}
+        if callback:
+            kwargs.setdefault("callbacks", [])
+            kwargs["callbacks"].append(callback)
+        kwargs.pop("sort")
+        stage = kwargs.pop("stage")
+        dataset_builder = mz.dataloader.DatasetBuilderV2(**kwargs)
+        dataloader_builder = mz.dataloader.DataLoaderBuilderV2(stage=stage)
+        return dataloader_builder, dataset_builder
 
     def _build_model(
         self,

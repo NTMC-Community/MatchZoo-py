@@ -54,6 +54,7 @@ class NaivePreprocessor(BasePreprocessor):
 
         :return: Transformed data as :class:`DataPack` object.
         """
+        data_pack = data_pack.copy()
         units_ = self._default_units()
         units_.append(self._context['vocab_unit'])
         units_.append(

@@ -33,13 +33,18 @@ def embedding():
     return mz.datasets.toy.load_embedding()
 
 
+@pytest.fixture(scope='module', params=[False, True])
+def v2(request):
+    return request.param
+
 @pytest.fixture(scope='module')
-def setup(task, model_class, train_raw, embedding):
+def setup(task, model_class, train_raw, embedding, v2):
     return mz.auto.prepare(
         task=task,
         model_class=model_class,
         data_pack=train_raw,
-        embedding=embedding
+        embedding=embedding,
+        v2=v2
     )
 
 

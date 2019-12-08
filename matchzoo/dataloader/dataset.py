@@ -1,13 +1,100 @@
 """A basic class representing a Dataset."""
 import typing
 
-import functools
 import numpy as np
 import pandas as pd
+import torch
 from torch.utils import data
 
 import matchzoo as mz
 from matchzoo.engine.base_callback import BaseCallback
+from .data_generator import DataGenerator
+
+
+class DatasetV2(torch.utils.data.IterableDataset):
+    """
+    Dataset that is built from a data pack.
+
+    :param data_pack: DataPack to build the dataset.
+    :param mode: One of "point", "pair", and "list". (default: "point")
+    :param num_dup: Number of duplications per instance, only effective when
+        `mode` is "pair". (default: 1)
+    :param num_neg: Number of negative samples per instance, only effective
+        when `mode` is "pair". (default: 1)
+    :param callbacks: Callbacks. See `matchzoo.data_generator.callbacks` for
+        more details.
+
+    Examples:
+        >>> import matchzoo as mz
+        >>> data_pack = mz.datasets.toy.load_data(stage='train')
+        >>> preprocessor = mz.preprocessors.BasicPreprocessor()
+        >>> data_processed = preprocessor.fit_transform(data_pack)
+        >>> dataset_point = mz.dataloader.Dataset(data_processed, mode='point')
+        >>> len(dataset_point)
+        100
+        >>> dataset_pair = mz.dataloader.Dataset(
+        ...     data_processed, mode='pair', num_neg=2)
+        >>> len(dataset_pair)
+        5
+
+    """
+
+    def __init__(self,
+                 data_pack: mz.DataPack,
+                 mode='point',
+                 num_dup: int = 1,
+                 num_neg: int = 1,
+                 batch_size=128,
+                 resample: bool = False,
+                 shuffle: bool = False,
+                 callbacks: typing.List[BaseCallback] = None
+                 ):
+        """Init."""
+        if callbacks is None:
+            callbacks = []
+
+        if mode not in ('point', 'pair', 'list'):
+            raise ValueError(f"{mode} is not a valid mode type."
+                             f"Must be one of `point`, `pair` or `list`.")
+
+        self._mode = mode
+        self._num_dup = num_dup
+        self._num_neg = num_neg
+        self._orig_relation = data_pack.relation
+        self._callbacks = callbacks
+        self._data_gen = DataGenerator(data_pack, mode=mode, num_dup=num_dup,
+                                       resample=resample,
+                                       batch_size=batch_size, shuffle=shuffle,
+                                       num_neg=num_neg, callbacks=callbacks)
+        self._index_pool = None
+
+    def __iter__(self):
+        """Iter the batches."""
+        return self._data_gen.__iter__()
+
+    def __len__(self):
+        """Get the total number of batches."""
+        return len(self._data_gen)
+
+    def __getitem__(self, item):
+        """Get a set of instances from index idx.
+
+        :param item: the index of the instance.
+        """
+        return self._data_gen[item]
+
+    def sample(self):
+        """Resample the instances from data pack."""
+        self._data_gen.sample()
+
+    def shuffle(self):
+        """Shuffle the instances."""
+        self._data_gen.shuffle()
+
+    @property
+    def index_pool(self):
+        """Return the datapack indices for each batch."""
+        return self._data_gen._batch_indices
 
 
 class Dataset(data.Dataset):
