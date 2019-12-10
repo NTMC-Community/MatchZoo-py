@@ -6,7 +6,7 @@ import numpy as np
 from matchzoo.engine.base_callback import BaseCallback
 
 
-def infer_dtype(value):
+def _infer_dtype(value):
     """Infer the dtype for the features.
 
     It is required as the input is usually array of objects before padding.
@@ -147,7 +147,7 @@ class BasicPadding(BaseCallback):
             pad_length_right = self._fixed_length_right
 
         for key, value in x.items():
-            dtype = infer_dtype(value)
+            dtype = _infer_dtype(value)
 
             if key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],
@@ -221,7 +221,7 @@ class DRMMPadding(BaseCallback):
                     key != 'match_histogram':
                 continue
 
-            dtype = infer_dtype(value)
+            dtype = _infer_dtype(value)
 
             if key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],

@@ -1,6 +1,5 @@
 """A basic class representing a Dataset."""
 import typing
-import time
 import math
 from collections import Iterable
 
@@ -179,8 +178,7 @@ class Dataset(data.IterableDataset):
             candidates = index_pool[lower:upper]
             if self._mode == 'pair':
                 candidates = sum(candidates, [])
-            if candidates:
-                self._batch_indices.append(candidates)
+            self._batch_indices.append(candidates)
 
     def _handle_callbacks_on_batch_data_pack(self, batch_data_pack):
         for callback in self._callbacks:
