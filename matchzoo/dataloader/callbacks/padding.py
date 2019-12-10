@@ -1,8 +1,33 @@
 import typing
+from collections import Iterable
 
 import numpy as np
 
 from matchzoo.engine.base_callback import BaseCallback
+
+
+def infer_dtype(value):
+    """Infer the dtype for the features.
+
+    It is required as the input is usually array of objects before padding.
+    """
+    while isinstance(value, (list, tuple)) and len(value) > 0:
+        value = value[0]
+
+    if not isinstance(value, Iterable):
+        return np.array(value).dtype
+
+    if value is not None and len(value) > 0 and np.issubdtype(
+            np.array(value).dtype, np.generic):
+        dtype = np.array(value[0]).dtype
+    else:
+        dtype = value.dtype
+
+    # Single Precision
+    if dtype == np.double:
+        dtype = np.float32
+
+    return dtype
 
 
 def _padding_2D(input, output, mode: str = 'pre'):
@@ -122,24 +147,26 @@ class BasicPadding(BaseCallback):
             pad_length_right = self._fixed_length_right
 
         for key, value in x.items():
+            dtype = infer_dtype(value)
+
             if key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],
-                                       self._pad_word_value, dtype=value.dtype)
+                                       self._pad_word_value, dtype=dtype)
                 _padding_2D(value, padded_value, self._pad_word_mode)
             elif key == 'text_right':
                 padded_value = np.full([batch_size, pad_length_right],
-                                       self._pad_word_value, dtype=value.dtype)
+                                       self._pad_word_value, dtype=dtype)
                 _padding_2D(value, padded_value, self._pad_word_mode)
             elif key == 'ngram_left':
                 padded_value = np.full(
                     [batch_size, pad_length_left, ngram_length],
-                    self._pad_ngram_value, dtype=value.dtype
+                    self._pad_ngram_value, dtype=dtype
                 )
                 _padding_3D(value, padded_value, self._pad_ngram_mode)
             elif key == 'ngram_right':
                 padded_value = np.full(
                     [batch_size, pad_length_right, ngram_length],
-                    self._pad_ngram_value, dtype=value.dtype
+                    self._pad_ngram_value, dtype=dtype
                 )
                 _padding_3D(value, padded_value, self._pad_ngram_mode)
             else:
@@ -193,18 +220,21 @@ class DRMMPadding(BaseCallback):
             if key != 'text_left' and key != 'text_right' and \
                     key != 'match_histogram':
                 continue
-            elif key == 'text_left':
+
+            dtype = infer_dtype(value)
+
+            if key == 'text_left':
                 padded_value = np.full([batch_size, pad_length_left],
-                                       self._pad_value, dtype=value.dtype)
+                                       self._pad_value, dtype=dtype)
                 _padding_2D(value, padded_value, self._pad_mode)
             elif key == 'text_right':
                 padded_value = np.full([batch_size, pad_length_right],
-                                       self._pad_value, dtype=value.dtype)
+                                       self._pad_value, dtype=dtype)
                 _padding_2D(value, padded_value, self._pad_mode)
             else:  # key == 'match_histogram'
                 padded_value = np.full(
                     [batch_size, pad_length_left, bin_size],
-                    self._pad_value, dtype=value.dtype)
+                    self._pad_value, dtype=dtype)
                 _padding_3D(value, padded_value, self._pad_mode)
             x[key] = padded_value
 
