@@ -1,6 +1,7 @@
 """A basic class representing a Dataset."""
 import typing
 
+import time
 import math
 import numpy as np
 import pandas as pd
@@ -58,7 +59,6 @@ class Dataset(data.IterableDataset):
         callbacks: typing.List[BaseCallback] = None
     ):
         """Init."""
-        data_pack = data_pack.copy()
         if callbacks is None:
             callbacks = []
 
@@ -70,11 +70,12 @@ class Dataset(data.IterableDataset):
             raise ValueError(f"parameters `shuffle` and `sort` conflict, "
                              f"should not both be `True`.")
 
+        data_pack = data_pack.copy()
         self._mode = mode
         self._num_dup = num_dup
         self._num_neg = num_neg
         self._batch_size = batch_size
-        self._resample = resample
+        self._resample = (resample if mode != 'point' else False)
         self._shuffle = shuffle
         self._sort = sort
         self._orig_relation = data_pack.relation
@@ -82,7 +83,7 @@ class Dataset(data.IterableDataset):
 
         if mode == 'pair':
             data_pack.relation = self._reorganize_pair_wise(
-                data_pack.relation,
+                relation=self._orig_relation,
                 num_dup=num_dup,
                 num_neg=num_neg
             )
@@ -115,13 +116,14 @@ class Dataset(data.IterableDataset):
 
     def __iter__(self):
         """Create a generator that iterate over the Batches."""
-        self.sample()
+        if self._resample or self._shuffle:
+            self.on_epoch_end()
         for i in range(len(self)):
             yield self[i]
 
     def on_epoch_end(self):
-        """Reorganize the index array while epoch is ended."""
-        if self._mode == 'pair' and self._resample:
+        """Reorganize the index array if needed."""
+        if self._resample:
             self._data_pack.relation = self._reorganize_pair_wise(
                 relation=self._orig_relation,
                 num_dup=self._num_dup,
@@ -129,15 +131,11 @@ class Dataset(data.IterableDataset):
             )
         self.reset_index()
 
-    def sample(self):
-        """Resample the batches if applicable."""
-        self.on_epoch_end()
-
     def reset_index(self):
         """
-        Set the :attr:`index_array`.
+        Set the :attr:`_batch_indices`.
 
-        Here the :attr:`index_array` records the index of all the instances.
+        Here the :attr:`_batch_indices` records the index of all the instances.
         """
         # index pool: index -> instance index
         if self._mode == 'point':
@@ -155,7 +153,7 @@ class Dataset(data.IterableDataset):
                     index_pool.append(indices)
         elif self._mode == 'list':
             raise NotImplementedError(
-                f'{self._mode} data generator not implemented.')
+                f'{self._mode} dataset not implemented.')
         else:
             raise ValueError(f"{self._mode} is not a valid mode type"
                              f"Must be one of `point`, `pair` or `list`.")
