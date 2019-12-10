@@ -122,12 +122,17 @@ class Dataset(data.IterableDataset):
     def on_epoch_end(self):
         """Reorganize the index array if needed."""
         if self._resample:
+            self.resample_data()
+        self.reset_index()
+
+    def resample_data(self):
+        """Reorganize data."""
+        if self.mode != 'point':
             self._data_pack.relation = self._reorganize_pair_wise(
                 relation=self._orig_relation,
                 num_dup=self._num_dup,
                 num_neg=self._num_neg
             )
-        self.reset_index()
 
     def reset_index(self):
         """
@@ -207,6 +212,7 @@ class Dataset(data.IterableDataset):
     def num_neg(self, value):
         """`num_neg` setter."""
         self._num_neg = value
+        self.resample_data()
         self.reset_index()
 
     @property
@@ -218,18 +224,13 @@ class Dataset(data.IterableDataset):
     def num_dup(self, value):
         """`num_dup` setter."""
         self._num_dup = value
+        self.resample_data()
         self.reset_index()
 
     @property
     def mode(self):
         """`mode` getter."""
         return self._mode
-
-    @mode.setter
-    def mode(self, value):
-        """`mode` setter."""
-        self._mode = value
-        self.reset_index()
 
     @property
     def batch_size(self):
