@@ -1,9 +1,7 @@
 """Basic data loader."""
 import typing
-
 import math
-import random
-import collections
+
 import numpy as np
 import torch
 from torch.utils import data
@@ -78,6 +76,7 @@ class DataLoader(object):
         self._device = device
         self._stage = stage
         self._callback = callback
+
         self._dataloader = data.DataLoader(
             self._dataset,
             batch_size=None,

@@ -1,11 +1,11 @@
 """A basic class representing a Dataset."""
 import typing
-
 import time
 import math
+from collections import Iterable
+
 import numpy as np
 import pandas as pd
-from collections import Iterable
 from torch.utils import data
 
 import matchzoo as mz
@@ -27,8 +27,7 @@ class Dataset(data.IterableDataset):
         `mode` is "pair". (default: `True`)
     :param shuffle: Either to shuffle the samples/instances. (default: `True`)
     :param sort: Whether to sort data according to length_right. (default: `False`)
-    :param callbacks: Callbacks. See `matchzoo.dataloader.callbacks` for
-        more details.
+    :param callbacks: Callbacks. See `matchzoo.dataloader.callbacks` for more details.
 
     Examples:
         >>> import matchzoo as mz
@@ -53,7 +52,7 @@ class Dataset(data.IterableDataset):
         num_dup: int = 1,
         num_neg: int = 1,
         batch_size: int = 32,
-        resample: bool = True,
+        resample: bool = False,
         shuffle: bool = True,
         sort: bool = False,
         callbacks: typing.List[BaseCallback] = None
