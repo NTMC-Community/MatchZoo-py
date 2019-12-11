@@ -1,7 +1,8 @@
 """A basic class representing a Dataset."""
 import typing
+import math
+from collections import Iterable
 
-import functools
 import numpy as np
 import pandas as pd
 from torch.utils import data
@@ -10,7 +11,7 @@ import matchzoo as mz
 from matchzoo.engine.base_callback import BaseCallback
 
 
-class Dataset(data.Dataset):
+class Dataset(data.IterableDataset):
     """
     Dataset that is built from a data pack.
 
@@ -20,21 +21,26 @@ class Dataset(data.Dataset):
         `mode` is "pair". (default: 1)
     :param num_neg: Number of negative samples per instance, only effective
         when `mode` is "pair". (default: 1)
-    :param callbacks: Callbacks. See `matchzoo.data_generator.callbacks` for
-        more details.
+    :param batch_size: Batch size. (default: 32)
+    :param resample: Either to resample for each epoch, only effective when
+        `mode` is "pair". (default: `True`)
+    :param shuffle: Either to shuffle the samples/instances. (default: `True`)
+    :param sort: Whether to sort data according to length_right. (default: `False`)
+    :param callbacks: Callbacks. See `matchzoo.dataloader.callbacks` for more details.
 
     Examples:
         >>> import matchzoo as mz
         >>> data_pack = mz.datasets.toy.load_data(stage='train')
         >>> preprocessor = mz.preprocessors.BasicPreprocessor()
         >>> data_processed = preprocessor.fit_transform(data_pack)
-        >>> dataset_point = mz.dataloader.Dataset(data_processed, mode='point')
+        >>> dataset_point = mz.dataloader.Dataset(
+        ...     data_processed, mode='point', batch_size=32)
         >>> len(dataset_point)
-        100
+        4
         >>> dataset_pair = mz.dataloader.Dataset(
-        ...     data_processed, mode='pair', num_neg=2)
+        ...     data_processed, mode='pair', num_dup=2, num_neg=2, batch_size=32)
         >>> len(dataset_pair)
-        5
+        1
 
     """
 
@@ -44,6 +50,10 @@ class Dataset(data.Dataset):
         mode='point',
         num_dup: int = 1,
         num_neg: int = 1,
+        batch_size: int = 32,
+        resample: bool = False,
+        shuffle: bool = True,
+        sort: bool = False,
         callbacks: typing.List[BaseCallback] = None
     ):
         """Init."""
@@ -54,48 +64,86 @@ class Dataset(data.Dataset):
             raise ValueError(f"{mode} is not a valid mode type."
                              f"Must be one of `point`, `pair` or `list`.")
 
+        if shuffle and sort:
+            raise ValueError(f"parameters `shuffle` and `sort` conflict, "
+                             f"should not both be `True`.")
+
+        data_pack = data_pack.copy()
         self._mode = mode
         self._num_dup = num_dup
         self._num_neg = num_neg
+        self._batch_size = batch_size
+        self._resample = (resample if mode != 'point' else False)
+        self._shuffle = shuffle
+        self._sort = sort
         self._orig_relation = data_pack.relation
         self._callbacks = callbacks
+
+        if mode == 'pair':
+            data_pack.relation = self._reorganize_pair_wise(
+                relation=self._orig_relation,
+                num_dup=num_dup,
+                num_neg=num_neg
+            )
+
         self._data_pack = data_pack
-        self._index_pool = None
-        self.sample()
+        self._batch_indices = None
 
-    def __len__(self) -> int:
-        """Get the total number of instances."""
-        return len(self._index_pool)
+        self.reset_index()
 
-    def __getitem__(self, item: int) -> typing.Tuple[dict, np.ndarray]:
-        """Get a set of instances from index idx.
+    def __getitem__(self, item) -> typing.Tuple[dict, np.ndarray]:
+        """Get a batch from index idx.
 
-        :param item: the index of the instance.
+        :param item: the index of the batch.
         """
-        item_data_pack = self._data_pack[item]
-        self._handle_callbacks_on_batch_data_pack(item_data_pack)
-        x, y = item_data_pack.unpack()
+        if isinstance(item, slice):
+            indices = sum(self._batch_indices[item], [])
+        elif isinstance(item, Iterable):
+            indices = [self._batch_indices[i] for i in item]
+        else:
+            indices = self._batch_indices[item]
+        batch_data_pack = self._data_pack[indices]
+        self._handle_callbacks_on_batch_data_pack(batch_data_pack)
+        x, y = batch_data_pack.unpack()
         self._handle_callbacks_on_batch_unpacked(x, y)
         return x, y
 
-    def _handle_callbacks_on_batch_data_pack(self, batch_data_pack):
-        for callback in self._callbacks:
-            callback.on_batch_data_pack(batch_data_pack)
+    def __len__(self) -> int:
+        """Get the total number of batches."""
+        return len(self._batch_indices)
 
-    def _handle_callbacks_on_batch_unpacked(self, x, y):
-        for callback in self._callbacks:
-            callback.on_batch_unpacked(x, y)
+    def __iter__(self):
+        """Create a generator that iterate over the Batches."""
+        if self._resample or self._shuffle:
+            self.on_epoch_end()
+        for i in range(len(self)):
+            yield self[i]
 
-    def get_index_pool(self):
+    def on_epoch_end(self):
+        """Reorganize the index array if needed."""
+        if self._resample:
+            self.resample_data()
+        self.reset_index()
+
+    def resample_data(self):
+        """Reorganize data."""
+        if self.mode != 'point':
+            self._data_pack.relation = self._reorganize_pair_wise(
+                relation=self._orig_relation,
+                num_dup=self._num_dup,
+                num_neg=self._num_neg
+            )
+
+    def reset_index(self):
         """
-        Set the:attr:`_index_pool`.
+        Set the :attr:`_batch_indices`.
 
-        Here the :attr:`_index_pool` records the index of all the instances.
+        Here the :attr:`_batch_indices` records the index of all the instances.
         """
+        # index pool: index -> instance index
         if self._mode == 'point':
             num_instances = len(self._data_pack)
-            index_pool = np.expand_dims(range(num_instances), axis=1).tolist()
-            return index_pool
+            index_pool = list(range(num_instances))
         elif self._mode == 'pair':
             index_pool = []
             step_size = self._num_neg + 1
@@ -106,48 +154,44 @@ class Dataset(data.Dataset):
                 indices = list(range(lower, upper))
                 if indices:
                     index_pool.append(indices)
-            return index_pool
         elif self._mode == 'list':
             raise NotImplementedError(
-                f'{self._mode} data generator not implemented.')
+                f'{self._mode} dataset not implemented.')
         else:
             raise ValueError(f"{self._mode} is not a valid mode type"
                              f"Must be one of `point`, `pair` or `list`.")
 
-    def sample(self):
-        """Resample the instances from data pack."""
-        if self._mode == 'pair':
-            self._data_pack.relation = self._reorganize_pair_wise(
-                relation=self._orig_relation,
-                num_dup=self._num_dup,
-                num_neg=self._num_neg
-            )
-        self._index_pool = self.get_index_pool()
+        if self._shuffle:
+            np.random.shuffle(index_pool)
 
-    def shuffle(self):
-        """Shuffle the instances."""
-        np.random.shuffle(self._index_pool)
+        if self._sort:
+            old_index_pool = index_pool
 
-    def sort(self):
-        """Sort the instances by length_right."""
-        old_index_pool = self._index_pool
-        max_instance_right_length = []
-        for row in range(len(old_index_pool)):
-            instance = self._data_pack[old_index_pool[row]].unpack()[0]
-            max_instance_right_length.append(max(instance['length_right']))
-        sort_index = np.argsort(max_instance_right_length)
+            max_instance_right_length = []
+            for row in range(len(old_index_pool)):
+                instance = self._data_pack[old_index_pool[row]].unpack()[0]
+                max_instance_right_length.append(max(instance['length_right']))
+            sort_index = np.argsort(max_instance_right_length)
 
-        self._index_pool = [old_index_pool[index] for index in sort_index]
+            index_pool = [old_index_pool[index] for index in sort_index]
 
-    @property
-    def data_pack(self):
-        """`data_pack` getter."""
-        return self._data_pack
+        # batch_indices: index -> batch of indices
+        self._batch_indices = []
+        for i in range(math.ceil(num_instances / self._batch_size)):
+            lower = self._batch_size * i
+            upper = self._batch_size * (i + 1)
+            candidates = index_pool[lower:upper]
+            if self._mode == 'pair':
+                candidates = sum(candidates, [])
+            self._batch_indices.append(candidates)
 
-    @data_pack.setter
-    def data_pack(self, value):
-        """`data_pack` setter."""
-        self._data_pack = value
+    def _handle_callbacks_on_batch_data_pack(self, batch_data_pack):
+        for callback in self._callbacks:
+            callback.on_batch_data_pack(batch_data_pack)
+
+    def _handle_callbacks_on_batch_unpacked(self, x, y):
+        for callback in self._callbacks:
+            callback.on_batch_unpacked(x, y)
 
     @property
     def callbacks(self):
@@ -168,6 +212,8 @@ class Dataset(data.Dataset):
     def num_neg(self, value):
         """`num_neg` setter."""
         self._num_neg = value
+        self.resample_data()
+        self.reset_index()
 
     @property
     def num_dup(self):
@@ -178,21 +224,62 @@ class Dataset(data.Dataset):
     def num_dup(self, value):
         """`num_dup` setter."""
         self._num_dup = value
+        self.resample_data()
+        self.reset_index()
 
     @property
     def mode(self):
         """`mode` getter."""
         return self._mode
 
-    @mode.setter
-    def mode(self, value):
-        """`mode` setter."""
-        self._mode = value
+    @property
+    def batch_size(self):
+        """`batch_size` getter."""
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        """`batch_size` setter."""
+        self._batch_size = value
+        self.reset_index()
 
     @property
-    def index_pool(self):
-        """`index_pool` getter."""
-        return self._index_pool
+    def shuffle(self):
+        """`shuffle` getter."""
+        return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value):
+        """`shuffle` setter."""
+        self._shuffle = value
+        self.reset_index()
+
+    @property
+    def sort(self):
+        """`sort` getter."""
+        return self._sort
+
+    @sort.setter
+    def sort(self, value):
+        """`sort` setter."""
+        self._sort = value
+        self.reset_index()
+
+    @property
+    def resample(self):
+        """`resample` getter."""
+        return self._resample
+
+    @resample.setter
+    def resample(self, value):
+        """`resample` setter."""
+        self._resample = value
+        self.reset_index()
+
+    @property
+    def batch_indices(self):
+        """`batch_indices` getter."""
+        return self._batch_indices
 
     @classmethod
     def _reorganize_pair_wise(
