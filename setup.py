@@ -22,7 +22,7 @@ install_requires = [
     'pytorch-transformers >= 1.1.0',
     'nltk >= 3.4.3',
     'numpy >= 1.16.4',
-    'tqdm >= 4.32.2',
+    'tqdm == 4.38.0',
     'dill >= 0.2.9',
     'pandas == 0.24.2',
     'networkx >= 2.3',
