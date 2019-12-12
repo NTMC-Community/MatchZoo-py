@@ -34,6 +34,8 @@ class BertPreprocessor(BasePreprocessor):
 
         :return: Transformed data as :class:`DataPack` object.
         """
+        data_pack = data_pack.copy()
+
         data_pack.apply_on_text(self._tokenizer.encode,
                                 mode='both', inplace=True, verbose=verbose)
         data_pack.append_text_length(inplace=True, verbose=verbose)

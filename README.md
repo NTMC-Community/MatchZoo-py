@@ -96,11 +96,13 @@ trainset = mz.dataloader.Dataset(
     data_pack=train_processed,
     mode='pair',
     num_dup=1,
-    num_neg=4
+    num_neg=4,
+    batch_size=32
 )
 validset = mz.dataloader.Dataset(
     data_pack=valid_processed,
-    mode='point'
+    mode='point',
+    batch_size=32
 )
 ```
 
@@ -110,13 +112,11 @@ padding_callback = mz.models.ArcI.get_default_padding_callback()
 
 trainloader = mz.dataloader.DataLoader(
     dataset=trainset,
-    batch_size=32,
     stage='train',
     callback=padding_callback
 )
 validloader = mz.dataloader.DataLoader(
     dataset=validset,
-    batch_size=32,
     stage='dev',
     callback=padding_callback
 )
@@ -127,6 +127,8 @@ Initialize the model, fine-tune the hyper-parameters:
 ```python
 model = mz.models.ArcI()
 model.params['task'] = ranking_task
+model.params['embedding_output_dim'] = 100
+model.params['embedding_input_dim'] = preprocessor.context['embedding_input_dim']
 model.guess_and_fill_missing_params()
 model.build()
 ```
