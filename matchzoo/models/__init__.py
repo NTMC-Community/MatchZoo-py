@@ -18,6 +18,7 @@ from .hbmp import HBMP
 from .duet import DUET
 from .diin import DIIN
 from .match_srnn import MatchSRNN
+from .hcrn import HCRN
 
 
 def list_available() -> list:
