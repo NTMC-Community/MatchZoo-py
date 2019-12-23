@@ -129,6 +129,8 @@ class DataLoader(object):
                         y, dtype=torch.float, device=self._device)
                 yield batch_x, batch_y
 
+        self._dataset.on_epoch_end()
+
     def _handle_callbacks_on_batch_unpacked(self, x, y):
         if self._callback is not None:
             self._callback.on_batch_unpacked(x, y)

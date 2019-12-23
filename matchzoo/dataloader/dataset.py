@@ -11,7 +11,7 @@ import matchzoo as mz
 from matchzoo.engine.base_callback import BaseCallback
 
 
-class Dataset(data.IterableDataset):
+class Dataset(data.Dataset):
     """
     Dataset that is built from a data pack.
 
