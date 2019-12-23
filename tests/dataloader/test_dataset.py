@@ -1,7 +1,9 @@
 import math
 
-import matchzoo as mz
 import numpy as np
+
+import matchzoo as mz
+
 
 def test_dataset():
     data_pack = mz.datasets.toy.load_data('train', task='ranking')
