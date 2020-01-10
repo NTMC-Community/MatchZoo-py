@@ -17,3 +17,11 @@ def test_matching():
         Matching(matching_type='error')
     with pytest.raises(RuntimeError):
         Matching()(x, z)
+    x = torch.randn(2, 3)
+    y = torch.randn(2, 4)
+    x_mask = (torch.randint(low=0, high=2, size=(2,3)) == 0)
+    y_mask = (torch.randint(low=0, high=2, size=(2,4)) == 0)
+    Matching(matching_type='exact')(x, y)
+    Matching(matching_type='exact')(x, y, x_mask=x_mask, y_mask=y_mask)
+
+ 
