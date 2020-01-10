@@ -68,11 +68,11 @@ class HCRN(BaseModel):
                          desc="The value to be masked from inputs."))
         params.add(Param(name='hidden_size', value=200,
                          desc="LSTM hidden size."))
-        params.add(Param('pooling_type', value='alignment',
+        params.add(Param('pooling_type', value='extractive',
                          desc='Pooling type used to pool co attention. \
                                (Choices: alignment/extractive)',
                          validator=lambda x: x in ('alignment', 'extractive')))
-        params.add(Param(name='intra_attention', value=False,
+        params.add(Param(name='intra_attention', value=True,
                          desc='whether use intra attention'))
         params.add(Param(
             'dropout_rate', 0.0,
