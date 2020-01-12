@@ -121,8 +121,8 @@ class MatchPyramid(BaseModel):
 
         # Compute matching signal
         # shape = [B, 1, L, R]
-        embed_cross = self.matching(embed_left, embed_right, left_mask, right_mask
-                                    ).unsqueeze(dim=1)
+        embed_cross = self.matching(
+            embed_left, embed_right, left_mask, right_mask).unsqueeze(dim=1)
 
         # Convolution
         # shape = [B, F, L, R]
