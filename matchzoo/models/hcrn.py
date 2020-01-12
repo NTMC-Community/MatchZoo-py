@@ -95,14 +95,19 @@ class HCRN(BaseModel):
             nn.Linear(self.embedding.embedding_dim, self._params['hidden_size']),
             nn.ReLU()
         )
-        self.lstm = nn.LSTM(self._params['hidden_size'], self._params['hidden_size'],
-                            batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(
+            self._params['hidden_size'],
+            self._params['hidden_size'],
+            batch_first=True,
+            bidirectional=True
+        )
 
         self.hidden_size = self._params['hidden_size'] * 2
         if self._params['intra_attention']:
             self.intra_complex_proj = nn.Sequential(
                 nn.Linear(self.hidden_size, self.hidden_size),
-                nn.ReLU())
+                nn.ReLU()
+            )
             self.hidden_size *= 2
 
         # Complex part projection
@@ -155,22 +160,22 @@ class HCRN(BaseModel):
         # shape = [B, L, 2 * H]
         # shape = [B, R, 2 * H]
         length_left, length_right = inputs['length_left'], inputs['length_right']
-        encode_left = self.dropout(self._forward_lstm_with_padded_sequence(proj_left,
-                                                                           length_left))
-        encode_right = self.dropout(self._forward_lstm_with_padded_sequence(proj_right,
-                                                                            length_right))
+        encode_left = self.dropout(
+            self._forward_lstm_with_padded_sequence(proj_left, length_left))
+        encode_right = self.dropout(
+            self._forward_lstm_with_padded_sequence(proj_right, length_right))
 
         if self._params['intra_attention']:
-            encode_left = self._forward_intra_attention(encode_left,
-                                                        left_mask)
-            encode_right = self._forward_intra_attention(encode_right,
-                                                         right_mask)
+            encode_left = self._forward_intra_attention(
+                encode_left, left_mask)
+            encode_right = self._forward_intra_attention(
+                encode_right, right_mask)
 
         # Compute Hermitian Co Attention
         # shape = [B, L, R]
         real_matching = self.matching(encode_left, encode_right)
-        complex_matching = self.matching(self.complex_proj(encode_left),
-                                         self.complex_proj(encode_right))
+        complex_matching = self.matching(
+            self.complex_proj(encode_left), self.complex_proj(encode_right))
         hermitian_co_attention = real_matching + complex_matching
         # use -inf may casue nan in sofmax calculation
         hermitian_co_attention.masked_fill_(left_mask.unsqueeze(-1), -1e16)
@@ -183,20 +188,20 @@ class HCRN(BaseModel):
             # shape = [B, L, 2 * H] or [B, L, 4 * H]
             # shape = [B, R, 2 * H] or [B, L, 4 * H]
             pool_left = torch.bmm(F.softmax(hermitian_co_attention, dim=2), encode_right)
-            pool_right = torch.bmm(F.softmax(hermitian_co_attention, dim=1)
-                                    .transpose(1, 2), encode_left)
+            pool_right = torch.bmm(
+                F.softmax(hermitian_co_attention, dim=1).transpose(1, 2), encode_left)
             pool_left.masked_fill_(left_mask.unsqueeze(-1), 0)
             pool_right.masked_fill_(right_mask.unsqueeze(-1), 0)
 
             pool_left = torch.sum(pool_left, dim=1)
             pool_right = torch.sum(pool_right, dim=1)
         elif self._params['pooling_type'] == 'extractive':
-            pool_left = torch.matmul(F.softmax(hermitian_co_attention.max(dim=2)[0],
-                                               dim=-1)
-                                      .unsqueeze(1), encode_left).squeeze(1)
-            pool_right = torch.matmul(F.softmax(hermitian_co_attention.max(dim=1)[0],
-                                                dim=-1)
-                                       .unsqueeze(1), encode_right).squeeze(1)
+            pool_left = torch.matmul(
+                F.softmax(hermitian_co_attention.max(dim=2)[0], dim=-1)
+                .unsqueeze(1), encode_left).squeeze(1)
+            pool_right = torch.matmul(
+                F.softmax(hermitian_co_attention.max(dim=1)[0], dim=-1)
+                .unsqueeze(1), encode_right).squeeze(1)
 
         # Aggregataion
         # shape = [B, 4 * H] or [B, 8 * H]
@@ -221,8 +226,8 @@ class HCRN(BaseModel):
         # pack the sequence in order to feed into lstm
         sorted_length, permutation_index = length.sort(0, descending=True)
         sorted_input = input.index_select(0, permutation_index)
-        packed_input = pack_padded_sequence(sorted_input, sorted_length,
-                                            batch_first=True)
+        packed_input = pack_padded_sequence(
+            sorted_input, sorted_length, batch_first=True)
 
         packed_output, _ = self.lstm(packed_input)
         unpacked_output, _ = pad_packed_sequence(packed_output, batch_first=True)
