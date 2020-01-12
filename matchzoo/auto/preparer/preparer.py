@@ -159,14 +159,20 @@ class Preparer(object):
             return np.random.uniform(-0.2, 0.2, matrix_shape)
 
     def _build_dataset_builder(self, model, embedding_matrix, preprocessor):
-        builder_kwargs = dict(callbacks=[])
+        builder_kwargs = dict(
+            callbacks=[],
+            batch_size=self._config['batch_size'],
+            shuffle=self._config['shuffle'],
+            sort=self._config['sort']
+        )
 
         if isinstance(self._task.losses[0], (mz.losses.RankHingeLoss,
                                              mz.losses.RankCrossEntropyLoss)):
             builder_kwargs.update(dict(
                 mode='pair',
                 num_dup=self._config['num_dup'],
-                num_neg=self._config['num_neg']
+                num_neg=self._config['num_neg'],
+                resample=self._config['resample'],
             ))
 
         if isinstance(model, mz.models.CDSSM):
@@ -201,11 +207,7 @@ class Preparer(object):
 
     def _build_dataloader_builder(self, model, callback):
         builder_kwargs = dict(
-            batch_size=self._config['batch_size'],
             stage=self._config['stage'],
-            resample=self._config['resample'],
-            shuffle=self._config['shuffle'],
-            sort=self._config['sort'],
             callback=callback
         )
         return DataLoaderBuilder(**builder_kwargs)

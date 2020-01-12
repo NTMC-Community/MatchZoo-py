@@ -19,6 +19,7 @@ from .duet import DUET
 from .diin import DIIN
 from .match_srnn import MatchSRNN
 from .gsmnn import GSMNN
+from .re2 import RE2
 
 
 def list_available() -> list:

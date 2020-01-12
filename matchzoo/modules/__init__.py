@@ -11,3 +11,9 @@ from .semantic_composite import SemanticComposite
 from .dense_net import DenseNet
 from .matching_tensor import MatchingTensor
 from .spatial_gru import SpatialGRU
+from .encoder import Encoder
+from .alignment import Alignment
+from .fusion import Fusion
+from .fusion import FullFusion
+from .connection import AugmentedResidual
+from .pooling import Pooling
