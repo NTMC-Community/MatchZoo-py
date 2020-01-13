@@ -32,6 +32,8 @@ class MatchPyramid(BaseModel):
     def get_default_params(cls) -> ParamTable:
         """:return: model default parameters."""
         params = super().get_default_params(with_embedding=True)
+        params.add(Param(name='mask_value', value=0,
+                         desc="The value to be masked from inputs."))
         params.add(Param(name='kernel_count', value=[32],
                          desc="The kernel count of the 2D convolution "
                               "of each block."))
@@ -111,9 +113,16 @@ class MatchPyramid(BaseModel):
         embed_left = self.embedding(input_left.long())
         embed_right = self.embedding(input_right.long())
 
+        # Left and right input mask matrix
+        # shape = [B, L]
+        # shape = [B, R]
+        left_mask = (input_left == self._params['mask_value'])
+        right_mask = (input_right == self._params['mask_value'])
+
         # Compute matching signal
         # shape = [B, 1, L, R]
-        embed_cross = self.matching(embed_left, embed_right).unsqueeze(dim=1)
+        embed_cross = self.matching(
+            embed_left, embed_right, left_mask, right_mask).unsqueeze(dim=1)
 
         # Convolution
         # shape = [B, F, L, R]
