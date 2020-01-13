@@ -148,13 +148,9 @@ class DynamicClipAttention(nn.Module):
             raise ValueError(f"{clip_type} is not a valid clip type, "
                              f"{valid_clip_type} expected.")
         if clip_type == "max":
-            left_topk, right_topk = topk
-            self.left_topk = left_topk
-            self.right_topk = right_topk
+            self.left_topk, self.right_topk = topk
         else:
-            left_threshold, right_threshold = threshold
-            self.left_threshold = left_threshold
-            self.right_threshold = right_threshold
+            self.left_threshold, self.right_threshold = threshold
 
         self.clip_type = clip_type
 
