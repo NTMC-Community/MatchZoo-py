@@ -106,7 +106,7 @@ class MatchModule(nn.Module):
         return match
 
 
-class Dynamic_Clip_Attention(nn.Module):
+class DynamicClipAttention(nn.Module):
     """Computing the dynamic clip attention between two sequence.
 
     :param clip_type: Type of clip attention. `max` (i.e., Kmax attention)
@@ -124,7 +124,7 @@ class Dynamic_Clip_Attention(nn.Module):
 
     Examples:
         >>> import torch
-        >>> attention = Dynamic_Clip_Attention(clip_type='max', topk=(10, 5))
+        >>> attention = DynamicClipAttention(clip_type='max', topk=(10, 5))
         >>> v1 = torch.randn(4, 5, 10)
         >>> v1_mask = torch.ones(4, 5).to(dtype=torch.uint8)
         >>> v2 = torch.randn(4, 10, 10)

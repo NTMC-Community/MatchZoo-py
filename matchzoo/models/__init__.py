@@ -21,7 +21,7 @@ from .match_srnn import MatchSRNN
 from .gsmnn import GSMNN
 from .re2 import RE2
 from .hcrn import HCRN
-from .dynamic_clip import Dynamic_Clip
+from .dynamic_clip import DynamicClip
 
 def list_available() -> list:
     from matchzoo.engine.base_model import BaseModel

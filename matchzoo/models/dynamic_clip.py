@@ -15,12 +15,12 @@ from matchzoo.utils import parse_activation
 from matchzoo.modules import DynamicClipAttention
 
 
-class Dynamic_Clip(BaseModel):
+class DynamicClip(BaseModel):
     """
     Dynamic Clip Model.
 
     Examples:
-        >>> model = Dynamic_Clip()
+        >>> model = DynamicClip()
         >>> model.params['clip_type'] = 'max'
         >>> model.params['left_length'] = 10
         >>> model.params['right_length'] = 100
@@ -110,7 +110,7 @@ class Dynamic_Clip(BaseModel):
 
         self.embedding = self._make_default_embedding_layer()
         self.dropout = nn.Dropout(p=self._params['dropout'])
-        self.attention = Dynamic_Clip_Attention(
+        self.attention = DynamicClipAttention(
             clip_type=self._params['clip_type'],
             topk=(self._params['left_topk'], self._params['right_topk']),
             threshold=(self._params['left_threshold'], self._params['right_threshold']))
