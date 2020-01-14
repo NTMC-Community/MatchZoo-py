@@ -1,6 +1,7 @@
 from .attention import Attention
 from .attention import BidirectionalAttention
 from .attention import MatchModule
+from .attention import DynamicClipAttention
 from .dropout import RNNDropout
 from .stacked_brnn import StackedBRNN
 from .gaussian_kernel import GaussianKernel
