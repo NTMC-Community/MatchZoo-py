@@ -161,6 +161,9 @@ class Trainer:
                     "cuda" if torch.cuda.is_available() else "cpu")
             self._device = device
 
+        if isinstance(self._device, int):
+            self._device = torch.device(f"cuda:{self._device}")
+
         self._model.to(self._device)
 
     def _load_path(
