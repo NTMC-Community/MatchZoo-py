@@ -140,7 +140,7 @@ class DynamicClip(BaseModel):
         left_length = self._params['left_length']
         right_length = self._params['right_length']
         concat_length = left_length // ps + right_length // ps
-        self.W = nn.Linear(concat_length * self._params['hidden_dim'],
+        self.feature_to_dense = nn.Linear(concat_length * self._params['hidden_dim'],
                            self._params['hidden_dim'])
         self.out = self._make_output_layer(self._params['hidden_dim'])
 
@@ -207,7 +207,7 @@ class DynamicClip(BaseModel):
         rep_concat = torch.flatten(concat, start_dim=1)
 
         # Score.
-        score = self.W(rep_concat)
+        score = self.feature_to_dense(rep_concat)
 
         # Make output layer.
         out = self.out(score)
