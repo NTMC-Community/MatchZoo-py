@@ -140,8 +140,9 @@ class DynamicClip(BaseModel):
         left_length = self._params['left_length']
         right_length = self._params['right_length']
         concat_length = left_length // ps + right_length // ps
-        self.feature_to_dense = nn.Linear(concat_length * self._params['hidden_dim'],
-                           self._params['hidden_dim'])
+        self.feature_to_dense = nn.Linear(
+            concat_length * self._params['hidden_dim'],
+            self._params['hidden_dim'])
         self.out = self._make_output_layer(self._params['hidden_dim'])
 
     def forward(self, inputs):
