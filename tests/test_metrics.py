@@ -41,7 +41,7 @@ def test_average_precision():
 def test_mean_average_precision_at_k():
     label = [0, 1, 2]
     score = [0.1, 0.4, 0.2]
-    assert metrics.MeanAveragePrecision(k=1)(label, score) == 1.
+    assert metrics.MeanAveragePrecision(k=1)(label, score) == 0.5
     assert metrics.MeanAveragePrecision(k=3)(label, score) == 1.
 
 
