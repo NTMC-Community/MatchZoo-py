@@ -11,17 +11,19 @@ class MeanReciprocalRank(RankingMetric):
 
     ALIAS = ['mean_reciprocal_rank', 'mrr']
 
-    def __init__(self, threshold: float = 0.):
+    def __init__(self, k: int = 1, threshold: float = 0.):
         """
         :class:`MeanReciprocalRankMetric`.
 
+        :param k: Number of results to consider.
         :param threshold: The label threshold of relevance degree.
         """
+        self._k = k
         self._threshold = threshold
 
     def __repr__(self) -> str:
         """:return: Formated string representation of the metric."""
-        return f'{self.ALIAS[0]}({self._threshold})'
+        return f"{self.ALIAS[0]}@{self._k}({self._threshold})"
 
     def __call__(self, y_true: np.array, y_pred: np.array) -> float:
         """
@@ -31,15 +33,21 @@ class MeanReciprocalRank(RankingMetric):
             >>> import numpy as np
             >>> y_pred = np.asarray([0.2, 0.3, 0.7, 1.0])
             >>> y_true = np.asarray([1, 0, 0, 0])
-            >>> MeanReciprocalRank()(y_true, y_pred)
+            >>> MeanReciprocalRank(k=4)(y_true, y_pred)
             0.25
 
         :param y_true: The ground true label of each document.
         :param y_pred: The predicted scores of each document.
-        :return: Mean reciprocal rank.
+        :return: Mean reciprocal rank @ k.
+        :raises: ValueError: k must be greater than 0.
         """
+        if self._k <= 0:
+            raise ValueError(f"k must be greater than 0."
+                             f"{self._k} received.")
         coupled_pair = sort_and_couple(y_true, y_pred)
         for idx, (label, pred) in enumerate(coupled_pair):
+            if idx >= self._k:
+                break
             if label > self._threshold:
                 return 1. / (idx + 1)
         return 0.
