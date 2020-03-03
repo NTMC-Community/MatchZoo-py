@@ -38,9 +38,7 @@ class F1(ClassificationMetric):
         """
         y_pred = np.argmax(y_pred, axis=1)
 
-        tp = 0.
-        fp = 0.
-        fn = 0.
+        tp, fp, fn = 0., 0., 0.
         for label, score in zip(y_true, y_pred):
             if label > self._threshold and score > self._threshold:
                 tp += 1.

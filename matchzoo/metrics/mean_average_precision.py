@@ -18,6 +18,8 @@ class MeanAveragePrecision(RankingMetric):
         :param k: Number of results to consider.
         :param threshold: The threshold of relevance degree.
         """
+        if k <= 0:
+            raise ValueError(f"k must be greater than 0. {k} received.")
         self._k = k
         self._threshold = threshold
 
@@ -38,11 +40,7 @@ class MeanAveragePrecision(RankingMetric):
         :param y_true: The ground true label of each document.
         :param y_pred: The predicted scores of each document.
         :return: Mean average precision @ k.
-        :raises: ValueError: k must be greater than 0.
         """
-        if self._k <= 0:
-            raise ValueError(f"k must be greater than 0."
-                             f"{self._k} received.")
         result = 0.
         pos = 0
         coupled_pair = sort_and_couple(y_true, y_pred)

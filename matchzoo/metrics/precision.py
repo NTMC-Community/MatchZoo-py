@@ -18,6 +18,8 @@ class Precision(RankingMetric):
         :param k: Number of results to consider.
         :param threshold: the label threshold of relevance degree.
         """
+        if k <= 0:
+            raise ValueError(f"k must be greater than 0. {k} received.")
         self._k = k
         self._threshold = threshold
 
@@ -44,11 +46,7 @@ class Precision(RankingMetric):
         :param y_true: The ground true label of each document.
         :param y_pred: The predicted scores of each document.
         :return: Precision @ k.
-        :raises: ValueError: k must be greater than 0.
         """
-        if self._k <= 0:
-            raise ValueError(f"k must be greater than 0."
-                             f"{self._k} received.")
         coupled_pair = sort_and_couple(y_true, y_pred)
         precision = 0.0
         for idx, (label, score) in enumerate(coupled_pair):
