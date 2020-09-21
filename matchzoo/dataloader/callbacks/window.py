@@ -53,7 +53,7 @@ class Window(BaseCallback):
             x['window_of_term_right'][idx] = window_of_term
             x['window_position_of_term_right'][idx] = window_position_of_term
             x['window_num_of_term_right'][idx] = window_num_of_term
-        
+
         array_window_num_of_query_right = np.array([array.shape[0] for array in x['window_of_term_right']])
         array_window_of_term_right = _pad_sequence(x['window_of_term_right'], pad_value=-1)
         array_window_position_of_term_right = _pad_sequence(x['window_position_of_term_right'], pad_value=-1)
