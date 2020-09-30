@@ -22,6 +22,7 @@ from .gsmnn import GSMNN
 from .re2 import RE2
 from .hcrn import HCRN
 from .dynamic_clip import DynamicClip
+from .deep_rank import DeepRank
 
 def list_available() -> list:
     from matchzoo.engine.base_model import BaseModel
