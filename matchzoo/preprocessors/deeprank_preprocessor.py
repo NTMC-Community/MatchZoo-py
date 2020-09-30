@@ -16,16 +16,19 @@ tqdm.pandas()
 class DeepRankPreprocessor(BasePreprocessor):
     """
     DeepRank model preprocessor helper.
-        For pre-processing, all the words in documents and queries are white-space tokenized,
-        lower-cased, and stemmed using the Krovetz stemmer.
-        Stopword removal is performed on query and document words using the INQUERY stop list.
-        Words occurred less than 5 times in the collection are removed from all the document.
+
+        For pre-processing, all the words in documents and queries are white-space
+        tokenized, lower-cased, and stemmed using the Krovetz stemmer.
+        Stopword removal is performed on query and document words using the
+        INQUERY stop list.
+        Words occurred less than 5 times in the collection are removed from all
+        the document.
         Querys are truncated below a max_length.
 
     :param filter_low_freq: Float, lower bound value used by
         :class:`FrequenceFilterUnit`.
-    :param half_window_size: int, half of the match window size (not including the center word),
-        so the real window size is 2 * half_window_size + 1
+    :param half_window_size: int, half of the match window size (not including
+        the center word), so the real window size is 2 * half_window_size + 1
     :padding_token_index: int: vocabulary index of pad token, default 0
 
     Example:

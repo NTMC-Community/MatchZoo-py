@@ -11,17 +11,16 @@ class FrequencyCounter(StatefulUnit):
     Frequency counter unit.
 
     Examples::
+        >>> from collections import Counter
         >>> import matchzoo as mz
 
     To filter based on document frequency (df):
         >>> unit = mz.preprocessors.units.FrequencyCounter()
         >>> unit.fit([['A', 'B'], ['B', 'C']])
-        >>> unit.context(['A', 'B', 'C'])
-        {'tf': Counter({'A': 1, 'B': 2, 'C': 1}),
+        >>> unit.context
+        {'tf': Counter({'B': 2, 'A': 1, 'C': 1}),
          'df': Counter({'B': 2, 'A': 1, 'C': 1}),
-         'idf': Counter({'B': 1.0, 'A': 1.4054651081081644, 'C': 1.4054651081081644})}
-        >>> unit.transform(['A', 'B', 'C'])
-        ['A', 'B', 'C']
+         'idf': Counter({'A': 1.4054651081081644, 'C': 1.4054651081081644, 'B': 1.0})}
 
     """
 
@@ -61,3 +60,5 @@ class FrequencyCounter(StatefulUnit):
         for key, val in stats.most_common():
             stats[key] = np.log((1 + num_docs) / (1 + val)) + 1
         return stats
+
+
