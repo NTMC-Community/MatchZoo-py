@@ -279,7 +279,7 @@ class Trainer:
                         if self._early_stopping.is_best_so_far:
                             self._save()
                             pbar.write('Ran out of patience. Stop training...')
-                            break
+                        break
                     elif self._early_stopping.is_best_so_far:
                         self._save()
 
