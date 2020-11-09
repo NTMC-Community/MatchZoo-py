@@ -276,9 +276,10 @@ class Trainer:
                     # Early stopping
                     self._early_stopping.update(result)
                     if self._early_stopping.should_stop_early:
-                        self._save()
-                        pbar.write('Ran out of patience. Stop training...')
-                        break
+                        if self._early_stopping.is_best_so_far:
+                            self._save()
+                            pbar.write('Ran out of patience. Stop training...')
+                            break
                     elif self._early_stopping.is_best_so_far:
                         self._save()
 
