@@ -275,14 +275,12 @@ class Trainer:
                             f'{k}: {round(v, 4)}' for k, v in result.items()))
                     # Early stopping
                     self._early_stopping.update(result)
-                    if self._early_stopping.should_stop_early:
-                        if self._early_stopping.is_best_so_far:
-                            self._save()
-                            pbar.write('Ran out of patience. Stop training...')
-                        break
-                    elif self._early_stopping.is_best_so_far:
+                    if self._early_stopping.is_best_so_far:
                         self._save()
-
+                    if self._early_stopping.should_stop_early:
+                        pbar.write('Ran out of patience. Stop training...')
+                        break                     
+ 
     def evaluate(
         self,
         dataloader: DataLoader,
