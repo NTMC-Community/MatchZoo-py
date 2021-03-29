@@ -51,19 +51,14 @@ class RankHingeLoss(nn.Module):
         :param y_true: Label.
         :return: Hinge loss computed by user-defined margin.
         """
+
         y_pos = y_pred[::(self.num_neg + 1), :]
-        y_neg = []
+        y_negs = []
         for neg_idx in range(self.num_neg):
             neg = y_pred[(neg_idx + 1)::(self.num_neg + 1), :]
-            y_neg.append(neg)
-        y_neg = torch.cat(y_neg, dim=-1)
-        y_neg = torch.mean(y_neg, dim=-1, keepdim=True)
-        y_true = torch.ones_like(y_pos)
-        return F.margin_ranking_loss(
-            y_pos, y_neg, y_true,
-            margin=self.margin,
-            reduction=self.reduction
-        )
+            y_negs.append(neg)
+        losses = [F.margin_ranking_loss(y_pos, neg, torch.ones_like(y_pos), margin=self.margin) for neg in y_negs]
+        return torch.mean(torch.stack(losses))
 
     @property
     def num_neg(self):
