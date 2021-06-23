@@ -15,6 +15,8 @@ from .word_hashing import WordHashing
 from .character_index import CharacterIndex
 from .word_exact_match import WordExactMatch
 from .truncated_length import TruncatedLength
+from .frequency_counter import FrequencyCounter
+from .padding_left_and_right import PaddingLeftAndRight
 
 
 def list_available() -> list:
