@@ -116,8 +116,20 @@ class Dataset(data.Dataset):
         """Create a generator that iterate over the Batches."""
         if self._resample or self._shuffle:
             self.on_epoch_end()
-        for i in range(len(self)):
-            yield self[i]
+        
+        worker_info = data.get_worker_info()
+        if worker_info is None:
+            # single-process 
+            for i in range(len(self)):
+                yield self[i]
+        else:
+            # multi-process, split workload across all workers
+            per_work_load = int(math.ceil(len(self) / float(worker_info.num_workers)))
+            worker_id = worker_info.id
+            iter_start = worker_id * per_work_load
+            iter_end = min(iter_start + per_work_load, len(self))
+            for i in range(iter_start, iter_end):
+                yield self[i]
 
     def on_epoch_end(self):
         """Reorganize the index array if needed."""
