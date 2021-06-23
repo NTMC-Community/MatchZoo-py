@@ -11,10 +11,10 @@ def test_sort_and_couple():
     assert (c == np.array([(1, 0.4), (2, 0.2), (0, 0.1)])).all()
 
 
-def test_mean_reciprocal_rank():
+def test_mean_reciprocal_rank_at_k():
     label = [0, 1, 2]
     score = [0.1, 0.4, 0.2]
-    assert metrics.MeanReciprocalRank()(label, score) == 1
+    assert metrics.MeanReciprocalRank(k=1)(label, score) == 1
 
 
 def test_precision_at_k():
@@ -25,16 +25,24 @@ def test_precision_at_k():
     assert round(metrics.Precision(k=3)(label, score), 2) == 0.67
 
 
+def test_recall_at_k():
+    label = [0, 1, 2]
+    score = [0.1, 0.4, 0.2]
+    assert metrics.Recall(k=1)(label, score) == 0.5
+    assert metrics.Recall(k=3)(label, score) == 1.
+
+
 def test_average_precision():
     label = [0, 1, 2]
     score = [0.1, 0.4, 0.2]
     assert round(metrics.AveragePrecision()(label, score), 2) == 0.89
 
 
-def test_mean_average_precision():
+def test_mean_average_precision_at_k():
     label = [0, 1, 2]
     score = [0.1, 0.4, 0.2]
-    assert metrics.MeanAveragePrecision()(label, score) == 1.
+    assert metrics.MeanAveragePrecision(k=1)(label, score) == 0.5
+    assert metrics.MeanAveragePrecision(k=3)(label, score) == 1.
 
 
 def test_dcg_at_k():
@@ -59,6 +67,12 @@ def test_accuracy():
     label = np.array([1])
     score = np.array([[0, 1]])
     assert metrics.Accuracy()(label, score) == 1
+
+
+def test_f1():
+    label = np.array([1, 1, 0, 0])
+    score = np.array([[0.2, 0.8], [0.6, 0.4], [0.7, 0.3], [0.3, 0.7]])
+    assert metrics.F1()(label, score) == 0.5
 
 
 def test_cross_entropy():
